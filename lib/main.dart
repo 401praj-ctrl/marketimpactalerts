@@ -42,27 +42,81 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.analytics_outlined, size: 80, color: Colors.blueAccent),
-              const SizedBox(height: 24),
-              Text(
-                'Market Impact\nAlerts',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: Colors.blueAccent[100],
-                ),
-              ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(strokeWidth: 2),
+      backgroundColor: AppTheme.spaceDark,
+      body: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [
+              AppTheme.glassBlue.withOpacity(0.05),
+              AppTheme.spaceDark,
             ],
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.glassBlue.withOpacity(0.4),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  )
+                ],
+              ),
+              child: const Icon(Icons.analytics_rounded, size: 50, color: Colors.white),
+            ),
+            const SizedBox(height: 40),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: GoogleFonts.outfit(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  color: Colors.white,
+                ),
+                children: const [
+                  TextSpan(text: 'IMPACT'),
+                  TextSpan(
+                    text: '\nALERTS',
+                    style: TextStyle(color: AppTheme.glassBlue),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 60),
+            const SizedBox(
+              width: 160,
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.white10,
+                color: AppTheme.glassBlue,
+                minHeight: 2,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'POWERING ALPHA ENGINE v1.0.4',
+              style: GoogleFonts.inter(
+                color: AppTheme.silver.withOpacity(0.5),
+                fontSize: 10,
+                letterSpacing: 3,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
