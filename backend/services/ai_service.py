@@ -108,7 +108,13 @@ def get_relevant_examples(headline, limit=3):
     # Return top N examples
     return [ex for score, ex in scored_examples[:limit]]
 
+# Track keys that are out of credits to avoid retrying them in the same session
+depleted_keys = set()
+
 async def analyze_headline(headline_text):
+    # ... existing RAG-lite code ...
+    
+    # [Lines 108-154 truncated for brevity in thought, but included in tool call]
     # RAG-lite: Fetch relevant training examples
     relevant_examples = get_relevant_examples(headline_text, limit=3)
     examples_text = ""
@@ -161,6 +167,9 @@ async def analyze_headline(headline_text):
             print(f"    > Attempting model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
+                # Skip keys that were previously found to be out of credits
+                if api_key in depleted_keys:
+                    continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
                     print(f"      >> Trying Key {i+1} ({display_key}) on model {model}")
@@ -200,6 +209,10 @@ async def analyze_headline(headline_text):
                                 data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
                             
                         return data
+                    elif response.status_code == 402:
+                        print(f"      >> Key {i+1} is out of credits (402). Skipping for this session.")
+                        depleted_keys.add(api_key)
+                        continue
                     elif response.status_code == 404:
                         # Silently skip 404s (Model not supported on this key)
                         print(f"      >> Model {model} not found on Key {i+1}. Skipping.")
@@ -210,6 +223,9 @@ async def analyze_headline(headline_text):
                     else:
                         # Other errors -> Try next key
                         print(f"      >> Error {response.status_code} on {model}: {response.text[:100]}...")
+                        # Map 401 specifically for logging
+                        if response.status_code == 401:
+                             print(f"         WARNING: Key {i+1} might be invalid.")
                         continue
                 except Exception as e:
                     print(f"      >> Exception with Key {i+1}: {e}")
@@ -273,24 +289,31 @@ async def perform_deep_analysis(full_content, headline):
             print(f"    > Attempting DEEP analysis with model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
+                if api_key in depleted_keys:
+                    continue
                 try:
+                    display_key = f"{api_key[:6]}...{api_key[-4:]}"
+                    print(f"      >> Trying Key {i+1} ({display_key}) for DEEP analysis")
                     response = await client.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
                         headers={
-                            "Authorization": f"Bearer {api_key}",
+                            "Authorization": f"Bearer {api_key.strip()}",
                             "Content-Type": "application/json",
-                            "HTTP-Referer": "http://localhost:8000",
+                            "HTTP-Referer": "https://market-impact-alerts.onrender.com",
+                            "X-Title": "Market Impact Alerts",
                         },
                         json={
                             "model": model, 
-                            "messages": [{"role": "user", "content": prompt}],
-                            "response_format": { "type": "json_object" }
+                            "messages": [{"role": "user", "content": prompt}]
                         },
                         timeout=50
                     )
                     
                     if response.status_code == 200:
                         result = response.json()
+                        if 'choices' not in result:
+                            print(f"      >> Unexpected response: {result}")
+                            continue
                         content = result['choices'][0]['message']['content']
                         content = content.replace('```json', '').replace('```', '').strip()
                         data = json.loads(content)
@@ -305,10 +328,18 @@ async def perform_deep_analysis(full_content, headline):
                                 data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
                             
                         return data
+                    elif response.status_code == 402:
+                        print(f"      >> Key {i+1} is out of credits (402). Skipping.")
+                        depleted_keys.add(api_key)
+                        continue
+                    elif response.status_code == 429:
+                        print(f"      >> Rate limit (429) on DEEP analysis. Rotating...")
+                        continue
                     else:
                         print(f"      >> Deep Analysis Error {response.status_code} with Key {i+1}")
+                        continue
                 except Exception as e:
-                    print(f"      >> Deep Analysis Exception: {e}")
+                    print(f"      >> Deep Analysis Exception with Key {i+1}: {e}")
                     continue
     return None
 
