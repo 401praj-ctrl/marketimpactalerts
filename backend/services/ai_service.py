@@ -57,9 +57,9 @@ if not API_KEYS:
 if not API_KEYS:
     print("DEBUG: No API keys found in environment. Using fallback hardcoded keys.")
     API_KEYS = [
-        "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",
-        "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",
-        "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",
+        "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",
+        "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",
+        "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",
         "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",
         "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"
     ]
