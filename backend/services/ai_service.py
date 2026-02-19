@@ -39,26 +39,23 @@ def validate_company_name(name):
         return match
     return name
 
-# Updated API Keys provided by user
-# Read API keys from environment variables
+# Updated API Keys logic: Check generic and indexed versions
 API_KEYS = []
-for i in range(1, 6):
-    key = os.environ.get(f"OPENROUTER_API_KEY_{i}")
-    if key:
-        API_KEYS.append(key.strip())
+potential_key_names = ["OPENROUTER_API_KEY"] + [f"OPENROUTER_API_KEY_{i}" for i in range(1, 6)]
 
-# Fallback if no specific keys found (check generic)
-if not API_KEYS:
-    generic_key = os.environ.get("OPENROUTER_API_KEY")
-    if generic_key:
-        API_KEYS.append(generic_key.strip())
+for kn in potential_key_names:
+    val = os.environ.get(kn)
+    if val and val.strip():
+        key_strip = val.strip()
+        if key_strip not in API_KEYS:
+            API_KEYS.append(key_strip)
 
 # Last resort hardcoded keys (REMOVED FOR SECURITY)
 if not API_KEYS:
-    print("WARNING: No API keys found in environment. AI features will be disabled until keys are set in Render.")
+    print("WARNING: No API keys found in environment. AI features will be disabled until keys are set.")
     API_KEYS = []
 else:
-    print(f"DEBUG: Successfully loaded {len(API_KEYS)} API keys from environment.")
+    print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique API keys from environment.")
 
 # Models in order of preference: Primary -> Backup
 MODELS = [
