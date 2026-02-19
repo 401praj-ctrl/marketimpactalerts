@@ -53,16 +53,10 @@ if not API_KEYS:
     if generic_key:
         API_KEYS.append(generic_key.strip())
 
-# Last resort hardcoded keys (kept for absolute safety but environment is preferred)
+# Last resort hardcoded keys (REMOVED FOR SECURITY)
 if not API_KEYS:
-    print("DEBUG: No API keys found in environment. Using fallback hardcoded keys.")
-    API_KEYS = [
-        "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",
-        "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",
-        "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",
-        "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",
-        "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"
-    ]
+    print("WARNING: No API keys found in environment. AI features will be disabled until keys are set in Render.")
+    API_KEYS = []
 else:
     print(f"DEBUG: Successfully loaded {len(API_KEYS)} API keys from environment.")
 
