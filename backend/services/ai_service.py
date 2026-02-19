@@ -69,8 +69,8 @@ else:
 # Models in order of preference: Primary -> Backup
 MODELS = [
     "openai/gpt-3.5-turbo", # Fast, reliable
-    "openai/gpt-oss-20b:free", 
-    "google/gemini-2.0-flash-lite-preview-02-05:free", # Added reliable fast model
+    "google/gemini-2.0-flash-exp:free", # Reliable fast model
+    "google/gemini-2.0-flash-lite-preview-02-05:free",
     "google/gemma-3-12b-it:free",
     "mistralai/mistral-7b-instruct:free"
 ]
