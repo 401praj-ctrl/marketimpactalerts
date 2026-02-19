@@ -8,6 +8,8 @@ class AppTheme {
   static const Color glassBlue = Color(0xFF38BDF8);
   static const Color accentCyan = Color(0xFF22D3EE);
   static const Color silver = Color(0xFF94A3B8);
+  static const Color white05 = Color(0x0DFFFFFF);
+  static const Color white10 = Color(0x1AFFFFFF);
   
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
@@ -41,7 +43,7 @@ class AppTheme {
       ),
     ),
     
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: cardDark,
       elevation: 8,
       shadowColor: Colors.black45,

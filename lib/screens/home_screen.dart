@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: _buildAppLogoTitle(),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppTheme.glassBlue),
+            icon: Icon(Icons.refresh_rounded, color: AppTheme.glassBlue),
             onPressed: () async {
               setState(() => _isLoading = true);
               await _apiService.refreshAlerts();
@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
-          const Expanded(child: Divider(color: Colors.white10)),
+          const Expanded(child: Divider(color: AppTheme.white10)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
@@ -205,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const Expanded(child: Divider(color: Colors.white10)),
+          const Expanded(child: Divider(color: AppTheme.white10)),
         ],
       ),
     );
@@ -378,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
       decoration: BoxDecoration(
         color: AppTheme.cardDark.withOpacity(0.5),
-        border: const Border(bottom: BorderSide(color: Colors.white05)),
+        border: const Border(bottom: BorderSide(color: AppTheme.white05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
