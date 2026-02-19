@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 # Add the current directory (backend) to sys.path so 'services' can be imported
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -45,14 +46,54 @@ async def health():
 
 import asyncio
 
-# In-memory cache for alerts to simulate a real backend
-cached_alerts = []
+# File-based persistence for alerts
+ALERTS_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+ALERTS_FILE = os.path.join(ALERTS_DATA_DIR, "cached_alerts.json")
+os.makedirs(ALERTS_DATA_DIR, exist_ok=True)
+
+def load_alerts():
+    if os.path.exists(ALERTS_FILE):
+        try:
+            with open(ALERTS_FILE, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"ERROR loading alerts: {e}")
+    return []
+
+def save_alerts(alerts):
+    try:
+        with open(ALERTS_FILE, "w") as f:
+            json.dump(alerts, f, indent=2)
+    except Exception as e:
+        print(f"ERROR saving alerts: {e}")
+
+# Processed links persistence
+PROCESSED_FILE = os.path.join(ALERTS_DATA_DIR, "processed_links.json")
+
+def load_processed():
+    if os.path.exists(PROCESSED_FILE):
+        try:
+            with open(PROCESSED_FILE, "r") as f:
+                return set(json.load(f))
+        except Exception as e:
+            print(f"ERROR loading processed links: {e}")
+    return set()
+
+def save_processed(links):
+    try:
+        with open(PROCESSED_FILE, "w") as f:
+            json.dump(list(links), f)
+    except Exception as e:
+        print(f"ERROR saving processed links: {e}")
+
+# In-memory cache for alerts, initialized from disk
+cached_alerts = load_alerts()
 
 # Lock to prevent concurrent analysis
 analysis_lock = asyncio.Lock()
 
-# Set to track already analyzed headline links
-processed_links = set()
+# Set to track already analyzed headline links, initialized from disk
+processed_links = load_processed()
 
 
 from services.ai_service import identify_high_impact_events, perform_deep_analysis
@@ -157,13 +198,15 @@ async def run_analysis(source="AUTOMATED"):
             # Record these as processed
             for h in batch:
                 processed_links.add(h['link'])
+            save_processed(processed_links)
 
             if final_alerts:
                 global cached_alerts
                 # Add new alerts to the front
                 cached_alerts = final_alerts + cached_alerts
                 # Limit cache size
-                cached_alerts = cached_alerts[:50]
+                cached_alerts = cached_alerts[:100]
+                save_alerts(cached_alerts)
                 print(f"SUCCESS: Added {len(final_alerts)} new market impact alerts.")
             else:
                 print("DEBUG: No significant market impact detected in Pass 1 batch.")
