@@ -188,7 +188,7 @@ async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
     return cached_alerts
 
-from fastapi import FastAPI, BackgroundTasks, Middleware
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 # ... existing imports ...
 
