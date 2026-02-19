@@ -45,16 +45,17 @@ API_KEYS = []
 for i in range(1, 6):
     key = os.environ.get(f"OPENROUTER_API_KEY_{i}")
     if key:
-        API_KEYS.append(key)
+        API_KEYS.append(key.strip())
 
 # Fallback if no specific keys found (check generic)
 if not API_KEYS:
     generic_key = os.environ.get("OPENROUTER_API_KEY")
     if generic_key:
-        API_KEYS.append(generic_key)
+        API_KEYS.append(generic_key.strip())
 
 # Last resort hardcoded keys (kept for absolute safety but environment is preferred)
 if not API_KEYS:
+    print("DEBUG: No API keys found in environment. Using fallback hardcoded keys.")
     API_KEYS = [
         "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",
         "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",
@@ -62,6 +63,8 @@ if not API_KEYS:
         "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",
         "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"
     ]
+else:
+    print(f"DEBUG: Successfully loaded {len(API_KEYS)} API keys from environment.")
 
 # Models in order of preference: Primary -> Backup
 MODELS = [
@@ -159,12 +162,12 @@ async def analyze_headline(headline_text):
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
                 try:
-                    display_key = f"...{api_key[-6:]}"
-                    # print(f"      >> Trying Key {i+1} ({display_key})")
+                    display_key = f"{api_key[:6]}...{api_key[-4:]}"
+                    print(f"      >> Trying Key {i+1} ({display_key})")
                     response = await client.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
                         headers={
-                            "Authorization": f"Bearer {api_key}",
+                            "Authorization": f"Bearer {api_key.strip()}",
                             "Content-Type": "application/json",
                             "HTTP-Referer": "http://localhost:8000", # Required by OpenRouter for free tier
                         },
