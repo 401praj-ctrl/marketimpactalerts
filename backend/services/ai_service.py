@@ -163,13 +163,14 @@ async def analyze_headline(headline_text):
                 if not api_key: continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
-                    print(f"      >> Trying Key {i+1} ({display_key})")
+                    print(f"      >> Trying Key {i+1} ({display_key}) on model {model}")
                     response = await client.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
                         headers={
                             "Authorization": f"Bearer {api_key.strip()}",
                             "Content-Type": "application/json",
-                            "HTTP-Referer": "http://localhost:8000", # Required by OpenRouter for free tier
+                            "HTTP-Referer": "https://market-impact-alerts.onrender.com",
+                            "X-Title": "Market Impact Alerts",
                         },
                         json={
                             "model": model,

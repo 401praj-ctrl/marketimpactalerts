@@ -130,8 +130,10 @@ async def run_analysis(source="AUTOMATED"):
             for candidate in candidates:
                 # Selective trigger: if probability > 70 or strength is high
                 if candidate.get('probability', 0) >= 70 or candidate.get('strength') == 'high':
-                    print(f"  --> TRIGERING PASS 2 DEEP DIVE for: {candidate['event']}")
+                    print(f"  --> TRIGGERING PASS 2 DEEP DIVE for: {candidate['event']}")
+                    print(f"      Source URL: {candidate['link']}")
                     full_text = await fetch_article_content(candidate['link'])
+                    print(f"      Scraped content length: {len(full_text)} characters.")
                     deep_report = await perform_deep_analysis(full_text, candidate['event'])
                     
                     if deep_report:
