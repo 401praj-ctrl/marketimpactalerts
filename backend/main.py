@@ -188,14 +188,18 @@ async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
     return cached_alerts
 
+from fastapi import FastAPI, BackgroundTasks, Middleware
+from fastapi.middleware.cors import CORSMiddleware
+# ... existing imports ...
+
 @app.post("/refresh")
-async def refresh_alerts():
+async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\n" + "!"*50)
-    print("RECEIVED USER REFRESH REQUEST")
+    print("RECEIVED USER REFRESH REQUEST (Backgrounding)")
     print("!"*50 + "\n")
-    # Trigger analysis manually (respecting the lock)
-    await run_analysis(source="USER REQUESTED")
-    return cached_alerts
+    # Add to background tasks so the response returns immediately
+    background_tasks.add_task(run_analysis, source="USER REQUESTED")
+    return {"status": "Analysis started in background", "message": "Check back in a minute for updates."}
 
 import os
 
