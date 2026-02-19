@@ -1,0 +1,38 @@
+{
+  "https://news.google.com/rss/articles/CBMid0FVX3lxTFBuZmJtOEdLVG11bmRRaUdKSlQyN3ZxU080SjBPME9YR1h1akl1MWRSN3ZfVm9TOWRsNnZkaTd5bE9zU202UVlrcHpNRTlqMDltQ0RsRE9mU0JTNU9TRWlQNU9vbHluQ1NGMk90b3Rxb2xhOGFKMy1F0gF8QVVfeXFMT1M3VmlvNmhmMk5JTTBhMnhuWUVHMWRjZk12NTRzbG9OUk53LXNQUkh1WS1sc3FXWnJPMkIwREp1N1lwLUlnZV9CMFU5QUp0ZWVRYW5KZXAxdVE3OXkzMFBsaVF3dkNPT0RQUlp3WTNhSERyMEx5WVlSeDh6Sg?oc=5": {
+    "news": "S&P 500 rises, led by Nvidia, even with Fed rate outlook uncertain: Live updates - CNBC",
+    "company": "NVIDIA",
+    "ticker": "NVDA",
+    "price_start": 187.97999572753906,
+    "start_time": 1771481868.156978,
+    "sector": "Unknown",
+    "date": "2026-02-19T11:47:48.156977"
+  },
+  "https://news.google.com/rss/articles/CBMirwFBVV95cUxNY3NUZDdJaHQ3dnJzVUhoc1UwYmNSVkMtVmF4NUlrenFrMERNa2NMMC0wUEc0RVgxYmpNazRjV2JxQ0RydXBpWWNCOUc2M2lFd2FfelpEUm5QcFVfaTB1UE1hUjhLT3Jqci1GWk5wek9CQnB2SmU4aUJkQjFYQXNISW5FaC1EdkJTNlpCd2w2dlB0ZmJLT191dVR1Tk5aMWYwQkRiUVFFTmFYX0J3M253?oc=5": {
+    "news": "Apple Decouples From Nasdaq, Offering Alternative to AI-Fueled Volatility - Bloomberg.com",
+    "company": "APPLE",
+    "ticker": "AAPL",
+    "price_start": 264.3500061035156,
+    "start_time": 1771482337.8413453,
+    "sector": "Unknown",
+    "date": "2026-02-19T11:55:37.841345"
+  },
+  "https://economictimes.indiatimes.com/markets/stocks/news/tcs-shares-rise-2-after-tata-group-and-openai-announce-strategic-partnership/articleshow/128542438.cms": {
+    "news": "TCS shares rise 2% after Tata Group and OpenAI announce strategic partnership",
+    "company": "TCS",
+    "ticker": "TCS.NS",
+    "price_start": 2700.60009765625,
+    "start_time": 1771483819.5779061,
+    "sector": "Unknown",
+    "date": "2026-02-19T12:20:19.577906"
+  },
+  "https://news.google.com/rss/articles/CBMif0FVX3lxTE1zalpYQ0NxdnFRaktsX3Nfb3kwTHVmb0RGNVJOd0VpOWphalhST0ZPaEVpMUcyRElTSG1STm9NLV9JenlIRTZEbVc0RUMtUDFiSW96M1NvRXEzaWhGUXdhNGtGam5GdXR6Tm5aTFpDT0dUQ2lCUVBmQ0ZCdG1WQjQ?oc=5": {
+    "news": "Institutional Bulk & Block Deals Surge in Indian Markets on May 29, 2025 - HDFC Sky",
+    "company": "HDFC",
+    "ticker": "HDFCBANK.NS",
+    "price_start": 917.9500122070312,
+    "start_time": 1771483828.5822234,
+    "sector": "Unknown",
+    "date": "2026-02-19T12:20:28.582223"
+  }
+}

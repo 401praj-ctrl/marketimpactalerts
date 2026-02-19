@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*$py.class
+\env
+\venv
+.env
+.DS_Store
+backend/logs/
+backend/data/real_impact_dataset.jsonl
+backend/data/training_examples.json
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+ios/Flutter/
+android/local.properties
