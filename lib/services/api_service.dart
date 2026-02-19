@@ -3,7 +3,11 @@ import 'package:http/http.dart' as http;
 import '../models/event_alert.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000'; 
+  // 1. LOCAL (Testing)
+  // static const String baseUrl = 'http://localhost:8000'; 
+  
+  // 2. LIVE (Render) 
+  static const String baseUrl = 'https://market-impact-backend.onrender.com';
 
   Future<List<EventAlert>> fetchAlerts() async {
     print('ApiService: Fetching alerts from $baseUrl/alerts...');
