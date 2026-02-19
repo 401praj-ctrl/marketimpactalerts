@@ -141,17 +141,43 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.all(6),
+          height: 32,
+          width: 32,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [AppTheme.glassBlue, AppTheme.accentCyan.withOpacity(0.5)],
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
             ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.glassBlue.withOpacity(0.3),
+                blurRadius: 8,
+                spreadRadius: 1,
+              )
+            ],
           ),
-          child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+          child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 18),
         ),
-        const SizedBox(width: 10),
-        const Text('IMPACT ALERTS'),
+        const SizedBox(width: 12),
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              color: Colors.white,
+            ),
+            children: const [
+              TextSpan(text: 'IMPACT'),
+              TextSpan(
+                text: ' ALERTS',
+                style: TextStyle(color: AppTheme.glassBlue),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -215,10 +241,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final impactColor = AppTheme.getImpactColor(alert.impactDirection);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: AppTheme.glassDecoration(),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: AppTheme.cardDark.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.white05, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -227,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (context) => AlertDetailsScreen(alert: alert)),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -236,40 +273,56 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildImpactBadge(alert.impactDirection, impactColor),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white24, size: 20),
+                        icon: const Icon(Icons.close_rounded, color: Colors.white24, size: 22),
                         onPressed: () => _showDeleteConfirmation(alert),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     alert.event,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      height: 1.3,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      Icon(Icons.layers_outlined, size: 14, color: AppTheme.silver.withOpacity(0.5)),
-                      const SizedBox(width: 6),
+                      Icon(Icons.layers_rounded, size: 16, color: AppTheme.silver),
+                      const SizedBox(width: 8),
                       Text(
-                        alert.sector,
-                        style: TextStyle(color: AppTheme.silver.withOpacity(0.5), fontSize: 13),
+                        alert.sector.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          color: AppTheme.silver,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                       const Spacer(),
-                      Text(
-                        '${alert.probability}% CONFIDENCE',
-                        style: const TextStyle(
-                          color: AppTheme.accentCyan,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.glassBlue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${alert.probability}% CONFIDENCE',
+                          style: GoogleFonts.inter(
+                            color: AppTheme.glassBlue,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildStockChips(alert.stocks),
                 ],
               ),
@@ -375,29 +428,48 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDrawerHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+      padding: const EdgeInsets.fromLTRB(24, 64, 24, 32),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark.withOpacity(0.5),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.spaceDark, AppTheme.cardDark.withOpacity(0.8)],
+        ),
         border: const Border(bottom: BorderSide(color: AppTheme.white05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            height: 56,
+            width: 56,
             decoration: BoxDecoration(
-              color: AppTheme.glassBlue.withOpacity(0.1),
               shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.glassBlue.withOpacity(0.2),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                )
+              ],
             ),
-            child: const Icon(Icons.analytics_rounded, size: 40, color: AppTheme.glassBlue),
+            child: const Icon(Icons.analytics_rounded, size: 32, color: Colors.white),
           ),
-          const SizedBox(height: 20),
-          const Text(
+          const SizedBox(height: 24),
+          Text(
             'MARKET IMPACT',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1),
+            style: GoogleFonts.outfit(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: Colors.white,
+            ),
           ),
           const Text(
-            'Alpha Engine v1.0',
+            'Alpha Engine v1.0.4',
             style: TextStyle(color: AppTheme.silver, fontSize: 13, letterSpacing: 1),
           ),
         ],

@@ -34,12 +34,14 @@ class AppTheme {
     
     appBarTheme: const AppBarTheme(
       backgroundColor: spaceDark,
+      foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        letterSpacing: 0.5,
+        color: Colors.white,
+        letterSpacing: 1.2,
       ),
     ),
     
