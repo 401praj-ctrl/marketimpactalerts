@@ -46,4 +46,22 @@ class EventAlert {
       articleSummary: json['article_summary'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'event': event,
+      'company': company,
+      'sector': sector,
+      'stocks': stocks,
+      'impact_direction': impactDirection,
+      'impact_description': impactDescription,
+      'event_date': eventDate,
+      'impact_date_est': impactDateEst,
+      'probability': probability,
+      'reason': reason,
+      'timestamp': timestamp,
+      'article_summary': articleSummary,
+    };
+  }
 }

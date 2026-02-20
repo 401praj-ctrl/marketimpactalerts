@@ -1,0 +1,47 @@
+Analyzing market_impact_alerts...                               
+
+   info - Don't invoke 'print' in production code - lib\main.dart:15:5 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:111:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\main.dart:135:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:29:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:31:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:34:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:55:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:98:87 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:116:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:118:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:149:29 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\alert_details_screen.dart:160:75 - deprecated_member_use
+warning - Unused import: 'dart:math' - lib\screens\home_screen.dart:13:8 - unused_import
+  error - The method 'showNotification' isn't defined for the type 'NotificationService' - lib\screens\home_screen.dart:117:31 - undefined_method
+   info - Unnecessary use of 'toList' in a spread - lib\screens\home_screen.dart:201:67 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:248:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:253:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:313:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:342:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:344:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:371:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:373:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:438:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:519:79 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\screens\settings_screen.dart:126:9 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:16:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:18:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:22:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:26:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:35:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\api_service.dart:37:7 - avoid_print
+   info - The imported package 'onesignal_flutter' isn't a dependency of the importing package - lib\services\notification_service.dart:1:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: 'package:onesignal_flutter/onesignal_flutter.dart' - lib\services\notification_service.dart:1:8 - uri_does_not_exist
+  error - Undefined name 'OneSignal' - lib\services\notification_service.dart:8:7 - undefined_identifier
+  error - Undefined name 'OSLogLevel' - lib\services\notification_service.dart:8:35 - undefined_identifier
+  error - Undefined name 'OneSignal' - lib\services\notification_service.dart:12:5 - undefined_identifier
+  error - Undefined name 'OneSignal' - lib\services\notification_service.dart:17:11 - undefined_identifier
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\theme\app_theme.dart:32:7 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_theme.dart:70:27 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_theme.dart:72:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\app_logo.dart:34:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\app_logo.dart:119:30 - deprecated_member_use
+

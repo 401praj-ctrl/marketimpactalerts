@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/event_alert.dart';
 import '../theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AlertDetailsScreen extends StatelessWidget {
   final EventAlert alert;

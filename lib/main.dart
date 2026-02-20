@@ -1,9 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:market_impact_alerts/theme/app_theme.dart';
 import 'package:market_impact_alerts/screens/home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:market_impact_alerts/widgets/app_logo.dart';
+import 'package:market_impact_alerts/services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MarketImpactApp());
+void main() async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await NotificationService.init();
+    runApp(const MarketImpactApp());
+  } catch (e, stackTrace) {
+    print('Initialization Error: $e');
+    runApp(ErrorApp(error: e.toString(), stackTrace: stackTrace));
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final String error;
+  final StackTrace? stackTrace;
+  const ErrorApp({super.key, required this.error, this.stackTrace});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 50),
+              const SizedBox(height: 20),
+              const Text('Startup Error', style: TextStyle(color: Colors.white, fontSize: 20)),
+              const SizedBox(height: 10),
+              Text(error, style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 10),
+              if (stackTrace != null)
+                Text(stackTrace.toString(), style: const TextStyle(color: Colors.white30, fontSize: 10)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MarketImpactApp extends StatelessWidget {
@@ -31,12 +73,28 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+    _checkFirstLaunch();
+    _navigateToHome();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('is_first_launch') ?? true;
+    
+    if (isFirstLaunch) {
+      await NotificationService.requestPermissions();
+      await prefs.setBool('is_first_launch', false);
+    }
+  }
+
+  Future<void> _navigateToHome() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
-    });
+    }
   }
 
   @override
@@ -58,45 +116,9 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.glassBlue.withOpacity(0.4),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  )
-                ],
-              ),
-              child: const Icon(Icons.analytics_rounded, size: 50, color: Colors.white),
-            ),
+            const AppLogo(size: 80, showText: false),
             const SizedBox(height: 40),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: GoogleFonts.outfit(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                  color: Colors.white,
-                ),
-                children: const [
-                  TextSpan(text: 'IMPACT'),
-                  TextSpan(
-                    text: '\nALERTS',
-                    style: TextStyle(color: AppTheme.glassBlue),
-                  ),
-                ],
-              ),
-            ),
+            const AppLogo(showText: true, isLarge: true, size: 0), // Use 0 size to just show high-res text part
             const SizedBox(height: 60),
             const SizedBox(
               width: 160,
@@ -108,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'POWERING ALPHA ENGINE v1.0.4',
+              'POWERING ALPHA ENGINE v1.0.5',
               style: GoogleFonts.inter(
                 color: AppTheme.silver.withOpacity(0.5),
                 fontSize: 10,

@@ -1,0 +1,357 @@
+Initialized native services in: C:\Users\401pr\.gradle\native
+Initialized jansi services in: C:\Users\401pr\.gradle\native
+Found daemon DaemonInfo{pid=17656, address=[5d1765c2-7dfc-4b59-8f56-4500cac722d4 port:64195, addresses:[/127.0.0.1]], state=Idle, lastBusy=1769224009815, context=DefaultDaemonContext[uid=a99485d3-e255-4dc2-8ecf-b90c5e39015e,javaHome=C:\Program Files\Eclipse Adoptium\jdk-25.0.1.8-hotspot,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\401pr\.gradle\daemon,pid=17656,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=IN,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot (no JDK specified, using current Java home), daemonOpts=[-XX:MaxMetaspaceSize=4G, -XX:ReservedCodeCacheSize=512m, -XX:+HeapDumpOnOutOfMemoryError, -Xmx8G, -Dfile.encoding=windows-1252, -Duser.country=IN, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=a99485d3-e255-4dc2-8ecf-b90c5e39015e,javaHome=C:\Program Files\Eclipse Adoptium\jdk-25.0.1.8-hotspot,javaVersion=25,javaVendor=Eclipse Adoptium,daemonRegistryDir=C:\Users\401pr\.gradle\daemon,pid=17656,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=IN,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+Found daemon DaemonInfo{pid=33672, address=[7a3ba4b7-31e9-4b24-b059-5013e8492dea port:63392, addresses:[/127.0.0.1]], state=Idle, lastBusy=1771510240992, context=DefaultDaemonContext[uid=1b8d7284-8b0a-44b8-9f2e-01d62c642366,javaHome=C:\Program Files\Android\Android Studio\jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=C:\Users\401pr\.gradle\daemon,pid=33672,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=IN,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot (no JDK specified, using current Java home), daemonOpts=[-XX:MaxMetaspaceSize=4G, -XX:ReservedCodeCacheSize=512m, -XX:+HeapDumpOnOutOfMemoryError, -Xmx8G, -Dfile.encoding=windows-1252, -Duser.country=IN, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=1b8d7284-8b0a-44b8-9f2e-01d62c642366,javaHome=C:\Program Files\Android\Android Studio\jbr,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=C:\Users\401pr\.gradle\daemon,pid=33672,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-XX:MaxMetaspaceSize=4G,-XX:ReservedCodeCacheSize=512m,-XX:+HeapDumpOnOutOfMemoryError,-Xmx8G,-Dfile.encoding=UTF-8,-Duser.country=IN,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 25004). The daemon log file: C:\Users\401pr\.gradle\daemon\8.14\daemon-25004.out.log
+Starting 5th build in daemon [uptime: 26 mins 6.537 secs, performance: 100%, GC rate: 0.00/s, heap usage: 0% of 8 GiB, non-heap usage: 4% of 4 GiB]
+Using 18 worker leases.
+Now considering [C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android, C:\flutter_windows_3.38.7-stable\flutter\packages\flutter_tools\gradle] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Now considering [C:\flutter_windows_3.38.7-stable\flutter\packages\flutter_tools\gradle, C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android] as hierarchies to watch
+
+> Configure project :gradle
+Evaluating project ':gradle' using build file 'C:\flutter_windows_3.38.7-stable\flutter\packages\flutter_tools\gradle\build.gradle.kts'.
+Resolved plugin [id: 'org.gradle.java-gradle-plugin']
+Resolved plugin [id: 'org.gradle.groovy']
+Resolved plugin [id: 'org.gradle.kotlin.kotlin-dsl', version: '5.2.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '1.9.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+file or directory 'C:\flutter_windows_3.38.7-stable\flutter\packages\flutter_tools\gradle\src\main\java', not found
+Resolved plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+Resolved plugin [id: 'com.android.application', version: '8.11.1', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.20', apply: false]
+Resolve mutations for :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle:compileKotlin (Thread[Execution worker Thread 14,5,main]) started.
+:gradle:compileKotlin (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :gradle:compileKotlin UP-TO-DATE
+Caching disabled for task ':gradle:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle:compileJava (Thread[Execution worker Thread 14,5,main]) started.
+:gradle:compileJava (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :gradle:compileJava NO-SOURCE
+Skipping task ':gradle:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle:compileGroovy (Thread[Execution worker Thread 14,5,main]) started.
+:gradle:compileGroovy (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :gradle:compileGroovy NO-SOURCE
+Skipping task ':gradle:compileGroovy' as it has no source files and no previous output files.
+Resolve mutations for :gradle:pluginDescriptors (Thread[Execution worker Thread 14,5,main]) started.
+:gradle:pluginDescriptors (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :gradle:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:pluginDescriptors' as it is up-to-date.
+Resolve mutations for :gradle:processResources (Thread[Execution worker Thread 5,5,main]) started.
+:gradle:processResources (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :gradle:processResources UP-TO-DATE
+Caching disabled for task ':gradle:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:processResources' as it is up-to-date.
+Resolve mutations for :gradle:classes (Thread[Execution worker Thread 5,5,main]) started.
+:gradle:classes (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :gradle:classes UP-TO-DATE
+Skipping task ':gradle:classes' as it has no actions.
+Resolve mutations for :gradle:jar (Thread[Execution worker Thread 5,5,main]) started.
+:gradle:jar (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :gradle:jar UP-TO-DATE
+Caching disabled for task ':gradle:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle:jar' as it is up-to-date.
+Settings evaluated using settings file 'C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android\settings.gradle.kts'.
+Projects loaded. Root project using build file 'C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android\build.gradle.kts'.
+Included projects: [root project 'android', project ':app', project ':flutter_local_notifications', project ':flutter_native_splash', project ':path_provider_android', project ':permission_handler_android', project ':shared_preferences_android']
+
+> Configure project :app
+Evaluating project ':app' using build file 'C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android\app\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application']
+Resolved plugin [id: 'kotlin-android']
+Resolved plugin [id: 'dev.flutter.flutter-gradle-plugin']
+Using default execution profile
+Build 403c830a-4758-43c4-be76-6cd09336fb92 is started
+Using Kotlin Gradle Plugin gradle813 variant
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is C:\Users\401pr\AppData\Local\Android\sdk
+
+> Configure project :
+Evaluating root project 'android' using build file 'C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\android\build.gradle.kts'.
+
+> Configure project :flutter_local_notifications
+Evaluating project ':flutter_local_notifications' using build file 'C:\Users\401pr\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-17.2.4\android\build.gradle'.
+Using default execution profile
+
+> Configure project :flutter_native_splash
+Evaluating project ':flutter_native_splash' using build file 'C:\Users\401pr\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_native_splash-2.4.7\android\build.gradle'.
+Using default execution profile
+
+> Configure project :path_provider_android
+Evaluating project ':path_provider_android' using build file 'C:\Users\401pr\AppData\Local\Pub\Cache\hosted\pub.dev\path_provider_android-2.2.22\android\build.gradle'.
+Using default execution profile
+
+> Configure project :permission_handler_android
+Evaluating project ':permission_handler_android' using build file 'C:\Users\401pr\AppData\Local\Pub\Cache\hosted\pub.dev\permission_handler_android-12.1.0\android\build.gradle'.
+Using default execution profile
+
+> Configure project :shared_preferences_android
+Evaluating project ':shared_preferences_android' using build file 'C:\Users\401pr\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_android-2.4.20\android\build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle813 variant
+All projects evaluated.
+Task name matched 'assembleDebug'
+Selected primary task 'assembleDebug' from project :
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+Tasks to be executed: [task ':app:DebugMinSdkCheck', task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:compileFlutterBuildDebug', task ':app:packJniLibsflutterBuildDebug', task ':flutter_local_notifications:preBuild', task ':flutter_local_notifications:preDebugBuild', task ':flutter_local_notifications:writeDebugAarMetadata', task ':flutter_native_splash:preBuild', task ':flutter_native_splash:preDebugBuild', task ':flutter_native_splash:writeDebugAarMetadata', task ':path_provider_android:preBuild', task ':path_provider_android:preDebugBuild', task ':path_provider_android:writeDebugAarMetadata', task ':permission_handler_android:preBuild', task ':permission_handler_android:preDebugBuild', task ':permission_handler_android:writeDebugAarMetadata', task ':shared_preferences_android:preBuild', task ':shared_preferences_android:preDebugBuild', task ':shared_preferences_android:writeDebugAarMetadata', task ':app:checkDebugAarMetadata', task ':app:cleanMergeDebugAssets', task ':app:mergeDebugShaders', task ':app:compileDebugShaders', task ':app:generateDebugAssets', task ':flutter_local_notifications:mergeDebugShaders', task ':flutter_local_notifications:compileDebugShaders', task ':flutter_local_notifications:generateDebugAssets', task ':flutter_local_notifications:mergeDebugAssets', task ':flutter_native_splash:mergeDebugShaders', task ':flutter_native_splash:compileDebugShaders', task ':flutter_native_splash:generateDebugAssets', task ':flutter_native_splash:mergeDebugAssets', task ':path_provider_android:mergeDebugShaders', task ':path_provider_android:compileDebugShaders', task ':path_provider_android:generateDebugAssets', task ':path_provider_android:mergeDebugAssets', task ':permission_handler_android:mergeDebugShaders', task ':permission_handler_android:compileDebugShaders', task ':permission_handler_android:generateDebugAssets', task ':permission_handler_android:mergeDebugAssets', task ':shared_preferences_android:mergeDebugShaders', task ':shared_preferences_android:compileDebugShaders', task ':shared_preferences_android:generateDebugAssets', task ':shared_preferences_android:mergeDebugAssets', task ':app:mergeDebugAssets', task ':app:copyFlutterAssetsDebug', task ':app:generateDebugResValues', task ':flutter_local_notifications:generateDebugResValues', task ':flutter_local_notifications:generateDebugResources', task ':flutter_local_notifications:packageDebugResources', task ':flutter_native_splash:generateDebugResValues', task ':flutter_native_splash:generateDebugResources', task ':flutter_native_splash:packageDebugResources', task ':path_provider_android:generateDebugResValues', task ':path_provider_android:generateDebugResources', task ':path_provider_android:packageDebugResources', task ':permission_handler_android:generateDebugResValues', task ':permission_handler_android:generateDebugResources', task ':permission_handler_android:packageDebugResources', task ':shared_preferences_android:generateDebugResValues', task ':shared_preferences_android:generateDebugResources', task ':shared_preferences_android:packageDebugResources', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':flutter_local_notifications:extractDeepLinksDebug', task ':flutter_local_notifications:processDebugManifest', task ':flutter_native_splash:extractDeepLinksDebug', task ':flutter_native_splash:processDebugManifest', task ':path_provider_android:extractDeepLinksDebug', task ':path_provider_android:processDebugManifest', task ':permission_handler_android:extractDeepLinksDebug', task ':permission_handler_android:processDebugManifest', task ':shared_preferences_android:extractDeepLinksDebug', task ':shared_preferences_android:processDebugManifest', task ':app:processDebugMainManifest', task ':app:outputDebugAppLinkSettings', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':flutter_local_notifications:compileDebugLibraryResources', task ':flutter_local_notifications:parseDebugLocalResources', task ':flutter_local_notifications:generateDebugRFile', task ':flutter_native_splash:compileDebugLibraryResources', task ':flutter_native_splash:parseDebugLocalResources', task ':flutter_native_splash:generateDebugRFile', task ':path_provider_android:compileDebugLibraryResources', task ':path_provider_android:parseDebugLocalResources', task ':path_provider_android:generateDebugRFile', task ':permission_handler_android:compileDebugLibraryResources', task ':permission_handler_android:parseDebugLocalResources', task ':permission_handler_android:generateDebugRFile', task ':shared_preferences_android:compileDebugLibraryResources', task ':shared_preferences_android:parseDebugLocalResources', task ':shared_preferences_android:generateDebugRFile', task ':app:processDebugResources', task ':flutter_local_notifications:javaPreCompileDebug', task ':flutter_local_notifications:compileDebugJavaWithJavac', task ':flutter_local_notifications:bundleLibCompileToJarDebug', task ':flutter_native_splash:javaPreCompileDebug', task ':flutter_native_splash:compileDebugJavaWithJavac', task ':flutter_native_splash:bundleLibCompileToJarDebug', task ':path_provider_android:javaPreCompileDebug', task ':path_provider_android:compileDebugJavaWithJavac', task ':path_provider_android:bundleLibCompileToJarDebug', task ':permission_handler_android:javaPreCompileDebug', task ':permission_handler_android:compileDebugJavaWithJavac', task ':permission_handler_android:bundleLibCompileToJarDebug', task ':shared_preferences_android:checkKotlinGradlePluginConfigurationErrors', task ':shared_preferences_android:compileDebugKotlin', task ':shared_preferences_android:javaPreCompileDebug', task ':shared_preferences_android:compileDebugJavaWithJavac', task ':shared_preferences_android:bundleLibCompileToJarDebug', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:compressDebugAssets', task ':app:l8DexDesugarLibDebug', task ':flutter_local_notifications:bundleLibRuntimeToJarDebug', task ':flutter_native_splash:bundleLibRuntimeToJarDebug', task ':path_provider_android:bundleLibRuntimeToJarDebug', task ':permission_handler_android:bundleLibRuntimeToJarDebug', task ':shared_preferences_android:bundleLibRuntimeToJarDebug', task ':app:desugarDebugFileDependencies', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':flutter_local_notifications:processDebugJavaRes', task ':flutter_native_splash:processDebugJavaRes', task ':path_provider_android:processDebugJavaRes', task ':permission_handler_android:processDebugJavaRes', task ':shared_preferences_android:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':flutter_local_notifications:bundleLibRuntimeToDirDebug', task ':flutter_native_splash:bundleLibRuntimeToDirDebug', task ':path_provider_android:bundleLibRuntimeToDirDebug', task ':permission_handler_android:bundleLibRuntimeToDirDebug', task ':shared_preferences_android:bundleLibRuntimeToDirDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:configureCMakeDebug[arm64-v8a]', task ':app:buildCMakeDebug[arm64-v8a]', task ':app:configureCMakeDebug[armeabi-v7a]', task ':app:buildCMakeDebug[armeabi-v7a]', task ':app:configureCMakeDebug[x86_64]', task ':app:buildCMakeDebug[x86_64]', task ':app:mergeDebugJniLibFolders', task ':flutter_local_notifications:mergeDebugJniLibFolders', task ':flutter_local_notifications:mergeDebugNativeLibs', task ':flutter_local_notifications:copyDebugJniLibsProjectOnly', task ':flutter_native_splash:mergeDebugJniLibFolders', task ':flutter_native_splash:mergeDebugNativeLibs', task ':flutter_native_splash:copyDebugJniLibsProjectOnly', task ':path_provider_android:mergeDebugJniLibFolders', task ':path_provider_android:mergeDebugNativeLibs', task ':path_provider_android:copyDebugJniLibsProjectOnly', task ':permission_handler_android:mergeDebugJniLibFolders', task ':permission_handler_android:mergeDebugNativeLibs', task ':permission_handler_android:copyDebugJniLibsProjectOnly', task ':shared_preferences_android:mergeDebugJniLibFolders', task ':shared_preferences_android:mergeDebugNativeLibs', task ':shared_preferences_android:copyDebugJniLibsProjectOnly', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug', task ':flutter_local_notifications:stripDebugDebugSymbols', task ':flutter_local_notifications:copyDebugJniLibsProjectAndLocalJars', task ':flutter_local_notifications:extractDebugAnnotations', task ':flutter_local_notifications:extractDeepLinksForAarDebug', task ':flutter_local_notifications:mergeDebugGeneratedProguardFiles', task ':flutter_local_notifications:mergeDebugConsumerProguardFiles', task ':flutter_local_notifications:prepareDebugArtProfile', task ':flutter_local_notifications:prepareLintJarForPublish', task ':flutter_local_notifications:mergeDebugJavaResource', task ':flutter_local_notifications:syncDebugLibJars', task ':flutter_local_notifications:bundleDebugAar', task ':flutter_local_notifications:assembleDebug', task ':flutter_native_splash:stripDebugDebugSymbols', task ':flutter_native_splash:copyDebugJniLibsProjectAndLocalJars', task ':flutter_native_splash:extractDebugAnnotations', task ':flutter_native_splash:extractDeepLinksForAarDebug', task ':flutter_native_splash:mergeDebugGeneratedProguardFiles', task ':flutter_native_splash:mergeDebugConsumerProguardFiles', task ':flutter_native_splash:prepareDebugArtProfile', task ':flutter_native_splash:prepareLintJarForPublish', task ':flutter_native_splash:mergeDebugJavaResource', task ':flutter_native_splash:syncDebugLibJars', task ':flutter_native_splash:bundleDebugAar', task ':flutter_native_splash:assembleDebug', task ':path_provider_android:stripDebugDebugSymbols', task ':path_provider_android:copyDebugJniLibsProjectAndLocalJars', task ':path_provider_android:extractDebugAnnotations', task ':path_provider_android:extractDeepLinksForAarDebug', task ':path_provider_android:mergeDebugGeneratedProguardFiles', task ':path_provider_android:mergeDebugConsumerProguardFiles', task ':path_provider_android:prepareDebugArtProfile', task ':path_provider_android:prepareLintJarForPublish', task ':path_provider_android:mergeDebugJavaResource', task ':path_provider_android:syncDebugLibJars', task ':path_provider_android:bundleDebugAar', task ':path_provider_android:assembleDebug', task ':permission_handler_android:stripDebugDebugSymbols', task ':permission_handler_android:copyDebugJniLibsProjectAndLocalJars', task ':permission_handler_android:extractDebugAnnotations', task ':permission_handler_android:extractDeepLinksForAarDebug', task ':permission_handler_android:mergeDebugGeneratedProguardFiles', task ':permission_handler_android:mergeDebugConsumerProguardFiles', task ':permission_handler_android:prepareDebugArtProfile', task ':permission_handler_android:prepareLintJarForPublish', task ':permission_handler_android:mergeDebugJavaResource', task ':permission_handler_android:syncDebugLibJars', task ':permission_handler_android:bundleDebugAar', task ':permission_handler_android:assembleDebug', task ':shared_preferences_android:stripDebugDebugSymbols', task ':shared_preferences_android:copyDebugJniLibsProjectAndLocalJars', task ':shared_preferences_android:extractDebugAnnotations', task ':shared_preferences_android:extractDeepLinksForAarDebug', task ':shared_preferences_android:mergeDebugGeneratedProguardFiles', task ':shared_preferences_android:mergeDebugConsumerProguardFiles', task ':shared_preferences_android:prepareDebugArtProfile', task ':shared_preferences_android:prepareLintJarForPublish', task ':shared_preferences_android:mergeDebugJavaResource', task ':shared_preferences_android:syncDebugLibJars', task ':shared_preferences_android:bundleDebugAar', task ':shared_preferences_android:assembleDebug']
+Tasks that were excluded: []
+work action Parameters of IdentityTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of DexingNoClasspathTransform (Thread[Execution worker,5,main]) started.
+work action Parameters of DexingOutputSplitTransform (Thread[included builds,5,main]) started.
+work action Parameters of ClassesDirToClassesTransform (Thread[included builds,5,main]) started.
+work action Parameters of DexingOutputSplitTransform (Thread[Execution worker Thread 15,5,main]) started.
+Resolve mutations for :app:DebugMinSdkCheck (Thread[Execution worker Thread 15,5,main]) started.
+:app:DebugMinSdkCheck (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :app:DebugMinSdkCheck
+Caching disabled for task ':app:DebugMinSdkCheck' because:
+  Build cache is disabled
+Task ':app:DebugMinSdkCheck' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 15,5,main]) started.
+:app:preBuild (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[Execution worker Thread 15,5,main]) started.
+:app:preDebugBuild (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread 15,5,main]) started.
+:app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 10,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :app:compileFlutterBuildDebug (Thread[Execution worker Thread 10,5,main]) started.
+:app:compileFlutterBuildDebug (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:compileFlutterBuildDebug
+Caching disabled for task ':app:compileFlutterBuildDebug' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Task ':app:compileFlutterBuildDebug' is not up-to-date because:
+  Task has failed previously.
+Starting process 'command 'C:\flutter_windows_3.38.7-stable\flutter\bin\flutter.bat''. Working directory: C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts Command: C:\flutter_windows_3.38.7-stable\flutter\bin\flutter.bat --quiet assemble --no-version-check --depfile C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\build\app\intermediates\flutter\debug/flutter_build.d --output C:\Users\401pr\.gemini\antigravity\scratch\market_impact_alerts\build\app\intermediates\flutter\debug -dTargetFile=lib/main.dart -dTargetPlatform=android -dBuildMode=debug -dTrackWidgetCreation=true -dFlavor= -dAndroidArchs=android-arm android-arm64 android-x64 -dMinSdkVersion=24 debug_android_application
+Successfully started process 'command 'C:\flutter_windows_3.38.7-stable\flutter\bin\flutter.bat''
+lib/screens/home_screen.dart:63:7: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+      _isLoading = true;
+      ^^^^^^^^^^
+lib/screens/home_screen.dart:64:7: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+      _errorMessage = null;
+      ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:77:9: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+        _isLoading = false;
+        ^^^^^^^^^^
+lib/screens/home_screen.dart:80:11: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+          _errorMessage = "No alerts found for the current filter.";
+          ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:85:9: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+        _isLoading = false;
+        ^^^^^^^^^^
+lib/screens/home_screen.dart:86:9: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+        _errorMessage = "Connection error: $e";
+        ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:160:30: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+              setState(() => _isLoading = true);
+                             ^^^^^^^^^^
+lib/screens/home_screen.dart:168:13: Error: The getter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_isLoading'.
+      body: _isLoading && _alerts.isEmpty
+            ^^^^^^^^^^
+lib/screens/home_screen.dart:170:13: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+          : _errorMessage != null && _alerts.isEmpty
+            ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:481:46: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+                                             ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:481:71: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+                                                                      ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:525:17: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+                _errorMessage ?? 'Unknown error occurred.',
+                ^^^^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+> Task :app:compileFlutterBuildDebug FAILED
+Build 403c830a-4758-43c4-be76-6cd09336fb92 is closed
+
+[Incubating] Problems report is available at: file:///C:/Users/401pr/.gemini/antigravity/scratch/market_impact_alerts/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command 'C:\flutter_windows_3.38.7-stable\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 7s
+6 actionable tasks: 2 executed, 4 up-to-date
+Watched directory hierarchies: [C:\flutter_windows_3.38.7-stable\flutter\packages\flutter_tools\gradle]

@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import '../models/event_alert.dart';
 
 class ApiService {
-  // 1. LOCAL (Testing)
-  // static const String baseUrl = 'http://localhost:8000'; 
+  // 1. LOCAL (Testing - Physical Device Native IP)
+  // static const String baseUrl = 'http://192.168.1.7:8000'; 
   
   // 2. LIVE (Render) 
   static const String baseUrl = 'https://market-impact-backend.onrender.com';
@@ -35,6 +35,20 @@ class ApiService {
       print('ApiService: Refresh response status: ${response.statusCode}');
     } catch (e) {
       print('ApiService: Refresh exception: $e');
+    }
+  }
+
+  Future<void> registerDevice(String playerId) async {
+    print('ApiService: Registering device player_id: $playerId');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register_device'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'player_id': playerId}),
+      );
+      print('ApiService: Register response status: ${response.statusCode}');
+    } catch (e) {
+      print('ApiService: Register exception: $e');
     }
   }
 }

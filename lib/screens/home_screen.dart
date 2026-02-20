@@ -8,6 +8,10 @@ import 'alert_details_screen.dart';
 import 'watchlist_screen.dart';
 import 'settings_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/app_logo.dart';
+import '../services/notification_service.dart';
+import 'dart:async';
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _isAutoDeleteEnabled = true;
+  bool _notificationsEnabled = true;
+  bool _isRefreshing = false;
+  Set<String> _previousAlertIds = {};
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -30,9 +38,34 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializeApp();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _initializeApp() async {
     await _loadSettings();
+    await _loadCachedAlerts();
     await _loadAlerts();
+  }
+
+  Future<void> _loadCachedAlerts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedStr = prefs.getString('cached_alerts');
+    if (cachedStr != null) {
+      try {
+        List jsonResponse = json.decode(cachedStr);
+        final alerts = jsonResponse.map((data) => EventAlert.fromJson(data)).toList();
+        final filteredAlerts = _filterAlerts(alerts);
+        setState(() {
+          _alerts = filteredAlerts;
+          _isLoading = false; // Stop loading spinner immediately
+          _previousAlertIds = filteredAlerts.map((a) => a.id).toSet();
+        });
+      } catch (e) {
+        // Ignore cache parsing errors
+      }
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -40,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _hiddenAlertIds = prefs.getStringList('hidden_alerts')?.toSet() ?? {};
       _isAutoDeleteEnabled = prefs.getBool('auto_delete_enabled') ?? true;
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
     });
   }
 
@@ -51,17 +85,31 @@ class _HomeScreenState extends State<HomeScreen> {
     
     try {
       final alerts = await _apiService.fetchAlerts();
+      final filteredAlerts = _filterAlerts(alerts);
+      
+      if (_previousAlertIds.isNotEmpty && _notificationsEnabled) {
+        _checkAndNotifyNewAlerts(filteredAlerts);
+      }
+
       setState(() {
-        _alerts = _filterAlerts(alerts);
+        _alerts = filteredAlerts;
         _isLoading = false;
+        _previousAlertIds = filteredAlerts.map((a) => a.id).toSet();
         if (_alerts.isEmpty) {
           _errorMessage = "No alerts found for the current filter.";
         }
       });
+      
+      // Cache the result
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_alerts', json.encode(alerts.map((a) => a.toJson()).toList()));
+      
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = "Connection error: $e";
+        if (_alerts.isEmpty) {
+          _errorMessage = "Connection error: $e";
+        }
       });
     }
   }
@@ -83,6 +131,20 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return true;
     }).toList();
+  }
+
+  void _checkAndNotifyNewAlerts(List<EventAlert> currentAlerts) {
+    for (var alert in currentAlerts) {
+      if (!_previousAlertIds.contains(alert.id)) {
+        // This is a new alert!
+        if (alert.probability >= 70) {
+          // Local notifications are no longer used since migrating to OneSignal.
+          // In a real scenario, the backend that generated this alert
+          // should send a push notification via OneSignal API.
+          print('New high probability alert: ${alert.event}');
+        }
+      }
+    }
   }
 
   Future<void> _hideAlert(String id) async {
@@ -118,68 +180,45 @@ class _HomeScreenState extends State<HomeScreen> {
         title: _buildAppLogoTitle(),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: AppTheme.glassBlue),
+            icon: Icon(Icons.refresh_rounded, color: _isRefreshing ? AppTheme.silver : AppTheme.glassBlue),
             onPressed: () async {
-              setState(() => _isLoading = true);
-              await _apiService.refreshAlerts();
-              await _loadAlerts();
+              if (_isRefreshing) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Analysis already in progress. Please wait.')),
+                );
+                return;
+              }
+              setState(() {
+                _isLoading = true;
+                _isRefreshing = true;
+              });
+              
+              try {
+                await _apiService.refreshAlerts();
+                await _loadAlerts();
+              } finally {
+                setState(() => _isRefreshing = false);
+              }
             },
           ),
         ],
       ),
       drawer: _buildDrawer(),
-      body: _isLoading
+      body: _isLoading && _alerts.isEmpty
           ? const Center(child: CircularProgressIndicator(color: AppTheme.glassBlue))
-          : _errorMessage != null
+          : _errorMessage != null && _alerts.isEmpty
               ? _buildErrorPlaceholder()
-              : _buildGroupedList(groupedAlerts),
+              : RefreshIndicator(
+                  onRefresh: _loadAlerts,
+                  color: AppTheme.glassBlue,
+                  backgroundColor: AppTheme.cardDark,
+                  child: _buildGroupedList(groupedAlerts),
+                ),
     );
   }
 
   Widget _buildAppLogoTitle() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          height: 32,
-          width: 32,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.glassBlue.withOpacity(0.3),
-                blurRadius: 8,
-                spreadRadius: 1,
-              )
-            ],
-          ),
-          child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 18),
-        ),
-        const SizedBox(width: 12),
-        RichText(
-          text: TextSpan(
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
-              color: Colors.white,
-            ),
-            children: const [
-              TextSpan(text: 'IMPACT'),
-              TextSpan(
-                text: ' ALERTS',
-                style: TextStyle(color: AppTheme.glassBlue),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    return const AppLogo();
   }
 
   Widget _buildGroupedList(Map<String, List<EventAlert>> groups) {
@@ -440,27 +479,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 56,
-            width: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [AppTheme.glassBlue, Color(0xFF1E40AF)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.glassBlue.withOpacity(0.2),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                )
-              ],
-            ),
-            child: const Icon(Icons.analytics_rounded, size: 32, color: Colors.white),
-          ),
+          const AppLogo(size: 48, showText: false),
           const SizedBox(height: 24),
           Text(
-            'MARKET IMPACT',
+            'ALPHA IMPACT',
             style: GoogleFonts.outfit(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -469,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const Text(
-            'Alpha Engine v1.0.4',
+            'Alpha Engine v1.0.5',
             style: TextStyle(color: AppTheme.silver, fontSize: 13, letterSpacing: 1),
           ),
         ],
@@ -495,36 +517,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildErrorPlaceholder() {
+    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+    
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 80, color: Colors.redAccent.withOpacity(0.3)),
-            const SizedBox(height: 24),
-            Text(
-              'NETWORK SYNC FAILED',
-              style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white70),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _errorMessage!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.silver),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: _loadAlerts,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('RETRY CONNECTION'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.glassBlue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            if (isInitialSync) ...[
+              const AppLogo(size: 80, showText: false),
+              const SizedBox(height: 32),
+              Text(
+                'SYNCHRONIZING...',
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                  color: Colors.white,
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              const Text(
+                'Please wait for a minute.\nAlpha Engine is loading market data...',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.silver, height: 1.5),
+              ),
+              const SizedBox(height: 48),
+              const SizedBox(
+                width: 200,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.white10,
+                  color: AppTheme.glassBlue,
+                  minHeight: 2,
+                ),
+              ),
+            ] else ...[
+              Icon(Icons.cloud_off_rounded, size: 80, color: Colors.redAccent.withOpacity(0.3)),
+              const SizedBox(height: 24),
+              Text(
+                'NETWORK SYNC FAILED',
+                style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white70),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage ?? 'Unknown error occurred.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppTheme.silver),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _loadAlerts,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('RETRY CONNECTION'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.glassBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+              ),
+            ],
           ],
         ),
       ),

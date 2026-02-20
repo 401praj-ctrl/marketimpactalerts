@@ -1,0 +1,112 @@
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources
+
+> Task :gradle:compileKotlin
+w: file:///C:/flutter_windows_3.38.7-stable/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:11:37 'ApkVariant' is deprecated. Deprecated in Java
+w: file:///C:/flutter_windows_3.38.7-stable/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:609:69 'ApkVariant' is deprecated. Deprecated in Java
+w: file:///C:/flutter_windows_3.38.7-stable/flutter/packages/flutter_tools/gradle/src/main/kotlin/plugins/PluginHandler.kt:186:64 Unchecked cast: NamedDomainObjectContainer<out BuildType> to NamedDomainObjectContainer<BuildType>
+w: file:///C:/flutter_windows_3.38.7-stable/flutter/packages/flutter_tools/gradle/src/main/kotlin/plugins/PluginHandler.kt:187:69 Unchecked cast: NamedDomainObjectContainer<out BuildType> to NamedDomainObjectContainer<BuildType>
+
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:classes
+> Task :gradle:jar
+
+> Configure project :app
+w: file:///C:/Users/401pr/.gemini/antigravity/scratch/market_impact_alerts/android/app/build.gradle.kts:20:9: 'jvmTarget: String' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+
+> Task :app:DebugMinSdkCheck
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :app:compileFlutterBuildDebug
+lib/screens/home_screen.dart:63:7: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+      _isLoading = true;
+      ^^^^^^^^^^
+lib/screens/home_screen.dart:64:7: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+      _errorMessage = null;
+      ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:77:9: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+        _isLoading = false;
+        ^^^^^^^^^^
+lib/screens/home_screen.dart:80:11: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+          _errorMessage = "No alerts found for the current filter.";
+          ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:85:9: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+        _isLoading = false;
+        ^^^^^^^^^^
+lib/screens/home_screen.dart:86:9: Error: The setter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_errorMessage'.
+        _errorMessage = "Connection error: $e";
+        ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:160:30: Error: The setter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing setter, or defining a setter or field named '_isLoading'.
+              setState(() => _isLoading = true);
+                             ^^^^^^^^^^
+lib/screens/home_screen.dart:168:13: Error: The getter '_isLoading' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_isLoading'.
+      body: _isLoading && _alerts.isEmpty
+            ^^^^^^^^^^
+lib/screens/home_screen.dart:170:13: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+          : _errorMessage != null && _alerts.isEmpty
+            ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:481:46: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+                                             ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:481:71: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+                                                                      ^^^^^^^^^^^^^
+lib/screens/home_screen.dart:525:17: Error: The getter '_errorMessage' isn't defined for the type '_HomeScreenState'.
+ - '_HomeScreenState' is from 'package:market_impact_alerts/screens/home_screen.dart' ('lib/screens/home_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_errorMessage'.
+                _errorMessage ?? 'Unknown error occurred.',
+                ^^^^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+> Task :app:compileFlutterBuildDebug FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/401pr/.gemini/antigravity/scratch/market_impact_alerts/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command 'C:\flutter_windows_3.38.7-stable\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 21s
+6 actionable tasks: 5 executed, 1 up-to-date

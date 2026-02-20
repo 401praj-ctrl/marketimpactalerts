@@ -1,24 +1,31 @@
 import sys
 import os
 import json
+import asyncio
+import datetime
+import uvicorn
+import requests
+from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from dateutil import parser as date_parser
+from typing import List
+from pydantic import BaseModel
 
-# Add the current directory (backend) to sys.path so 'services' can be imported
+# Add the current directory (backend) to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+
 from services.rss_service import fetch_latest_headlines
 from services.news_api_service import fetch_news_api_headlines
 from services.news_data_service import fetch_news_data_headlines
 from services.hacker_news_service import fetch_hacker_news_headlines
 from services.social_media_service import fetch_social_media_headlines
-from services.ai_service import analyze_headlines_bulk
-from typing import List
-import uvicorn
-import datetime
-from dateutil import parser as date_parser
+from services.ai_service import identify_high_impact_events, perform_deep_analysis
+from services.scraper_service import fetch_article_content
 
-app = FastAPI(title="Market Event Impact Alerts API")
+app = FastAPI(title="ALPHA IMPACT API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,20 +42,17 @@ async def log_requests(request, call_next):
     print(f"DEBUG: Sending {response.status_code}")
     return response
 
-# Root path check
-@app.get("/")
-async def root():
-    return {"message": "Market Impact Alerts API is running"}
+from fastapi.responses import Response
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
-import asyncio
-
-# File-based persistence for alerts
+# File-based persistence
 ALERTS_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 ALERTS_FILE = os.path.join(ALERTS_DATA_DIR, "cached_alerts.json")
+PROCESSED_FILE = os.path.join(ALERTS_DATA_DIR, "processed_links.json")
+DEVICES_FILE = os.path.join(ALERTS_DATA_DIR, "devices.json")
 os.makedirs(ALERTS_DATA_DIR, exist_ok=True)
 
 def load_alerts():
@@ -67,9 +71,6 @@ def save_alerts(alerts):
     except Exception as e:
         print(f"ERROR saving alerts: {e}")
 
-# Processed links persistence
-PROCESSED_FILE = os.path.join(ALERTS_DATA_DIR, "processed_links.json")
-
 def load_processed():
     if os.path.exists(PROCESSED_FILE):
         try:
@@ -86,27 +87,67 @@ def save_processed(links):
     except Exception as e:
         print(f"ERROR saving processed links: {e}")
 
-# In-memory cache for alerts, initialized from disk
-cached_alerts = load_alerts()
+def load_devices():
+    if os.path.exists(DEVICES_FILE):
+        try:
+            with open(DEVICES_FILE, "r") as f:
+                return set(json.load(f))
+        except Exception as e:
+            print(f"ERROR loading devices: {e}")
+    return set()
 
-# Lock to prevent concurrent analysis
+def save_devices(devices):
+    try:
+        with open(DEVICES_FILE, "w") as f:
+            json.dump(list(devices), f)
+    except Exception as e:
+        print(f"ERROR saving devices: {e}")
+
+def send_onesignal_notification(alerts, devices):
+    if not alerts or not devices:
+        return
+    app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
+    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "")
+    if not api_key:
+        print("ERROR: ONESIGNAL_REST_API_KEY is not set. Cannot send push notifications.")
+        return
+
+    headers = {
+        "Authorization": f"Basic {api_key}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
+    # We only send one notification for the most critical top alert
+    top_alert = alerts[0]
+    payload = {
+        "app_id": app_id,
+        "include_player_ids": list(devices),
+        "headings": {"en": f"Market Alert: {top_alert.get('event', 'High Impact Event')}"},
+        "contents": {"en": f"Confidence: {top_alert.get('probability')}% | Impact: {top_alert.get('impact_direction')} on {', '.join(top_alert.get('stocks', []))}"}
+    }
+    
+    try:
+        req = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload, timeout=10)
+        print(f"DEBUG: OneSignal push sent. Response: {req.status_code} {req.text}")
+    except Exception as e:
+        print(f"ERROR: Failed to send OneSignal push: {e}")
+
+# Global State
+cached_alerts = load_alerts()
+processed_links = load_processed()
+registered_devices = load_devices()
 analysis_lock = asyncio.Lock()
 
-# Set to track already analyzed headline links, initialized from disk
-processed_links = load_processed()
-
-
-from services.ai_service import identify_high_impact_events, perform_deep_analysis
-from services.scraper_service import fetch_article_content
-
 async def run_analysis(source="AUTOMATED"):
+    global cached_alerts
+    global processed_links
     async with analysis_lock:
         print("\n" + "="*50)
-        print(f"STARTING {source} MARKET ANALYSIS")
+        print(f"STARTING {source} ALPHA IMPACT ANALYSIS")
         print("="*50)
         try:
             today = datetime.datetime.now().date()
-            print(f"DEBUG: Filtering for live news date: {today}")
+            print(f"DEBUG: Today's date: {today}")
             
             # Fetch headlines concurrently
             results = await asyncio.gather(
@@ -117,7 +158,7 @@ async def run_analysis(source="AUTOMATED"):
                 return_exceptions=True
             )
             
-            # Fetch RSS headlines in a separate thread to avoid blocking the event loop
+            # RSS headlines (separate thread)
             loop = asyncio.get_event_loop()
             rss_headlines = await loop.run_in_executor(None, fetch_latest_headlines)
             
@@ -126,127 +167,130 @@ async def run_analysis(source="AUTOMATED"):
                 if isinstance(res, list):
                     headlines.extend(res)
                 else:
-                    print(f"ERROR: News source failed: {res}")
+                    print(f"ERROR: Source failed: {res}")
             
-            # Filter for TODAY'S and YESTERDAY'S news (48h window)
+            # 72-hour window
             live_headlines = []
-            yesterday = today - datetime.timedelta(days=1)
-            
+            three_days_ago = today - datetime.timedelta(days=2)
             for h in headlines:
                 try:
-                    # Parse date (handle timezone aware/naive)
                     pub_dt = date_parser.parse(h['published'])
-                    pub_date = pub_dt.date()
-                    
-                    if pub_date >= yesterday:
+                    if pub_dt.date() >= three_days_ago:
                         live_headlines.append(h)
-                    else:
-                        # Optional: Print skipped dates for debugging
-                        # print(f"Skipped old news: {pub_date} (Title: {h['title'][:30]}...)")
-                        pass
-                except Exception:
-                    # If date parsing fails, strictly keep it to ensure we don't miss "just now" items
-                    # often realtime feeds might have weird formats, safer to include.
+                except:
                     live_headlines.append(h)
 
-            # Filter for new headlines only (not already analyzed)
             new_headlines = [h for h in live_headlines if h['link'] not in processed_links]
             
-            old_count = len(headlines) - len(live_headlines)
-            skipped_count = len(live_headlines) - len(new_headlines)
-            
-            print(f"DEBUG: Found {len(headlines)} headlines. {old_count} old/not-today. {skipped_count} already analyzed. {len(new_headlines)} fresh today.")
+            # Backup for empty cache
+            if not new_headlines and source == "USER REQUESTED" and not cached_alerts:
+                print("DEBUG: Empty cache. Forcing re-analysis of top 5 items.")
+                new_headlines = live_headlines[:5]
+
+            print(f"DEBUG: {len(new_headlines)} fresh items for analysis.")
             
             if not new_headlines:
-                print("DEBUG: All current headlines have already been analyzed. Skipping AI run.")
+                print("DEBUG: All processed. Skipping AI run.")
                 print("="*50 + "\n")
                 return
 
-            # PASS 1: Identify high-impact candidates (bulk check)
-            batch = new_headlines[:20]
-            candidates = await identify_high_impact_events(batch) 
-            
-            # PASS 2: Selective Deep Dive for high-signal events
+            candidates = await identify_high_impact_events(new_headlines[:20]) 
             final_alerts = []
+            
             for candidate in candidates:
-                # Selective trigger: if probability > 70 or strength is high
-                if candidate.get('probability', 0) >= 70 or candidate.get('strength') == 'high':
-                    print(f"  --> TRIGGERING PASS 2 DEEP DIVE for: {candidate['event']}")
-                    print(f"      Source URL: {candidate['link']}")
-                    full_text = await fetch_article_content(candidate['link'])
-                    print(f"      Scraped content length: {len(full_text)} characters.")
-                    deep_report = await perform_deep_analysis(full_text, candidate['event'])
-                    
-                    if deep_report:
-                        # Merge deep report into candidate
-                        candidate.update(deep_report)
-                        print(f"      Status: Deep Analysis Complete.")
-                    else:
-                        print(f"      Status: Deep Analysis Failed. Falling back to Pass 1 data.")
+                # The AI already confirmed in Pass 1 this impacts stocks. We now do a full article Deep Dive on ALL of them.
+                print(f"  --> DEEP DIVE: {candidate['event']}")
+                full_text = await fetch_article_content(candidate['link'])
+                deep_report = await perform_deep_analysis(full_text, candidate['event'])
+                if deep_report:
+                    candidate.update(deep_report)
                 
-                # Standardize schema
                 candidate['timestamp'] = candidate.get('published', datetime.datetime.now().isoformat())
                 candidate['article_summary'] = candidate.get('article_summary', candidate.get('reason', ''))
                 
-                # Filter out low probability alerts (e.g. Pass 2 rejected it)
-                if candidate.get('probability', 0) >= 50:
-                    final_alerts.append(candidate)
-                    print(f"      Status: High probability ({candidate.get('probability')}%), Added alert.")
-                else:
-                    print(f"      Status: Low probability ({candidate.get('probability')}%), Skipping alert.")
+                # Include all valid events that the AI identified as having an impact, regardless of the exact probability percentage.
+                final_alerts.append(candidate)
 
-            # Record these as processed
-            for h in batch:
+            # Update Processed Links
+            for h in new_headlines[:20]:
                 processed_links.add(h['link'])
             save_processed(processed_links)
 
             if final_alerts:
-                global cached_alerts
-                # Add new alerts to the front
                 cached_alerts = final_alerts + cached_alerts
-                # Limit cache size
                 cached_alerts = cached_alerts[:100]
                 save_alerts(cached_alerts)
-                print(f"SUCCESS: Added {len(final_alerts)} new market impact alerts.")
+                print(f"SUCCESS: Added {len(final_alerts)} alerts.")
+                send_onesignal_notification(final_alerts, registered_devices)
             else:
-                print("DEBUG: No significant market impact detected in Pass 1 batch.")
+                print("DEBUG: No impact detected.")
                 
-            print(f"DEBUG: Analysis finished. Total alerts in cache: {len(cached_alerts)}")
         except Exception as e:
-            print(f"ERROR during analysis: {e}")
+            print(f"ERROR: {e}")
         print("="*50 + "\n")
 
 async def background_scheduler():
-    # Wait for app to be fully ready
     await asyncio.sleep(5)
     while True:
         await run_analysis(source="AUTOMATED")
-        print("NEXT AUTOMATED ANALYSIS IN 60 MINUTES...")
-        await asyncio.sleep(3600) # 60 minutes
+        await asyncio.sleep(3600)
+
+async def self_ping():
+    # Ping the health endpoint every 10 minutes to prevent Render free-tier from sleeping
+    await asyncio.sleep(10)
+    while True:
+        try:
+            port = int(os.environ.get("PORT", 8000))
+            # Assume running on localhost for the ping
+            url = f"http://localhost:{port}/health"
+            # It's better to use the Render external URL if available, but localhost will keep the process active
+            # If the user sets RENDER_EXTERNAL_URL env, we use that instead
+            external_url = os.environ.get("RENDER_EXTERNAL_URL")
+            ping_url = f"{external_url}/health" if external_url else url
+            
+            requests.get(ping_url, timeout=5)
+            print(f"DEBUG: Self-ping successful to {ping_url}")
+        except Exception as e:
+            print(f"DEBUG: Self-ping failed: {e}")
+        await asyncio.sleep(600)  # 10 minutes
 
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(background_scheduler())
+    asyncio.create_task(self_ping())
+
+@app.get("/")
+async def root():
+    return {"message": "ALPHA IMPACT API is running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 @app.get("/alerts")
 async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
     return cached_alerts
 
-from fastapi import FastAPI, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
-# ... existing imports ...
+class DeviceRequest(BaseModel):
+    player_id: str
+
+@app.post("/register_device")
+async def register_device(req: DeviceRequest):
+    global registered_devices
+    if req.player_id and req.player_id not in registered_devices:
+        registered_devices.add(req.player_id)
+        save_devices(registered_devices)
+        print(f"DEBUG: Registered new device. Total devices: {len(registered_devices)}")
+    return {"status": "ok"}
 
 @app.post("/refresh")
 async def refresh_alerts(background_tasks: BackgroundTasks):
-    print("\n" + "!"*50)
-    print("RECEIVED USER REFRESH REQUEST (Backgrounding)")
-    print("!"*50 + "\n")
-    # Add to background tasks so the response returns immediately
+    print("\nRECEIVED REFRESH REQUEST")
+    if analysis_lock.locked():
+        raise HTTPException(status_code=429, detail="Analysis already in progress. Please wait.")
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
-    return {"status": "Analysis started in background", "message": "Check back in a minute for updates."}
-
-import os
+    return {"status": "Analysis started"}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

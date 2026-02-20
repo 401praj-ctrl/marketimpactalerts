@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.info_outline, color: AppTheme.silver),
             title: const Text('Engine Version'),
-            subtitle: const Text('Alpha Engine v1.0.4'),
+            subtitle: const Text('Alpha Engine v1.0.5'),
             trailing: const Text('STABLE', style: TextStyle(color: AppTheme.glassBlue, fontWeight: FontWeight.bold, fontSize: 10)),
           ),
         ],

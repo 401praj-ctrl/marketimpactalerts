@@ -17,8 +17,7 @@ SUBREDDITS = [
 # Using multiple Nitter instances to avoid rate limits
 NITTER_INSTANCES = [
     "https://nitter.privacydev.net",
-    "https://nitter.poast.org",
-    "https://nitter.lucabased.xyz"
+    "https://nitter.cz",
 ]
 
 TWITTER_ACCOUNTS = [
@@ -37,27 +36,48 @@ async def fetch_twitter_headlines():
     instance = random.choice(NITTER_INSTANCES)
     print(f"  DEBUG: Using Nitter instance: {instance}")
     
+    # User-Agent for Nitter requests
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
+    import requests
+
+    def fetch_feed_sync(url_to_fetch):
+        try:
+            resp = requests.get(url_to_fetch, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                return resp.text
+            return None
+        except Exception as ex:
+            print(f"      [Sync Fetch Error] {ex}")
+            return None
+
     for account in TWITTER_ACCOUNTS:
         url = f"{instance}/{account}/rss"
         try:
-            # Run feedparser in executor to avoid blocking
             loop = asyncio.get_event_loop()
-            feed = await loop.run_in_executor(None, feedparser.parse, url)
+            # Fetch content synchronously in a thread
+            xml_content = await loop.run_in_executor(None, fetch_feed_sync, url)
             
-            if feed.entries:
-                print(f"    -> Found {len(feed.entries)} tweets from @{account}")
-                for entry in feed.entries[:5]: # Top 5 tweets
-                    headlines.append({
-                        "title": f"@{account}: {entry.title}",
-                        "link": entry.link,
-                        "category": "SOCIAL: X/Twitter",
-                        "published": entry.published if 'published' in entry else ""
-                    })
-            else:
-                print(f"    -> No tweets found for @{account} (or instance blocked)")
+            if xml_content:
+                feed = await loop.run_in_executor(None, feedparser.parse, xml_content)
                 
+                if feed.entries:
+                    print(f"    -> Found {len(feed.entries)} tweets from @{account}")
+                    for entry in feed.entries[:5]: # Top 5 tweets
+                        headlines.append({
+                            "title": f"@{account}: {entry.title}",
+                            "link": entry.link,
+                            "category": "SOCIAL: X/Twitter",
+                            "published": entry.published if 'published' in entry else ""
+                        })
+                else:
+                    print(f"    -> No tweets found for @{account} (empty feed)")
+            else:
+                print(f"    -> Failed to fetch @{account} (Network/Status error)")
+
         except Exception as e:
             print(f"    -> Error fetching @{account}: {e}")
+
             
     print(f"Fetched {len(headlines)} headlines from X/Twitter.")
     return headlines
@@ -90,8 +110,8 @@ async def fetch_social_media_headlines():
                 print(f"  Exception fetching r/{sub}: {e}")
                 
     # 2. Fetch Twitter
-    twitter_news = await fetch_twitter_headlines()
-    headlines.extend(twitter_news)
+    # twitter_news = await fetch_twitter_headlines()
+    # headlines.extend(twitter_news)
             
     return headlines
 

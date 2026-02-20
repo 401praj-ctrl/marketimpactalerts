@@ -8,19 +8,24 @@ from thefuzz import process
 load_dotenv()
 
 # Load company names for validation
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COMPANY_NAMES = []
 COMPANY_SYMBOLS = {}
 try:
-    with open(r"backend/data/company_names.json", "r", encoding="utf-8") as f:
-        COMPANY_NAMES = json.load(f)
-    print(f"Loaded {len(COMPANY_NAMES)} company names for validation.")
+    names_path = os.path.join(BASE_DIR, "data", "company_names.json")
+    if os.path.exists(names_path):
+        with open(names_path, "r", encoding="utf-8") as f:
+            COMPANY_NAMES = json.load(f)
+        print(f"Loaded {len(COMPANY_NAMES)} company names for validation.")
     
-    if os.path.exists(r"backend/data/company_symbols.json"):
-        with open(r"backend/data/company_symbols.json", "r", encoding="utf-8") as f:
+    symbols_path = os.path.join(BASE_DIR, "data", "company_symbols.json")
+    if os.path.exists(symbols_path):
+        with open(symbols_path, "r", encoding="utf-8") as f:
             COMPANY_SYMBOLS = json.load(f)
         print(f"Loaded {len(COMPANY_SYMBOLS)} symbol mappings.")
 except Exception as e:
     print(f"Warning: Could not load company data: {e}")
+
 
 def validate_company_name(name):
     """
@@ -43,12 +48,15 @@ def validate_company_name(name):
 API_KEYS = []
 potential_key_names = ["OPENROUTER_API_KEY"] + [f"OPENROUTER_API_KEY_{i}" for i in range(1, 6)]
 
+print(f"DEBUG: Checking for potential keys: {potential_key_names}")
 for kn in potential_key_names:
     val = os.environ.get(kn)
     if val and val.strip():
         key_strip = val.strip()
+        print(f"DEBUG: Found key for {kn}: {key_strip[:6]}...{key_strip[-4:]}")
         if key_strip not in API_KEYS:
             API_KEYS.append(key_strip)
+
 
 # Last resort hardcoded keys (REMOVED FOR SECURITY)
 if not API_KEYS:
@@ -57,24 +65,26 @@ if not API_KEYS:
 else:
     print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique API keys from environment.")
 
-# Models in order of preference: Primary -> Backup
+# Models in order of preference: Free models first for maximum reliability in local testing
 MODELS = [
-    "openai/gpt-3.5-turbo", # Fast, reliable
     "google/gemini-2.0-flash-exp:free", # Reliable fast model
     "google/gemini-2.0-flash-lite-preview-02-05:free",
     "google/gemma-3-12b-it:free",
-    "mistralai/mistral-7b-instruct:free"
+    "mistralai/mistral-7b-instruct:free",
+    "openai/gpt-3.5-turbo", # Fast, reliable (Backup)
 ]
 
 # Load training examples
 TRAINING_EXAMPLES = []
 try:
-    if os.path.exists(r"backend/data/training_examples.json"):
-        with open(r"backend/data/training_examples.json", "r", encoding="utf-8") as f:
+    examples_path = os.path.join(BASE_DIR, "data", "training_examples.json")
+    if os.path.exists(examples_path):
+        with open(examples_path, "r", encoding="utf-8") as f:
             TRAINING_EXAMPLES = json.load(f)
         print(f"Loaded {len(TRAINING_EXAMPLES)} training examples.")
 except Exception as e:
     print(f"Warning: Could not load training examples: {e}")
+
 
 def get_relevant_examples(headline, limit=3):
     """
@@ -115,6 +125,50 @@ async def analyze_headline(headline_text):
     prompt = f"""
     You are an AI that detects whether a news event may impact publicly traded stocks or sectors.
     Analyze the news and return a structured JSON response.
+
+    FINANCIAL THEORIES & MARKET LOGIC TO APPLY:
+    1. Efficient Market Hypothesis (EMH) [Eugene Fama]: In an efficient market, prices instantly incorporate all available info. News doesn't just affect price; price is the sum of past news. You must determine if this news is genuinely new information or already priced in.
+    2. Abnormal Returns (AR) Formula: AR = Actual Return - Expected Return. Think: What should the stock have done vs what will this news make it do? Positive AR means news is "better than expected". Zero AR means "priced in".
+    3. The "Drift" Effect (PEAD) [Ball & Brown, 1968]: Post-Earnings Announcement Drift. Stocks don't react instantly to massive surprises; they drift in that direction for weeks. News has a "long tail" impact.
+    4. Behavioral Finance: Markets overreact to negative panic and underreact to complex positive news. Consider sentiment extremes.
+    5. Sector Contagion: A bankruptcy drags down a sector but benefits direct competitors. Supply chain breaks hurt downstream.
+
+    THE MASTER FORMULA: NEWS IMPACT SCORE
+    You MUST calculate the impact using this exact quantitative NLP framework internally.
+    
+    Step 1. NLP Sentiment Score (-1 to +1)
+    - Very positive = +1.0, Positive = +0.5, Neutral = 0.0, Negative = -0.5, Very negative = -1.0
+    
+    Step 2. Surprise Factor (0.0 to 1.0) [MOST IMPORTANT]
+    - If news is already known/expected = 0.1
+    - Massive unexpected surprise = 1.0
+    
+    Step 3. Importance Weight (0.0 to 1.0)
+    - Earnings/Major M&A = 1.0
+    - Govt Policy/Interest Rates = 0.9
+    - Large Order/Contract = 0.8
+    - CEO/Mgmt Change = 0.6
+    - Rumor/Speculation = 0.3
+    - Trivial/Tweet = 0.2
+    
+    Step 4. Source Credibility (0.0 to 1.0)
+    - Official Filing/Press Release = 1.0
+    - Reuters/Bloomberg/Major Outlet = 0.9
+    - Standard News Channel = 0.8
+    - Twitter/Social Media = 0.4
+    - Unknown/Unverified = 0.2
+    
+    Step 5. The News Z-Score (Outlier Check)
+    - Evaluate if this news volume/severity is "market noise" (routine daily updates) or a "statistical outlier" (>2 standard deviations from normal = Real Trade Signal).
+    - If it is just noise, artificially lower your final impact confidence.
+
+    Step 6. IMPACT SCORE CALCULATION
+    Internal Raw Score = (Sentiment * Surprise * Importance * Credibility)
+    - If Raw Score > 0.7 AND high Z-Score ➔ STRONG BUY (Probability 85-100)
+    - If Raw Score > 0.3 ➔ BUY (Probability 60-84)
+    - If Raw Score between -0.3 and 0.3 or low Z-Score (noise) ➔ IGNORE (Return "impact": "no impact")
+    - If Raw Score < -0.3 ➔ SELL (Probability 60-84)
+    - If Raw Score < -0.7 AND high Z-Score ➔ STRONG SELL (Probability 85-100)
 
     RULES:
     1. Identify the EVENT, COMPANY, SECTOR, and IMPACT.
@@ -158,19 +212,19 @@ async def analyze_headline(headline_text):
             print(f"    > Attempting model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
-                # Skip keys that were previously found to be out of credits
-                if api_key in depleted_keys:
+                # Skip keys that were previously found to be out of credits, unless using a free model
+                is_free_model = model.endswith(":free")
+                if api_key in depleted_keys and not is_free_model:
                     continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
                     print(f"      >> Trying Key {i+1} ({display_key}) on model {model}")
+                    
                     response = await client.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
                         headers={
                             "Authorization": f"Bearer {api_key.strip()}",
                             "Content-Type": "application/json",
-                            "HTTP-Referer": "https://market-impact-alerts.onrender.com",
-                            "X-Title": "Market Impact Alerts",
                         },
                         json={
                             "model": model,
@@ -181,13 +235,18 @@ async def analyze_headline(headline_text):
                         timeout=35
                     )
                     
+                    if response.status_code != 200:
+                        print(f"      >> AI Error {response.status_code}: {response.text}")
+
                     if response.status_code == 200:
+
                         result = response.json()
                         if 'choices' not in result:
                             print(f"      >> Unexpected response: {result}")
                             continue
                         content = result['choices'][0]['message']['content']
                         content = content.strip().replace('```json', '').replace('```', '')
+
                         data = json.loads(content)
                         
                         # Validate company name against official list
@@ -240,6 +299,52 @@ async def perform_deep_analysis(full_content, headline):
     You are a Senior Financial Analyst focused on the Indian Stock Market (NSE/BSE).
     Analyze the full news content below and provide a DEEP IMPACT REPORT.
 
+    FINANCIAL THEORIES & MARKET LOGIC TO APPLY:
+    1. Efficient Market Hypothesis (EMH) [Eugene Fama]: In an efficient market, prices instantly incorporate all available info. News doesn't just affect price; price is the sum of past news. You must determine if this news is genuinely new information or already priced in.
+    2. Abnormal Returns (AR) Formula: AR = Actual Return - Expected Return. Think: What should the stock have done vs what will this news make it do? Positive AR means news is "better than expected". Zero AR means "priced in".
+    3. The "Drift" Effect (PEAD) [Ball & Brown, 1968]: Post-Earnings Announcement Drift. Stocks don't react instantly to massive surprises; they drift in that direction for weeks. News has a "long tail" impact.
+    4. Behavioral Finance: Markets overreact to negative panic and underreact to complex positive news. Consider sentiment extremes.
+    5. Sector Contagion: A bankruptcy drags down a sector but benefits direct competitors. Supply chain breaks hurt downstream.
+
+    THE MASTER FORMULA: NEWS IMPACT SCORE
+    You MUST calculate the impact using this exact quantitative NLP framework internally.
+    
+    Step 1. NLP Sentiment Score (-1 to +1)
+    - Very positive = +1.0, Positive = +0.5, Neutral = 0.0, Negative = -0.5, Very negative = -1.0
+    
+    Step 2. Surprise Factor (0.0 to 1.0) [MOST IMPORTANT]
+    - If news is already known/expected = 0.1
+    - Massive unexpected surprise = 1.0
+    
+    Step 3. Importance Weight (0.0 to 1.0)
+    - Earnings/Major M&A = 1.0
+    - Govt Policy/Interest Rates = 0.9
+    - Large Order/Contract = 0.8
+    - CEO/Mgmt Change = 0.6
+    - Rumor/Speculation = 0.3
+    - Trivial/Tweet = 0.2
+    
+    Step 4. Source Credibility (0.0 to 1.0)
+    - Official Filing/Press Release = 1.0
+    - Reuters/Bloomberg/Major Outlet = 0.9
+    - Standard News Channel = 0.8
+    - Twitter/Social Media = 0.4
+    - Unknown/Unverified = 0.2
+    
+    Step 5. The News Z-Score (Outlier Check)
+    - Evaluate if this news volume/severity is "market noise" (routine daily updates) or a "statistical outlier" (>2 standard deviations from normal = Real Trade Signal).
+    - If it is just noise, artificially lower your final impact confidence.
+
+    Step 6. IMPACT SCORE CALCULATION
+    Internal Raw Score = (Sentiment * Surprise * Importance * Credibility)
+    (Note: Assume Volume Spike is neutral/1.0 since you cannot read live volume)
+    
+    - If Raw Score > 0.7 AND high Z-Score ➔ STRONG BUY (Probability 85-100)
+    - If Raw Score > 0.3 ➔ BUY (Probability 60-84)
+    - If Raw Score between -0.3 and 0.3 or low Z-Score (noise) ➔ IGNORE (Return "impact": "no impact")
+    - If Raw Score < -0.3 ➔ SELL (Probability 60-84)
+    - If Raw Score < -0.7 AND high Z-Score ➔ STRONG SELL (Probability 85-100)
+
     RULES:
     1. Focus on specific stock/sector impacts.
     2. "probability" = likelihood the event happened (1-100).
@@ -280,7 +385,9 @@ async def perform_deep_analysis(full_content, headline):
             print(f"    > Attempting DEEP analysis with model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
-                if api_key in depleted_keys:
+                # Skip depleted keys unless using a free model
+                is_free_model = model.endswith(":free")
+                if api_key in depleted_keys and not is_free_model:
                     continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
