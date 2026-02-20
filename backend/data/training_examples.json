@@ -1,0 +1,933 @@
+[
+  {
+    "event": "Celebrity removes brand product",
+    "company": "Coca-Cola",
+    "sector": "Beverages",
+    "stocks": [
+      "Coca-Cola"
+    ],
+    "impact": "negative",
+    "strength": "low",
+    "reason": "Negative brand sentiment",
+    "confidence": 75,
+    "news": "Ronaldo removed Coca-Cola bottles at Euro press conference"
+  },
+  {
+    "event": "CEO steps down unexpectedly",
+    "company": "Intel",
+    "sector": "Semiconductors",
+    "stocks": [
+      "Intel"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Leadership uncertainty",
+    "confidence": 85,
+    "news": "Intel CEO Pat Gelsinger resigns abruptly amid struggles in foundry business."
+  },
+  {
+    "event": "FDA approval for new drug",
+    "company": "Eli Lilly",
+    "sector": "Pharmaceuticals",
+    "stocks": [
+      "Eli Lilly"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Revenue growth potential",
+    "confidence": 95,
+    "news": "FDA approves Eli Lilly's weight-loss drug Zepbound for chronic weight management."
+  },
+  {
+    "event": "Data breach affecting millions",
+    "company": "T-Mobile",
+    "sector": "Telecom",
+    "stocks": [
+      "T-Mobile"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Reputation damage and potential fines",
+    "confidence": 90,
+    "news": "T-Mobile confirms data breach affecting 37 million customer accounts."
+  },
+  {
+    "event": "Major acquisition announcement",
+    "company": "Microsoft",
+    "sector": "Technology",
+    "stocks": [
+      "Microsoft",
+      "Activision Blizzard"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Strategic expansion and market consolidation",
+    "confidence": 90,
+    "news": "Microsoft announces plan to acquire Activision Blizzard for $68.7 billion."
+  },
+  {
+    "event": "Earnings miss and guidance cut",
+    "company": "FedEx",
+    "sector": "Logistics",
+    "stocks": [
+      "FedEx"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Weak demand outlook",
+    "confidence": 95,
+    "news": "FedEx shares plunge 15% after missing earnings estimates and withdrawing guidance."
+  },
+  {
+    "event": "Product recall due to safety",
+    "company": "Tesla",
+    "sector": "Automobile",
+    "stocks": [
+      "Tesla"
+    ],
+    "impact": "negative",
+    "strength": "low",
+    "reason": "Cost of recall and reputation risk",
+    "confidence": 80,
+    "news": "Tesla recalls 2 million vehicles over Autopilot safety concerns."
+  },
+  {
+    "event": "Short seller report release",
+    "company": "Adani Group",
+    "sector": "Conglomerate",
+    "stocks": [
+      "Adani Enterprises",
+      "Adani Ports"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Allegations of fraud and stock manipulation",
+    "confidence": 90,
+    "news": "Hindenburg Research releases report alleging accounting fraud at Adani Group."
+  },
+  {
+    "event": "Central bank interest rate hike",
+    "company": "",
+    "sector": "Banking & Real Estate",
+    "stocks": [
+      "Banks",
+      "Realty stocks"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Higher borrowing costs dampen demand",
+    "confidence": 85,
+    "news": "RBI raises repo rate by 25 basis points to combat inflation."
+  },
+  {
+    "event": "Geopolitical conflict outbreak",
+    "company": "",
+    "sector": "Defense & Energy",
+    "stocks": [
+      "Defense stocks",
+      "Oil companies"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Increased defense spending and oil supply risks",
+    "confidence": 85,
+    "news": "Conflict erupts in Middle East, pushing oil prices above $90."
+  },
+  {
+    "event": "Government subsidy for green energy",
+    "company": "",
+    "sector": "Renewable Energy",
+    "stocks": [
+      "Adani Green",
+      "Tata Power"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Policy support boosts sector growth",
+    "confidence": 90,
+    "news": "India approves \u20b919,700 crore incentive scheme for Green Hydrogen."
+  },
+  {
+    "event": "Antitrust lawsuit filing",
+    "company": "Google",
+    "sector": "Technology",
+    "stocks": [
+      "Alphabet"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Legal risk and potential breakup",
+    "confidence": 85,
+    "news": "US DOJ files antitrust lawsuit against Google over ad tech monopoly."
+  },
+  {
+    "event": "New product launch success",
+    "company": "Apple",
+    "sector": "Technology",
+    "stocks": [
+      "Apple"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Revenue growth from new cycle",
+    "confidence": 80,
+    "news": "Apple Vision Pro pre-orders sell out within minutes of launch."
+  },
+  {
+    "event": "Dividend hike announcement",
+    "company": "ITC",
+    "sector": "FMCG",
+    "stocks": [
+      "ITC"
+    ],
+    "impact": "positive",
+    "strength": "low",
+    "reason": "Shareholder value return",
+    "confidence": 90,
+    "news": "ITC declares special dividend of \u20b92.75 per share."
+  },
+  {
+    "event": "Supply chain disruption",
+    "company": "Maruti Suzuki",
+    "sector": "Automobile",
+    "stocks": [
+      "Maruti Suzuki"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Production halt impacts sales",
+    "confidence": 85,
+    "news": "Maruti Suzuki halts production at Manesar plant due to component shortage."
+  },
+  {
+    "event": "Patent infringement lawsuit loss",
+    "company": "Samsung",
+    "sector": "Technology",
+    "stocks": [
+      "Samsung Electronics"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Financial penalty and royalty payments",
+    "confidence": 80,
+    "news": "Jury orders Samsung to pay $118 million for patent infringement."
+  },
+  {
+    "event": "Analyst upgrade",
+    "company": "NVIDIA",
+    "sector": "Semiconductors",
+    "stocks": [
+      "NVIDIA"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Improved market sentiment",
+    "confidence": 75,
+    "news": "Goldman Sachs upgrades NVIDIA to Buy with a $800 price target."
+  },
+  {
+    "event": "Analyst downgrade",
+    "company": "Tesla",
+    "sector": "Automobile",
+    "stocks": [
+      "Tesla"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Weakening fundamentals cited",
+    "confidence": 75,
+    "news": "Wells Fargo downgrades Tesla to Underweight, citing slowing growth."
+  },
+  {
+    "event": "Stock split announcement",
+    "company": "Amazon",
+    "sector": "Retail",
+    "stocks": [
+      "Amazon"
+    ],
+    "impact": "positive",
+    "strength": "low",
+    "reason": "Increased liquidity and retail participation",
+    "confidence": 80,
+    "news": "Amazon board approves 20-for-1 stock split."
+  },
+  {
+    "event": "Share buyback program",
+    "company": "Infosys",
+    "sector": "IT Services",
+    "stocks": [
+      "Infosys"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Signals undervaluation and confidence",
+    "confidence": 85,
+    "news": "Infosys announces \u20b99,300 crore share buyback program."
+  },
+  {
+    "event": "Crypto exchange collapse",
+    "company": "FTX",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "COIN",
+      "Robinhood"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Contagion fear and loss of trust",
+    "confidence": 95,
+    "news": "FTX files for bankruptcy protection; CEO Sam Bankman-Fried resigns."
+  },
+  {
+    "event": "Bitcoin ETF approval",
+    "company": "",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "Bitcoin",
+      "Coinbase"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Institutional adoption milestone",
+    "confidence": 95,
+    "news": "SEC approves first Spot Bitcoin ETFs for trading in the US."
+  },
+  {
+    "event": "OPEC production cut",
+    "company": "",
+    "sector": "Energy",
+    "stocks": [
+      "ExxonMobil",
+      "Chevron",
+      "ONGC"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Reduced supply boosts oil prices",
+    "confidence": 90,
+    "news": "OPEC+ announces surprise production cut of 1.16 million barrels per day."
+  },
+  {
+    "event": "Cyberattack on infrastructure",
+    "company": "Colonial Pipeline",
+    "sector": "Energy",
+    "stocks": [
+      "Energy Stocks"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Supply disruption and security fears",
+    "confidence": 90,
+    "news": "Colonial Pipeline halts operations after major ransomware cyberattack."
+  },
+  {
+    "event": "CEO fraud charges",
+    "company": "Adani Group",
+    "sector": "Conglomerate",
+    "stocks": [
+      "Adani Enterprises"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Governance concerns and legal risk",
+    "confidence": 95,
+    "news": "US prosecutors charge Gautam Adani with bribery and fraud."
+  },
+  {
+    "event": "Major drug trial failure",
+    "company": "Pfizer",
+    "sector": "Pharmaceuticals",
+    "stocks": [
+      "Pfizer"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Loss of future revenue stream",
+    "confidence": 90,
+    "news": "Pfizer discontinues weight-loss drug development after adverse side effects in trial."
+  },
+  {
+    "event": "Retail sales beat expectations",
+    "company": "",
+    "sector": "Retail",
+    "stocks": [
+      "Walmart",
+      "Target",
+      "Amazon"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Strong consumer spending signals economic health",
+    "confidence": 85,
+    "news": "US Retail Sales rose 0.7% in September, beating forecasts of 0.3%."
+  },
+  {
+    "event": "Factory activity contraction",
+    "company": "",
+    "sector": "Manufacturing",
+    "stocks": [
+      "Industrial Stocks"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Economic slowdown indicator",
+    "confidence": 80,
+    "news": "ISM Manufacturing PMI falls to 46.7, signaling contraction for 13th month."
+  },
+  {
+    "event": "Tech giant antitrust fine",
+    "company": "Apple",
+    "sector": "Technology",
+    "stocks": [
+      "Apple"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Regulatory penalty impacts earnings",
+    "confidence": 85,
+    "news": "EU fines Apple \u20ac1.8 billion over music streaming rules."
+  },
+  {
+    "event": "Streaming subscriber loss",
+    "company": "Netflix",
+    "sector": "Entertainment",
+    "stocks": [
+      "Netflix"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Growth stalling concerns",
+    "confidence": 90,
+    "news": "Netflix stock crashes 25% after reporting first subscriber loss in a decade."
+  },
+  {
+    "event": "EV price cuts",
+    "company": "Tesla",
+    "sector": "Automobile",
+    "stocks": [
+      "Tesla",
+      "Rivian",
+      "Lucid"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Margin compression fears",
+    "confidence": 85,
+    "news": "Tesla slashes Model Y prices in China, sparking price war concerns."
+  },
+  {
+    "event": "Semiconductor subsidy award",
+    "company": "Intel",
+    "sector": "Semiconductors",
+    "stocks": [
+      "Intel"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Government funding boosts capex",
+    "confidence": 90,
+    "news": "White House awards Intel $8.5 billion in CHIPS Act grants."
+  },
+  {
+    "event": "Banking crisis contagion",
+    "company": "Regional Banks",
+    "sector": "Banking",
+    "stocks": [
+      "KRE ETF",
+      "Regional Banks"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Systemic risk fears",
+    "confidence": 95,
+    "news": "Silicon Valley Bank collapsed, triggering selloff in regional bank stocks."
+  },
+  {
+    "event": "Inflation data cools",
+    "company": "",
+    "sector": "Broad Market",
+    "stocks": [
+      "S&P 500",
+      "Nasdaq"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Rate hike expectations reduce",
+    "confidence": 90,
+    "news": "US CPI inflation slows to 3.2% in October, lower than expected."
+  },
+  {
+    "event": "Airline merger blocked",
+    "company": "JetBlue",
+    "sector": "Aviation",
+    "stocks": [
+      "JetBlue",
+      "Spirit Airlines"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Deal collapse destroys arbitrage value",
+    "confidence": 90,
+    "news": "Federal judge blocks JetBlue's $3.8 billion acquisition of Spirit Airlines."
+  },
+  {
+    "event": "Social media ban threat",
+    "company": "TikTok",
+    "sector": "Social Media",
+    "stocks": [
+      "Meta",
+      "Snap",
+      "Google"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Competitor ban benefits rivals",
+    "confidence": 80,
+    "news": "US House passes bill that could ban TikTok nationwide."
+  },
+  {
+    "event": "AI chip launch",
+    "company": "AMD",
+    "sector": "Semiconductors",
+    "stocks": [
+      "AMD"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Product innovation in high-growth market",
+    "confidence": 90,
+    "news": "AMD unveils MI300X AI chip to challenge Nvidia's dominance."
+  },
+  {
+    "event": "Cloud outage",
+    "company": "AWS",
+    "sector": "Technology",
+    "stocks": [
+      "Amazon"
+    ],
+    "impact": "negative",
+    "strength": "low",
+    "reason": "Service reliability concerns",
+    "confidence": 75,
+    "news": "Major AWS outage disrupts services for Netflix, Disney+, and others."
+  },
+  {
+    "event": "Video game hit release",
+    "company": "Take-Two Interactive",
+    "sector": "Gaming",
+    "stocks": [
+      "Take-Two"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Revenue spike expectation",
+    "confidence": 90,
+    "news": "GTA VI trailer breaks records with 90 million views in 24 hours."
+  },
+  {
+    "event": "Short squeeze rally",
+    "company": "GameStop",
+    "sector": "Retail",
+    "stocks": [
+      "GameStop"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Retail trading mania",
+    "confidence": 80,
+    "news": "GameStop shares surge 74% as 'Roaring Kitty' returns to social media."
+  },
+  {
+    "event": "SpaceX launch success",
+    "company": "SpaceX",
+    "sector": "Aerospace",
+    "stocks": [
+      "Tesla",
+      "Aerospace ETFs"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Technological milestone reflects well on Musk empire",
+    "confidence": 80,
+    "news": "SpaceX Starship successfully reaches orbit in third test flight."
+  },
+  {
+    "event": "Labor strike announcement",
+    "company": "General Motors",
+    "sector": "Automobile",
+    "stocks": [
+      "GM",
+      "Ford",
+      "Stellantis"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "Production halt and increased costs",
+    "confidence": 85,
+    "news": "UAW announces targeted strikes at Big Three automakers."
+  },
+  {
+    "event": "Cruise line earnings beat",
+    "company": "Royal Caribbean",
+    "sector": "Travel",
+    "stocks": [
+      "RCL",
+      "Carnival"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Travel demand recovery",
+    "confidence": 85,
+    "news": "Royal Caribbean stock jumps on record bookings and earnings beat."
+  },
+  {
+    "event": "Housing market data weak",
+    "company": "",
+    "sector": "Real Estate",
+    "stocks": [
+      "Homebuilders"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "High rates stifle demand",
+    "confidence": 80,
+    "news": "Existing home sales fall to 13-year low as mortgage rates top 7%."
+  },
+  {
+    "event": "Grocery inflation slows",
+    "company": "",
+    "sector": "Consumer Staples",
+    "stocks": [
+      "Kroger",
+      "Walmart"
+    ],
+    "impact": "neutral",
+    "strength": "low",
+    "reason": "Stabilizing costs good for consumers, bad for pricing power",
+    "confidence": 75,
+    "news": "Grocery prices drop for first time in 12 months."
+  },
+  {
+    "event": "Luxury goods demand slump",
+    "company": "LVMH",
+    "sector": "Luxury",
+    "stocks": [
+      "LVMH",
+      "Kering"
+    ],
+    "impact": "negative",
+    "strength": "medium",
+    "reason": "China slowdown impacts sales",
+    "confidence": 85,
+    "news": "LVMH shares fall as sales growth slows amid weaker Chinese demand."
+  },
+  {
+    "event": "Railway merger deal",
+    "company": "Canadian Pacific",
+    "sector": "Transportation",
+    "stocks": [
+      "CP",
+      "KSU"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "Network expansion synergy",
+    "confidence": 90,
+    "news": "Canadian Pacific completes $31 billion acquisition of Kansas City Southern."
+  },
+  {
+    "event": "Goldman Sachs earnings beat",
+    "company": "Goldman Sachs",
+    "sector": "Banking",
+    "stocks": [
+      "GS"
+    ],
+    "impact": "positive",
+    "strength": "medium",
+    "reason": "Strong trading revenue",
+    "confidence": 90,
+    "news": "Goldman Sachs profit jumps 28% on dealmaking rebound."
+  },
+  {
+    "event": "Boeing safety incident",
+    "company": "Boeing",
+    "sector": "Aerospace",
+    "stocks": [
+      "Boeing"
+    ],
+    "impact": "negative",
+    "strength": "high",
+    "reason": "Regulatory grounding and reputation loss",
+    "confidence": 95,
+    "news": "FAA grounds Boeing 737 Max 9 jets after Alaska Airlines door plug blowout."
+  },
+  {
+    "event": "Interest rate pause",
+    "company": "",
+    "sector": "Broad Market",
+    "stocks": [
+      "S&P 500"
+    ],
+    "impact": "positive",
+    "strength": "high",
+    "reason": "End of hiking cycle signaled",
+    "confidence": 90,
+    "news": "Federal Reserve holds interest rates steady, signals cuts in 2024."
+  },
+  {
+    "event": "Record-breaking quarterly earnings report",
+    "company": "Apple",
+    "sector": "Technology",
+    "stocks": [
+      "AAPL"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Apple's strong earnings report exceeding analyst expectations is likely to drive the stock price higher.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 90,
+    "reason": "Strong financial performance and exceeding analyst forecasts",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 85,
+    "news": "- Apple reports record-breaking quarterly earnings, surpassing analyst expectations"
+  },
+  {
+    "event": "New EU regulations on tech giants' data privacy practices",
+    "company": "",
+    "sector": "Technology",
+    "stocks": [],
+    "impact_direction": "DOWN",
+    "impact_description": "The new regulations could lead to increased compliance costs and potential fines for tech companies, impacting their financial performance.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 85,
+    "reason": "Increased regulatory scrutiny and costs for tech companies",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 90,
+    "news": "- EU announces new regulations targeting tech giants' data privacy practices"
+  },
+  {
+    "event": "Merger agreement finalized",
+    "company": "AMD Industries Limited",
+    "sector": "Semiconductors",
+    "stocks": [
+      "NSE:AMDIND"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "The merger between Microsoft and AMD is expected to create a powerhouse in the semiconductor industry, leading to increased market share and potential for innovation.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 90,
+    "reason": "Synergies between the two companies can lead to improved products and competitiveness in the market.",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 85,
+    "news": "- Microsoft and AMD finalize merger agreement, creating powerhouse in the semiconductor industry"
+  },
+  {
+    "event": "Trade tensions between US and China escalate",
+    "company": null,
+    "sector": "Technology",
+    "stocks": [
+      "NASDAQ: AAPL",
+      "NASDAQ: MSFT",
+      "NASDAQ: GOOGL"
+    ],
+    "impact_direction": "DOWN",
+    "impact_description": "Global tech stocks are tumbling due to escalating trade tensions between the US and China, leading to increased market uncertainty.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 75,
+    "reason": "Increased geopolitical risk impacting global tech companies",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "- Global tech stocks tumble as trade tensions between US and China escalate"
+  },
+  {
+    "event": "New technology unveiling at Samsung annual conference",
+    "company": "Samsung",
+    "sector": "Technology",
+    "stocks": [
+      "NSE:SAMSUNG"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Investors are excited about the potential of Samsung's new technology, which could lead to increased sales and market competitiveness.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 80,
+    "reason": "Potential for increased sales and market competitiveness",
+    "impact": "positive",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "- Samsung unveils groundbreaking new technology at annual conference, sparking investor excitement"
+  },
+  {
+    "event": "Bitcoin hits new all-time high",
+    "company": "",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "Bitcoin",
+      "Coinbase"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Bitcoin reaching a new all-time high of over $70,000 is a significant milestone for the cryptocurrency market, indicating strong investor interest. However, regulatory uncertainty may impact future price movements.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 90,
+    "reason": "Increased investor demand driving prices up despite regulatory concerns",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 85,
+    "news": "Bitcoin Hits New All-Time High, Surpassing $70,000 Amid Regulatory Uncertainty"
+  },
+  {
+    "event": "Square to acquire Fintech Company for $50 Billion",
+    "company": "Square",
+    "sector": "Fintech",
+    "stocks": [
+      "NYSE:SQ"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "The acquisition of a Fintech company for a substantial amount indicates Square's strategic expansion in the fintech sector, likely leading to increased market value for Square.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-20",
+    "probability": 90,
+    "reason": "Expansion into fintech market",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 85,
+    "news": "Square Announces Plans to Acquire Fintech Company for $50 Billion"
+  },
+  {
+    "event": "Ethereum earnings beat",
+    "company": "",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "Crypto:ETH"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Ethereum's stock price surged 10% following better than expected earnings results, indicating strong investor confidence in the cryptocurrency market.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 90,
+    "reason": "Increased adoption and usage of Ethereum platform",
+    "impact": "positive",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "Ethereum Surges 10% After Earnings Beat Expectations"
+  },
+  {
+    "event": "Federal Reserve signals potential interest rate hike",
+    "company": "",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "Cryptocurrencies"
+    ],
+    "impact_direction": "DOWN",
+    "impact_description": "The potential interest rate hike signaled by the US Federal Reserve may lead to a decrease in demand for cryptocurrencies as investors might move towards traditional assets.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 80,
+    "reason": "Higher interest rates could make traditional investments more attractive compared to higher-risk cryptocurrencies.",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "US Federal Reserve Signals Potential Interest Rate Hike, Impacting Crypto Market"
+  },
+  {
+    "event": "China bans financial institutions from using cryptocurrencies",
+    "company": "",
+    "sector": "Cryptocurrency",
+    "stocks": [
+      "BTC:Bitcoin",
+      "ETH:Ethereum"
+    ],
+    "impact_direction": "DOWN",
+    "impact_description": "China banning financial institutions from using cryptocurrencies could lead to decreased adoption and investment in the cryptocurrency market.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 90,
+    "reason": "Regulatory crackdown on cryptocurrencies in a major market",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "China Bans All Financial Institutions from Using Cryptocurrencies"
+  },
+  {
+    "event": "Record breaking quarterly earnings report",
+    "company": "Apple",
+    "sector": "Technology",
+    "stocks": [
+      "NASDAQ:AAPL"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Apple's strong quarterly earnings indicate positive growth and performance in the technology sector.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 95,
+    "reason": "Strong sales of latest products and services contributing to revenue growth",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 90,
+    "news": "Tech Giant Apple Reports Record Breaking Quarterly Earnings"
+  },
+  {
+    "event": "EU Proposes Stricter Regulations on Big Tech Companies",
+    "company": "",
+    "sector": "Technology",
+    "stocks": [
+      "NASDAQ:GOOGL",
+      "NASDAQ:AMZN",
+      "NASDAQ:MSFT"
+    ],
+    "impact_direction": "DOWN",
+    "impact_description": "The proposed regulations could increase compliance costs and potentially limit the growth prospects of big tech companies operating in the EU.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-20",
+    "probability": 85,
+    "reason": "Increased regulatory scrutiny leading to potential revenue and profit constraints for big tech companies",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 90,
+    "news": "European Union Proposes Stricter Regulations on Big Tech Companies"
+  },
+  {
+    "event": "Cybersecurity Firm Acquisition by Microsoft",
+    "company": "Microsoft",
+    "sector": "Technology",
+    "stocks": [
+      "NASDAQ:MSFT"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Microsoft's acquisition of a cybersecurity firm is expected to enhance its cybersecurity offerings, which could lead to increased market share and revenue in the technology sector.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 95,
+    "reason": "Enhanced cybersecurity capabilities",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 90,
+    "news": "Microsoft Acquires Cybersecurity Firm in Billion Dollar Deal"
+  },
+  {
+    "event": "Geopolitical Tensions between US and China",
+    "company": "",
+    "sector": "Technology",
+    "stocks": [
+      "Technology companies"
+    ],
+    "impact_direction": "UP/DOWN/NEUTRAL",
+    "impact_description": "The market volatility is causing uncertainty in the tech sector, leading to fluctuations in stock prices.",
+    "event_date": "2026-02-19",
+    "impact_date_est": "2026-02-19",
+    "probability": 80,
+    "reason": "Investor concerns about potential disruptions in the supply chain and market access due to escalating tensions between two major economies",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 85,
+    "news": "Geopolitical Tensions Between US and China Cause Volatility in Tech Markets"
+  }
+]

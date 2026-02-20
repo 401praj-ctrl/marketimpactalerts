@@ -5,9 +5,12 @@ __pycache__/
 \venv
 .env
 .DS_Store
+# AI & Data
 backend/logs/
-backend/data/real_impact_dataset.jsonl
-backend/data/training_examples.json
+backend/data/processed_links.json
+backend/data/devices.json
+backend/data/cached_alerts.json
+# Ensure company_names.json and training_examples.json are NOT ignored
 
 # Flutter
 .dart_tool/
