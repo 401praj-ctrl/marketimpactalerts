@@ -5,7 +5,11 @@ import asyncio
 from dotenv import load_dotenv
 from thefuzz import process
 
-load_dotenv()
+# Environment variables are managed by main.py
+# Only load here if running standalone
+if not os.environ.get("OPENROUTER_API_KEY_1"):
+    load_dotenv()
+
 
 # Load company names for validation
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,14 +69,16 @@ if not API_KEYS:
 else:
     print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique API keys from environment.")
 
-# Models in order of preference: Free models first for maximum reliability in local testing
+# Models in order of preference: Verified free models first for maximum reliability in local testing
 MODELS = [
-    "google/gemini-2.0-flash-exp:free", # Reliable fast model
-    "google/gemini-2.0-flash-lite-preview-02-05:free",
+    "google/gemma-3-27b-it:free", # Highly capable free model
     "google/gemma-3-12b-it:free",
-    "mistralai/mistral-7b-instruct:free",
-    "openai/gpt-3.5-turbo", # Fast, reliable (Backup)
+    "deepseek/deepseek-r1-0528:free", # Strong logic/reasoning
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+    "openai/gpt-3.5-turbo", # Fast, reliable (Backup - Paid)
+    "google/gemini-2.0-flash-001", # High quality fallback (Paid)
 ]
+
 
 # Load training examples
 TRAINING_EXAMPLES = []
