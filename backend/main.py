@@ -14,8 +14,14 @@ from pydantic import BaseModel
 # Add the current directory (backend) to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+# Prioritize system environment variables (Render Dashboard)
+if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')):
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+    print("DEBUG: Loaded configuration from local .env file")
+else:
+    print("DEBUG: No .env file found. Utilizing Render/System Environment Variables.")
+
 
 from services.rss_service import fetch_latest_headlines
 from services.news_api_service import fetch_news_api_headlines

@@ -154,16 +154,18 @@ class AlertDetailsScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: AppTheme.silver),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: GoogleFonts.inter(color: AppTheme.silver.withOpacity(0.5), fontSize: 10, letterSpacing: 1)),
-              const SizedBox(height: 4),
-              Text(
-                value.isEmpty ? "TBD" : value,
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: GoogleFonts.inter(color: AppTheme.silver.withOpacity(0.5), fontSize: 10, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(
+                  value.isEmpty ? "TBD" : value,
+                  style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
           ),
         ],
       ),

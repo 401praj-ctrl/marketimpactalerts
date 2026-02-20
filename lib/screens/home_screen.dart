@@ -334,13 +334,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(Icons.layers_rounded, size: 16, color: AppTheme.silver),
                       const SizedBox(width: 8),
-                      Text(
-                        alert.sector.toUpperCase(),
-                        style: GoogleFonts.inter(
-                          color: AppTheme.silver,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
+                      Flexible(
+                        child: Text(
+                          alert.sector.toUpperCase(),
+                          style: GoogleFonts.inter(
+                            color: AppTheme.silver,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const Spacer(),

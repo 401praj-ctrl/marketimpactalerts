@@ -19,7 +19,16 @@ RSS_SOURCES = {
     ],
     "INDIAN STOCKS (SPECIFIC)": [
         "https://economictimes.indiatimes.com/markets/stocks/news/rssfeeds/2146842.cms", # ET Stock News
-        "https://economictimes.indiatimes.com/markets/stocks/earnings/rssfeeds/14605963.cms" # ET Earnings
+        "https://economictimes.indiatimes.com/markets/stocks/earnings/rssfeeds/14605963.cms", # ET Earnings
+        "https://www.moneycontrol.com/rss/latestnews.xml" # MC Latest
+    ],
+    "GLOBAL WIRES (PREMIUM)": [
+        "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml", # WSJ Business
+        "https://feeds.a.dj.com/rss/RSSMarketsMain.xml", # WSJ Markets
+        "http://feeds.bloomberg.com/markets/news.rss", # Bloomberg Markets
+        "http://feeds.bloomberg.com/technology/news.rss", # Bloomberg Tech
+        "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml", # NYT Business
+        "https://www.ft.com/?format=rss" # Financial Times
     ],
     
     # ------------------
@@ -73,10 +82,10 @@ RSS_SOURCES = {
     # TIER 4: RAPID KEYWORD SCANNERS (Google News Fallbacks for extreme niches & unlisted anomalies)
     # ------------------
     "EXTREME ANOMALIES": [
-        "https://news.google.com/rss/search?q=Hindenburg+OR+Muddy+Waters+Short+Seller+Report",
-        "https://news.google.com/rss/search?q=Accounting+Fraud+SEBI+Investigation+BSE",
-        "https://news.google.com/rss/search?q=Trading+Halt+Circuit+Breaker+Hit+NSE",
-        "https://news.google.com/rss/search?q=Bond+Default+Bankruptcy+Rating+Downgrade+India"
+        "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListingRss=yes", # SEBI Official Press
+        "https://www.investing.com/rss/news_short_selling.rss", # Short Seller Reports
+        "https://news.google.com/rss/search?q=Accounting+Fraud+SEBI+Investigation+BSE", # Targeted Fraud Search
+        "https://news.google.com/rss/search?q=Trading+Halt+Circuit+Breaker+Hit+NSE" # Targeted Halt Search
     ]
 }
 

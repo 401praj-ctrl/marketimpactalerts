@@ -3,7 +3,8 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv() is handled globally in main.py
+
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY", "d8e2bf7094024f01a73bccc87cee4c8e")
 
