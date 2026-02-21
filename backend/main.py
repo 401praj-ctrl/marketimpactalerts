@@ -5,6 +5,7 @@ import asyncio
 import datetime
 import uvicorn
 import requests
+import httpx
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dateutil import parser as date_parser
