@@ -48,9 +48,9 @@ def validate_company_name(name):
         return match
     return name
 
-# Updated API Keys logic: Check generic and indexed versions
+# Updated API Keys logic: Check generic and indexed versions (Supports up to 10 keys)
 API_KEYS = []
-potential_key_names = ["OPENROUTER_API_KEY"] + [f"OPENROUTER_API_KEY_{i}" for i in range(1, 6)]
+potential_key_names = ["OPENROUTER_API_KEY"] + [f"OPENROUTER_API_KEY_{i}" for i in range(1, 11)]
 
 print(f"DEBUG: Checking for potential keys: {potential_key_names}")
 for kn in potential_key_names:
@@ -60,6 +60,8 @@ for kn in potential_key_names:
         print(f"DEBUG: Found key for {kn}: {key_strip[:6]}...{key_strip[-4:]}")
         if key_strip not in API_KEYS:
             API_KEYS.append(key_strip)
+        else:
+            print(f"DEBUG: Key for {kn} is a duplicate. Skipping.")
 
 
 # Last resort hardcoded keys (REMOVED FOR SECURITY)
