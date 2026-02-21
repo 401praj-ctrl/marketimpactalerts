@@ -4,6 +4,7 @@ import os
 import asyncio
 from dotenv import load_dotenv
 from thefuzz import process
+from bytez import Bytez
 
 # Environment variables are managed by main.py
 # Only load here if running standalone
@@ -69,7 +70,20 @@ if not API_KEYS:
     print("WARNING: No API keys found in environment. AI features will be disabled until keys are set.")
     API_KEYS = []
 else:
-    print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique API keys from environment.")
+    print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique OpenRouter API keys from environment.")
+
+# Bytez API Keys Support
+BYTEZ_API_KEYS = []
+potential_bytez_key_names = ["BYTEZ_API_KEY"] + [f"BYTEZ_API_KEY_{i}" for i in range(1, 6)]
+for kn in potential_bytez_key_names:
+    val = os.environ.get(kn)
+    if val and val.strip():
+        key_strip = val.strip()
+        if key_strip not in BYTEZ_API_KEYS:
+            BYTEZ_API_KEYS.append(key_strip)
+
+if BYTEZ_API_KEYS:
+    print(f"DEBUG: Successfully loaded {len(BYTEZ_API_KEYS)} unique Bytez API keys.")
 
 # Models in order of preference: Exclusive free models as requested
 MODELS = [
@@ -285,7 +299,39 @@ async def analyze_headline(headline_text):
                     print(f"      >> Exception with Key {i+1}: {e}")
                     continue
             
-    print("  ERROR: All models and keys failed.")
+    
+    # --- FALLBACK TO BYTEZ ---
+    if BYTEZ_API_KEYS:
+        print("  DEBUG: OpenRouter failed. Falling back to Bytez...")
+        for b_key in BYTEZ_API_KEYS:
+            try:
+                sdk = Bytez(b_key)
+                # Primary Bytez model selection
+                b_model_name = "google/gemma-3-12b-it" if "gemma" in MODELS[0].lower() else "openai/gpt-oss-20b"
+                print(f"    > Attempting Bytez model: {b_model_name}")
+                
+                model = sdk.model(b_model_name)
+                # Bytez SDK is synchronous, so run in executor to avoid blocking the loop
+                loop = asyncio.get_event_loop()
+                results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
+                
+                if results and hasattr(results, 'output') and results.output:
+                    print("      >> Bytez analysis successful!")
+                    content = results.output.strip().replace('```json', '').replace('```', '')
+                    data = json.loads(content)
+                    if 'company' in data and data['company']:
+                        validated_name = validate_company_name(data['company'])
+                        data['company'] = validated_name
+                        if validated_name in COMPANY_SYMBOLS:
+                            data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                    return data
+                else:
+                    print(f"      >> Bytez error or empty output: {getattr(results, 'error', 'Unknown error')}")
+            except Exception as e:
+                print(f"      >> Bytez exception: {e}")
+                continue
+
+    print("  ERROR: All models (OpenRouter & Bytez) and keys failed.")
     return {"impact": "no impact"}
 
 async def perform_deep_analysis(full_content, headline):
@@ -443,6 +489,33 @@ async def perform_deep_analysis(full_content, headline):
                 except Exception as e:
                     print(f"      >> Deep Analysis Exception with Key {i+1}: {e}")
                     continue
+    # --- FALLBACK TO BYTEZ ---
+    if BYTEZ_API_KEYS:
+        print("  DEBUG: OpenRouter failed for DEEP analysis. Falling back to Bytez...")
+        for b_key in BYTEZ_API_KEYS:
+            try:
+                sdk = Bytez(b_key)
+                b_model_name = "google/gemma-3-12b-it" if "gemma" in MODELS[0].lower() else "openai/gpt-oss-20b"
+                print(f"    > Attempting Bytez model for DEEP analysis: {b_model_name}")
+                
+                model = sdk.model(b_model_name)
+                loop = asyncio.get_event_loop()
+                results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
+                
+                if results and hasattr(results, 'output') and results.output:
+                    print("      >> Bytez DEEP analysis successful!")
+                    content = results.output.strip().replace('```json', '').replace('```', '')
+                    data = json.loads(content)
+                    if 'company' in data and data['company']:
+                        validated_name = validate_company_name(data['company'])
+                        data['company'] = validated_name
+                        if validated_name in COMPANY_SYMBOLS:
+                            data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                    return data
+            except Exception as e:
+                print(f"      >> Bytez DEEP analysis exception: {e}")
+                continue
+
     return None
 
 async def identify_high_impact_events(headlines):
