@@ -47,8 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _startRefreshTimer() {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 10), (timer) {
       if (mounted && !_isLoading && !_isRefreshing) {
+        print('HomeScreen: Auto-refreshing alerts...');
         _loadAlerts();
       }
     });

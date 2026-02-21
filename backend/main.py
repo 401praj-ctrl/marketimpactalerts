@@ -55,11 +55,14 @@ async def favicon():
     return Response(status_code=204)
 
 # File-based persistence
-ALERTS_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-ALERTS_FILE = os.path.join(ALERTS_DATA_DIR, "cached_alerts.json")
-PROCESSED_FILE = os.path.join(ALERTS_DATA_DIR, "processed_links.json")
-DEVICES_FILE = os.path.join(ALERTS_DATA_DIR, "devices.json")
-os.makedirs(ALERTS_DATA_DIR, exist_ok=True)
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+ALERTS_FILE = os.path.join(DATA_DIR, "cached_alerts.json")
+PROCESSED_FILE = os.path.join(DATA_DIR, "processed_links.json")
+DEVICES_FILE = os.path.join(DATA_DIR, "devices.json")
+LAST_RUN_FILE = os.path.join(DATA_DIR, "last_run_time.json")
+
+# Ensure DATA_DIR exists
+os.makedirs(DATA_DIR, exist_ok=True)
 
 def load_alerts():
     if os.path.exists(ALERTS_FILE):
@@ -142,22 +145,65 @@ def send_onesignal_notification(alerts, devices):
     except Exception as e:
         print(f"ERROR: Failed to send OneSignal push: {e}")
 
+def load_last_run_time():
+    if os.path.exists(LAST_RUN_FILE):
+        try:
+            with open(LAST_RUN_FILE, "r") as f:
+                data = json.load(f)
+                return data.get("last_run_time")
+        except:
+            pass
+    # Default to 2 hours ago if no record exists
+    return (datetime.datetime.now() - datetime.timedelta(hours=2)).isoformat()
+
+def save_last_run_time(iso_time):
+    try:
+        with open(LAST_RUN_FILE, "w") as f:
+            json.dump({"last_run_time": iso_time}, f)
+    except Exception as e:
+        print(f"ERROR saving last run time: {e}")
+
+def parse_published_date(date_str):
+    """Normalize various date formats from news providers."""
+    if not date_str:
+        return None
+    try:
+        # 1. ISO format (NewsAPI: 2026-02-21T12:34:56Z)
+        if "T" in date_str:
+            clean_date = date_str.replace("Z", "+00:00")
+            return datetime.datetime.fromisoformat(clean_date)
+        # 2. Space format (NewsData: 2026-02-21 12:34:56)
+        if " " in date_str and ":" in date_str and not "," in date_str:
+            return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        # 3. RFC 2822 (RSS: Sat, 21 Feb 2026 12:34:56 +0000)
+        # We use a simple slice for now or trust fromisoformat/strptime if we can
+        # But for robustness with RSS dates, let's try a common strip or use the built-in email.utils
+        import email.utils
+        tup = email.utils.parsedate_to_datetime(date_str)
+        return tup.replace(tzinfo=None) # Convert to naive for comparison
+    except:
+        return None
+
 # Global State
 cached_alerts = load_alerts()
 processed_links = load_processed()
 registered_devices = load_devices()
+last_search_end = load_last_run_time()
 analysis_lock = asyncio.Lock()
 
 async def run_analysis(source="AUTOMATED"):
     global cached_alerts
     global processed_links
+    global last_search_end
     async with analysis_lock:
         start_new_cycle()
         print("\n" + "="*50)
         print(f"STARTING {source} ALPHA IMPACT ANALYSIS")
+        print(f"WINDOW START: {last_search_end}")
         print("="*50)
         try:
-            today = datetime.datetime.now().date()
+            start_time = datetime.datetime.now()
+            today = start_time.date()
             print(f"DEBUG: Today's date: {today}")
             
             # Fetch headlines concurrently
@@ -180,6 +226,32 @@ async def run_analysis(source="AUTOMATED"):
                 else:
                     print(f"ERROR: Source failed: {res}")
             
+            # --- GAPLESS FILTERING ---
+            # Filter headlines by timestamp (Only keep news since last_search_end)
+            try:
+                window_start = datetime.datetime.fromisoformat(last_search_end)
+                fresh_headlines = []
+                for h in headlines:
+                    h_date = parse_published_date(h.get("published"))
+                    # If date parsing fails or it's newer than window_start, keep it
+                    if not h_date or h_date > window_start:
+                        fresh_headlines.append(h)
+                
+                print(f"Gapless Filter: Kept {len(fresh_headlines)} / {len(headlines)} headlines (Window Start: {last_search_end})")
+                headlines = fresh_headlines
+            except Exception as e:
+                print(f"Warning: Gapless filtering failed: {e}")
+            
+            # Remove duplicates by link
+            unique_headlines = []
+            seen_links = set()
+            for h in headlines:
+                if h['link'] not in seen_links:
+                    unique_headlines.append(h)
+                    seen_links.add(h['link'])
+            headlines = unique_headlines
+            print(f"DEBUG: {len(headlines)} unique headlines after deduplication.")
+
             # 72-hour window
             live_headlines = []
             three_days_ago = today - datetime.timedelta(days=2)
@@ -228,6 +300,8 @@ async def run_analysis(source="AUTOMATED"):
             save_processed(processed_links)
 
             if final_alerts:
+                # Sort by probability DESC so the top_alert is truly the most important
+                final_alerts.sort(key=lambda x: x.get("probability", 0), reverse=True)
                 cached_alerts = final_alerts + cached_alerts
                 cached_alerts = cached_alerts[:100]
                 save_alerts(cached_alerts)
@@ -235,6 +309,10 @@ async def run_analysis(source="AUTOMATED"):
                 send_onesignal_notification(final_alerts, registered_devices)
             else:
                 print("DEBUG: No impact detected.")
+            
+            # Update last run time on success
+            last_search_end = start_time.isoformat()
+            save_last_run_time(last_search_end)
                 
         except Exception as e:
             print(f"ERROR: {e}")
