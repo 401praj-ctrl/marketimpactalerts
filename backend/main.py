@@ -350,7 +350,8 @@ async def self_ping():
             external_url = os.environ.get("RENDER_EXTERNAL_URL")
             ping_url = f"{external_url}/health" if external_url else url
             
-            requests.get(ping_url, timeout=5)
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                await client.get(ping_url)
             print(f"DEBUG: Self-ping successful to {ping_url}")
         except Exception as e:
             print(f"DEBUG: Self-ping failed: {e}")
