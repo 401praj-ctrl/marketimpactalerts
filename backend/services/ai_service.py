@@ -49,38 +49,29 @@ def validate_company_name(name):
         return match
     return name
 
-# Updated API Keys logic: Check generic and indexed versions (Supports up to 10 keys)
+# Updated API Keys logic: Find ALL OpenRouter keys dynamically
 API_KEYS = []
-potential_key_names = ["OPENROUTER_API_KEY"] + [f"OPENROUTER_API_KEY_{i}" for i in range(1, 11)]
+for key, value in os.environ.items():
+    if key.startswith("OPENROUTER_API_KEY") and value and value.strip():
+        val = value.strip()
+        if val not in API_KEYS:
+            API_KEYS.append(val)
+            print(f"DEBUG: Found OpenRouter key from {key}: {val[:6]}...{val[-4:]}")
 
-print(f"DEBUG: Checking for potential keys: {potential_key_names}")
-for kn in potential_key_names:
-    val = os.environ.get(kn)
-    if val and val.strip():
-        key_strip = val.strip()
-        print(f"DEBUG: Found key for {kn}: {key_strip[:6]}...{key_strip[-4:]}")
-        if key_strip not in API_KEYS:
-            API_KEYS.append(key_strip)
-        else:
-            print(f"DEBUG: Key for {kn} is a duplicate. Skipping.")
-
-
-# Last resort hardcoded keys (REMOVED FOR SECURITY)
 if not API_KEYS:
     print("WARNING: No API keys found in environment. AI features will be disabled until keys are set.")
     API_KEYS = []
 else:
     print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique OpenRouter API keys from environment.")
 
-# Bytez API Keys Support
+# Bytez API Keys Support: Find ALL Bytez keys dynamically
 BYTEZ_API_KEYS = []
-potential_bytez_key_names = ["BYTEZ_API_KEY"] + [f"BYTEZ_API_KEY_{i}" for i in range(1, 6)]
-for kn in potential_bytez_key_names:
-    val = os.environ.get(kn)
-    if val and val.strip():
-        key_strip = val.strip()
-        if key_strip not in BYTEZ_API_KEYS:
-            BYTEZ_API_KEYS.append(key_strip)
+for key, value in os.environ.items():
+    if key.startswith("BYTEZ_API_KEY") and value and value.strip():
+        val = value.strip()
+        if val not in BYTEZ_API_KEYS:
+            BYTEZ_API_KEYS.append(val)
+            print(f"DEBUG: Found Bytez key from {key}: {val[:6]}...{val[-4:]}")
 
 if BYTEZ_API_KEYS:
     print(f"DEBUG: Successfully loaded {len(BYTEZ_API_KEYS)} unique Bytez API keys.")
