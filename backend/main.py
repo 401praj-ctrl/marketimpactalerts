@@ -389,16 +389,22 @@ async def register_device(req: DeviceRequest):
 async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\nRECEIVED REFRESH REQUEST")
     
-    # CLEAR PROCESSED LINKS TO FORCE RE-ANALYSIS OF LATEST NEWS
+    # 1. CLEAR PROCESSED LINKS TO FORCE RE-ANALYSIS
     global processed_links
     processed_links.clear()
     save_processed(processed_links)
-    print("DEBUG: Processed links cleared. Forcing fresh analysis.")
+    
+    # 2. CLEAR CACHED ALERTS TO REMOVE OLD DATED ENTRIES
+    global cached_alerts
+    cached_alerts.clear()
+    save_alerts(cached_alerts)
+    
+    print("DEBUG: Cache and Processed links cleared. Forcing fresh analysis.")
     
     if analysis_lock.locked():
         raise HTTPException(status_code=429, detail="Analysis already in progress. Please wait.")
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
-    return {"status": "Analysis started. Cache cleared."}
+    return {"status": "Analysis started. Entire cache cleared."}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
