@@ -28,7 +28,7 @@ from services.news_api_service import fetch_news_api_headlines
 from services.news_data_service import fetch_news_data_headlines
 from services.hacker_news_service import fetch_hacker_news_headlines
 from services.social_media_service import fetch_social_media_headlines
-from services.ai_service import identify_high_impact_events, perform_deep_analysis
+from services.ai_service import identify_high_impact_events, perform_deep_analysis, start_new_cycle
 from services.scraper_service import fetch_article_content
 
 app = FastAPI(title="ALPHA IMPACT API")
@@ -149,6 +149,7 @@ async def run_analysis(source="AUTOMATED"):
     global cached_alerts
     global processed_links
     async with analysis_lock:
+        start_new_cycle()
         print("\n" + "="*50)
         print(f"STARTING {source} ALPHA IMPACT ANALYSIS")
         print("="*50)

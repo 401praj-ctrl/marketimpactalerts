@@ -121,6 +121,14 @@ def get_relevant_examples(headline, limit=3):
 
 # Track keys that are out of credits to avoid retrying them in the same session
 depleted_keys = set()
+# Track keys that failed in the current analysis cycle
+cycle_failed_keys = set()
+
+def start_new_cycle():
+    """Reset the per-cycle failure tracking."""
+    global cycle_failed_keys
+    print("  DEBUG: Starting new analysis cycle - Resetting per-cycle API key blacklists.")
+    cycle_failed_keys.clear()
 
 async def analyze_headline(headline_text):
     # ... existing RAG-lite code ...
@@ -222,9 +230,11 @@ async def analyze_headline(headline_text):
             print(f"    > Attempting model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
-                # Skip keys that were previously found to be out of credits, unless using a free model
+                # Skip keys that are out of credits OR failed in this specific cycle
                 is_free_model = model.endswith(":free")
                 if api_key in depleted_keys and not is_free_model:
+                    continue
+                if api_key in cycle_failed_keys:
                     continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
@@ -283,24 +293,27 @@ async def analyze_headline(headline_text):
                             print(f"      >> Model {model} not found on Key {i+1}. Skipping.")
                         continue
                     elif response.status_code == 429:
-                        print(f"      >> Rate Limit (429) on {model} with Key {i+1}. Rotating...")
+                        print(f"      >> Rate Limit (429) on {model} with Key {i+1}. Blacklisting for this cycle.")
+                        cycle_failed_keys.add(api_key)
                         continue
                     else:
-                        # Other errors -> Try next key
+                        # Other errors -> Try next key, but blacklist for this cycle
                         print(f"      >> Error {response.status_code} on {model}: {response.text[:100]}...")
                         # Map 401 specifically for logging
                         if response.status_code == 401:
                              print(f"         WARNING: Key {i+1} might be invalid.")
+                        
+                        cycle_failed_keys.add(api_key)
                         continue
                 except Exception as e:
                     print(f"      >> Exception with Key {i+1}: {e}")
                     continue
             
-    
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
         print("  DEBUG: OpenRouter failed. Falling back to Bytez...")
         for b_key in BYTEZ_API_KEYS:
+            if b_key in cycle_failed_keys: continue
             try:
                 sdk = Bytez(b_key)
                 # Primary Bytez model selection
@@ -329,8 +342,10 @@ async def analyze_headline(headline_text):
                     return data
                 else:
                     print(f"      >> Bytez error or empty output: {getattr(results, 'error', 'Unknown error')}")
+                    cycle_failed_keys.add(b_key)
             except Exception as e:
                 print(f"      >> Bytez exception: {e}")
+                cycle_failed_keys.add(b_key)
                 continue
 
     print("  ERROR: All models (OpenRouter & Bytez) and keys failed.")
@@ -437,9 +452,11 @@ async def perform_deep_analysis(full_content, headline):
             print(f"    > Attempting DEEP analysis with model: {model}")
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
-                # Skip depleted keys unless using a free model
+                # Skip depleted or cycle-failed keys
                 is_free_model = model.endswith(":free")
                 if api_key in depleted_keys and not is_free_model:
+                    continue
+                if api_key in cycle_failed_keys:
                     continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
@@ -483,10 +500,12 @@ async def perform_deep_analysis(full_content, headline):
                         depleted_keys.add(api_key)
                         continue
                     elif response.status_code == 429:
-                        print(f"      >> Rate limit (429) on DEEP analysis. Rotating...")
+                        print(f"      >> Rate limit (429) on DEEP analysis. Blacklisting key for this cycle.")
+                        cycle_failed_keys.add(api_key)
                         continue
                     else:
                         print(f"      >> Deep Analysis Error {response.status_code} with Key {i+1}")
+                        cycle_failed_keys.add(api_key)
                         continue
                 except Exception as e:
                     print(f"      >> Deep Analysis Exception with Key {i+1}: {e}")
@@ -495,6 +514,7 @@ async def perform_deep_analysis(full_content, headline):
     if BYTEZ_API_KEYS:
         print("  DEBUG: OpenRouter failed for DEEP analysis. Falling back to Bytez...")
         for b_key in BYTEZ_API_KEYS:
+            if b_key in cycle_failed_keys: continue
             try:
                 sdk = Bytez(b_key)
                 b_model_name = "google/gemma-3-12b-it" if "gemma" in MODELS[0].lower() else "openai/gpt-oss-20b"
@@ -521,6 +541,7 @@ async def perform_deep_analysis(full_content, headline):
                     return data
             except Exception as e:
                 print(f"      >> Bytez DEEP analysis exception: {e}")
+                cycle_failed_keys.add(b_key)
                 continue
 
     return None
