@@ -132,9 +132,6 @@ def start_new_cycle():
     cycle_failed_keys.clear()
 
 async def analyze_headline(headline_text):
-    # ... existing RAG-lite code ...
-    
-    # [Lines 108-154 truncated for brevity in thought, but included in tool call]
     # Current date for context
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")
     
@@ -203,7 +200,7 @@ async def analyze_headline(headline_text):
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
 
-    TODAY IS: 2026-02-19.
+    TODAY IS: {current_date}.
     
     Return JSON only in this REQUIRED format:
     {{
@@ -229,7 +226,7 @@ async def analyze_headline(headline_text):
     
     print(f"  DEBUG: Prompting AI for: {headline_text[:50]}...")
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=35.0) as client:
         # Multi-layer fallback: Try Primary Model with all keys, then Backup Model with all keys
         for model in MODELS:
             print(f"    > Attempting model: {model}")
@@ -429,7 +426,7 @@ async def perform_deep_analysis(full_content, headline):
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
 
-    TODAY IS: 2026-02-19.
+    TODAY IS: {current_date}.
     
     Return JSON only in this format:
     {{
@@ -455,7 +452,7 @@ async def perform_deep_analysis(full_content, headline):
     
     print(f"  DEBUG: Performing DEEP ANALYSIS for: {headline[:50]}...")
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=35.0) as client:
         for model in MODELS:
             print(f"    > Attempting DEEP analysis with model: {model}")
             for i, api_key in enumerate(API_KEYS):
