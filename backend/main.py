@@ -171,7 +171,8 @@ def parse_published_date(date_str):
         # 1. ISO format (NewsAPI: 2026-02-21T12:34:56Z)
         if "T" in date_str:
             clean_date = date_str.replace("Z", "+00:00")
-            return datetime.datetime.fromisoformat(clean_date)
+            dt = datetime.datetime.fromisoformat(clean_date)
+            return dt.replace(tzinfo=None) # Convert to naive for comparison
         # 2. Space format (NewsData: 2026-02-21 12:34:56)
         if " " in date_str and ":" in date_str and not "," in date_str:
             return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
