@@ -240,7 +240,7 @@ async def background_scheduler():
     await asyncio.sleep(5)
     while True:
         await run_analysis(source="AUTOMATED")
-        await asyncio.sleep(60) # Run every minute continuously
+        await asyncio.sleep(300) # Run every 5 minutes to preserve AI limits
 
 async def self_ping():
     # Ping the health endpoint every 10 minutes to prevent Render free-tier from sleeping
