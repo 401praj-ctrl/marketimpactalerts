@@ -139,6 +139,9 @@ async def analyze_headline(headline_text):
     relevant_examples = get_relevant_examples(headline_text, limit=3)
     examples_text = ""
     for i, ex in enumerate(relevant_examples):
+        # Dynamically inject current date to prevent AI from copying hardcoded old dates
+        if "event_date" in ex: ex["event_date"] = current_date
+        if "impact_date_est" in ex: ex["impact_date_est"] = current_date
         examples_text += f"\n    Example {i+1}:\n    News: {ex.get('news')}\n    Output: {json.dumps(ex)}\n"
 
     prompt = f"""
@@ -228,8 +231,12 @@ async def analyze_headline(headline_text):
     
     async with httpx.AsyncClient(timeout=35.0) as client:
         # Multi-layer fallback: Try Primary Model with all keys, then Backup Model with all keys
-        for model in MODELS:
-            print(f"    > Attempting model: {model}")
+        for model_idx, model in enumerate(MODELS):
+            if model_idx > 0:
+                print(f"  --> Falling back to next OpenRouter model: {model}")
+            else:
+                print(f"  --> Attempting primary OpenRouter model: {model}")
+                
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
                 # Skip keys that are out of credits OR failed in this specific cycle
@@ -298,29 +305,32 @@ async def analyze_headline(headline_text):
                         print(f"      >> Rate Limit (429) on {model} with Key {i+1}. Blacklisting for this cycle.")
                         cycle_failed_keys.add(api_key)
                         continue
+                    elif str(response.status_code).startswith('5'):
+                        # 500, 502, 503, etc.. Model outage. Do not blacklist key.
+                        print(f"      >> Model Outage ({response.status_code}) on {model}. Trying next key/model...")
+                        continue
                     else:
-                        # Other errors -> Try next key, but blacklist for this cycle
+                        # Other errors (e.g. 401 Unauthorized)
                         print(f"      >> Error {response.status_code} on {model}: {response.text[:100]}...")
-                        # Map 401 specifically for logging
                         if response.status_code == 401:
                              print(f"         WARNING: Key {i+1} might be invalid.")
-                        
-                        cycle_failed_keys.add(api_key)
+                             cycle_failed_keys.add(api_key)
+                             
                         continue
                 except Exception as e:
-                    print(f"      >> Exception with Key {i+1}: {e}")
+                    print(f"      >> Exception with Key {i+1} on {model}: {e}")
                     continue
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        print("  DEBUG: OpenRouter failed. Falling back to Bytez...")
-        for b_key in BYTEZ_API_KEYS:
+        print("  --> ALL OpenRouter models failed. Falling back to Bytez...")
+        for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
             if b_key in cycle_failed_keys: continue
             try:
                 sdk = Bytez(b_key)
                 # Primary Bytez model selection
                 b_model_name = "google/gemma-3-12b-it" if "gemma" in MODELS[0].lower() else "openai/gpt-oss-20b"
-                print(f"    > Attempting Bytez model: {b_model_name}")
+                print(f"  --> Attempting primary Bytez model: {b_model_name} (Key {b_key_idx+1})")
                 
                 model = sdk.model(b_model_name)
                 # Bytez SDK is synchronous, so run in executor to avoid blocking the loop
@@ -364,7 +374,9 @@ async def perform_deep_analysis(full_content, headline):
     relevant_examples = get_relevant_examples(headline, limit=3)
     examples_text = ""
     for i, ex in enumerate(relevant_examples):
-        # Adapt example format for deep analysis
+        # Dynamically inject current date to prevent AI from copying hardcoded old dates
+        if "event_date" in ex: ex["event_date"] = current_date
+        if "impact_date_est" in ex: ex["impact_date_est"] = current_date
         examples_text += f"\n    Example {i+1}:\n    News: {ex.get('news')}\n    Output: {json.dumps(ex)}\n"
 
     prompt = f"""
@@ -450,11 +462,14 @@ async def perform_deep_analysis(full_content, headline):
     "{full_content[:4000]}"
     """
     
-    print(f"  DEBUG: Performing DEEP ANALYSIS for: {headline[:50]}...")
-    
+    print(f"  DEBUG: Deep Dive Analysis for: {headline[:50]}...")
     async with httpx.AsyncClient(timeout=35.0) as client:
-        for model in MODELS:
-            print(f"    > Attempting DEEP analysis with model: {model}")
+        for model_idx, model in enumerate(MODELS):
+            if model_idx > 0:
+                print(f"  --> Deep Dive Falling back to next OpenRouter model: {model}")
+            else:
+                print(f"  --> Deep Dive Attempting primary OpenRouter model: {model}")
+                
             for i, api_key in enumerate(API_KEYS):
                 if not api_key: continue
                 # Skip depleted or cycle-failed keys
@@ -508,22 +523,26 @@ async def perform_deep_analysis(full_content, headline):
                         print(f"      >> Rate limit (429) on DEEP analysis. Blacklisting key for this cycle.")
                         cycle_failed_keys.add(api_key)
                         continue
+                    elif str(response.status_code).startswith('5'):
+                        print(f"      >> Deep Analysis Model Outage ({response.status_code}) on {model}. Trying next...")
+                        continue
                     else:
                         print(f"      >> Deep Analysis Error {response.status_code} with Key {i+1}")
-                        cycle_failed_keys.add(api_key)
+                        if response.status_code == 401:
+                            cycle_failed_keys.add(api_key)
                         continue
                 except Exception as e:
-                    print(f"      >> Deep Analysis Exception with Key {i+1}: {e}")
+                    print(f"      >> Deep Analysis Exception with Key {i+1} on {model}: {e}")
                     continue
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        print("  DEBUG: OpenRouter failed for DEEP analysis. Falling back to Bytez...")
-        for b_key in BYTEZ_API_KEYS:
+        print("  --> ALL OpenRouter models failed for DEEP analysis. Falling back to Bytez...")
+        for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
             if b_key in cycle_failed_keys: continue
             try:
                 sdk = Bytez(b_key)
                 b_model_name = "google/gemma-3-12b-it" if "gemma" in MODELS[0].lower() else "openai/gpt-oss-20b"
-                print(f"    > Attempting Bytez model for DEEP analysis: {b_model_name}")
+                print(f"  --> Deep Dive Attempting primary Bytez model: {b_model_name} (Key {b_key_idx+1})")
                 
                 model = sdk.model(b_model_name)
                 loop = asyncio.get_event_loop()
