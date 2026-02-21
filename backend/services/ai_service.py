@@ -530,11 +530,16 @@ async def identify_high_impact_events(headlines):
     for i, h in enumerate(headlines[:20]):
         print(f"  Check ({i+1}/{min(len(headlines), 20)}): {h['title'][:50]}...")
         analysis = await analyze_headline(h['title'])
-        if analysis.get('impact') != "no impact":
+        if analysis.get('impact', '').lower() != "no impact":
             # Tag as a candidate for Pass 2 if probability or strength is high
             analysis['id'] = h['link']
             analysis['link'] = h['link']
             analysis['published'] = h['published']
+            
+            # Ensure event title exists for logging and display
+            if not analysis.get('event') or analysis.get('event') == "None":
+                analysis['event'] = analysis.get('article_summary', h['title'][:50])
+            
             results.append(analysis)
             print(f"    --> Candidate found: {analysis.get('event')}")
         else:
