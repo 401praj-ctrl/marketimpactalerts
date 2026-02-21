@@ -69,15 +69,10 @@ if not API_KEYS:
 else:
     print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique API keys from environment.")
 
-# Models in order of preference: Optimized for reliability and availability
+# Models in order of preference: Exclusive free models as requested
 MODELS = [
-    "google/gemini-2.0-flash-exp:free", # Primary: High speed & accuracy
-    "google/gemini-2.0-flash-lite-preview-02-05:free", # Fast fallback
-    "google/gemma-3-27b-it:free", # Strong alternative
-    "google/gemma-3-12b-it:free", # Fallback
-    "deepseek/deepseek-r1:free", # High logic/reasoning
-    "mistralai/mistral-small-24b-instruct-2501:free", # Reliable open model
-    "google/gemini-2.0-flash-001", # High quality fallback (Paid)
+    "google/gemma-3-12b-it:free",
+    "openai/gpt-oss-20b:free",
 ]
 
 
