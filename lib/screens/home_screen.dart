@@ -126,6 +126,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _handleManualRefresh() async {
+    if (_isRefreshing) return;
+    
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    try {
+      await _apiService.refreshAlerts();
+      await _loadAlerts();
+    } finally {
+      setState(() => _isRefreshing = false);
+    }
+  }
+
   List<EventAlert> _filterAlerts(List<EventAlert> alerts) {
     DateTime now = DateTime.now();
     return alerts.where((alert) {
@@ -193,25 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: _isRefreshing ? AppTheme.silver : AppTheme.glassBlue),
-            onPressed: () async {
-              if (_isRefreshing) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Analysis already in progress. Please wait.')),
-                );
-                return;
-              }
-              setState(() {
-                _isLoading = true;
-                _isRefreshing = true;
-              });
-              
-              try {
-                await _apiService.refreshAlerts();
-                await _loadAlerts();
-              } finally {
-                setState(() => _isRefreshing = false);
-              }
-            },
+            onPressed: _handleManualRefresh,
           ),
         ],
       ),
@@ -221,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : _errorMessage != null && _alerts.isEmpty
               ? _buildErrorPlaceholder()
               : RefreshIndicator(
-                  onRefresh: _loadAlerts,
+                  onRefresh: _handleManualRefresh,
                   color: AppTheme.glassBlue,
                   backgroundColor: AppTheme.cardDark,
                   child: _buildGroupedList(groupedAlerts),
@@ -235,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildGroupedList(Map<String, List<EventAlert>> groups) {
     return RefreshIndicator(
-      onRefresh: _loadAlerts,
+      onRefresh: _handleManualRefresh,
       color: AppTheme.glassBlue,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),

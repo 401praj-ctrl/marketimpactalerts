@@ -185,7 +185,7 @@ def parse_published_date(date_str):
         return None
 
 # Global State
-cached_alerts = load_alerts()
+cached_alerts = [a for a in load_alerts() if a.get("probability", 0) >= 50]
 processed_links = load_processed()
 registered_devices = load_devices()
 last_search_end = load_last_run_time()
@@ -311,10 +311,13 @@ async def run_analysis(source="AUTOMATED"):
             if final_alerts:
                 # Sort by probability DESC so the top_alert is truly the most important
                 final_alerts.sort(key=lambda x: x.get("probability", 0), reverse=True)
-                cached_alerts = final_alerts + cached_alerts
+                
+                # Combine and filter existing cache for 50% threshold globally
+                combined = final_alerts + cached_alerts
+                cached_alerts = [a for a in combined if a.get("probability", 0) >= 50]
                 cached_alerts = cached_alerts[:100]
+                
                 save_alerts(cached_alerts)
-                print(f"SUCCESS: Added {len(final_alerts)} alerts.")
                 send_onesignal_notification(final_alerts, registered_devices)
             else:
                 print("DEBUG: No impact detected.")
@@ -385,10 +388,17 @@ async def register_device(req: DeviceRequest):
 @app.post("/refresh")
 async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\nRECEIVED REFRESH REQUEST")
+    
+    # CLEAR PROCESSED LINKS TO FORCE RE-ANALYSIS OF LATEST NEWS
+    global processed_links
+    processed_links.clear()
+    save_processed(processed_links)
+    print("DEBUG: Processed links cleared. Forcing fresh analysis.")
+    
     if analysis_lock.locked():
         raise HTTPException(status_code=429, detail="Analysis already in progress. Please wait.")
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
-    return {"status": "Analysis started"}
+    return {"status": "Analysis started. Cache cleared."}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
