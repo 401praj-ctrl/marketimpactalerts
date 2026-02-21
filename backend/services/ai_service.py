@@ -80,6 +80,7 @@ if BYTEZ_API_KEYS:
 MODELS = [
     "google/gemma-3-12b-it:free",
     "openai/gpt-oss-20b:free",
+    "mistralai/mistral-7b-instruct:free", # Safety fallback to avoid Bytez unless necessary
 ]
 
 
@@ -273,8 +274,13 @@ async def analyze_headline(headline_text):
                         depleted_keys.add(api_key)
                         continue
                     elif response.status_code == 404:
-                        # Silently skip 404s (Model not supported on this key)
-                        print(f"      >> Model {model} not found on Key {i+1}. Skipping.")
+                        # Descriptive 404 for OpenRouter privacy settings
+                        err_text = response.text
+                        if "Free model publication" in err_text or "data policy" in err_text:
+                            print(f"      >> CRITICAL: Key {i+1} cannot use {model} due to OpenRouter Privacy Settings.")
+                            print(f"         FIX: Enable 'Allow free models to use my data for training/publication' and disable 'ZDR Only' at https://openrouter.ai/settings/privacy")
+                        else:
+                            print(f"      >> Model {model} not found on Key {i+1}. Skipping.")
                         continue
                     elif response.status_code == 429:
                         print(f"      >> Rate Limit (429) on {model} with Key {i+1}. Rotating...")
