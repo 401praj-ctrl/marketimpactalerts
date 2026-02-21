@@ -36,11 +36,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _initializeApp();
+    _startRefreshTimer();
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     super.dispose();
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+      if (mounted && !_isLoading && !_isRefreshing) {
+        _loadAlerts();
+      }
+    });
   }
 
   Future<void> _initializeApp() async {
@@ -282,12 +293,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark.withOpacity(0.4),
+        color: AppTheme.cardDark.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppTheme.white05, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )

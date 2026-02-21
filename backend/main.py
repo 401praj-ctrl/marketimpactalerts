@@ -129,7 +129,8 @@ def send_onesignal_notification(alerts, devices):
         "app_id": app_id,
         "include_player_ids": list(devices),
         "headings": {"en": f"Market Alert: {top_alert.get('event', 'High Impact Event')}"},
-        "contents": {"en": f"Confidence: {top_alert.get('probability')}% | Impact: {top_alert.get('impact_direction')} on {', '.join(top_alert.get('stocks', []))}"}
+        "contents": {"en": f"Confidence: {top_alert.get('probability')}% | Impact: {top_alert.get('impact_direction')} on {', '.join(top_alert.get('stocks', []))}"},
+        "data": {"alert_id": top_alert.get('id')}
     }
     
     try:
@@ -239,7 +240,7 @@ async def background_scheduler():
     await asyncio.sleep(5)
     while True:
         await run_analysis(source="AUTOMATED")
-        await asyncio.sleep(3600)
+        await asyncio.sleep(60) # Run every minute continuously
 
 async def self_ping():
     # Ping the health endpoint every 10 minutes to prevent Render free-tier from sleeping

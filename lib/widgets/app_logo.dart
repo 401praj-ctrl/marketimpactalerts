@@ -31,8 +31,8 @@ class AppLogo extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.glassBlue.withOpacity(0.2),
-                    blurRadius: size / 2,
+                    color: AppTheme.glassBlue.withValues(alpha: 0.2),
+                    blurRadius: math.max(1.0, size / 2),
                     spreadRadius: 2,
                   )
                 ],
@@ -116,7 +116,7 @@ class HexagonPainter extends CustomPainter {
     
     // Inner border
     final borderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
+      ..color = Colors.white.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawPath(path, borderPaint);

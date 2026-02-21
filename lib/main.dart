@@ -51,9 +51,12 @@ class ErrorApp extends StatelessWidget {
 class MarketImpactApp extends StatelessWidget {
   const MarketImpactApp({super.key});
 
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Market Impact Alerts',
       theme: AppTheme.darkTheme,
       home: const SplashScreen(),
@@ -73,18 +76,16 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkFirstLaunch();
+    _initializeApp();
     _navigateToHome();
   }
 
-  Future<void> _checkFirstLaunch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstLaunch = prefs.getBool('is_first_launch') ?? true;
+  Future<void> _initializeApp() async {
+    // Always request/verify permissions and register with OneSignal on startup
+    await NotificationService.requestPermissions();
     
-    if (isFirstLaunch) {
-      await NotificationService.requestPermissions();
-      await prefs.setBool('is_first_launch', false);
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_first_launch', false);
   }
 
   Future<void> _navigateToHome() async {
@@ -118,13 +119,13 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             const AppLogo(size: 80, showText: false),
             const SizedBox(height: 40),
-            const AppLogo(showText: true, isLarge: true, size: 0), // Use 0 size to just show high-res text part
+            const AppLogo(showText: true, isLarge: true, size: 40), // Fixed: size: 0 to size: 40
             const SizedBox(height: 60),
             const SizedBox(
               width: 160,
               child: LinearProgressIndicator(
                 backgroundColor: Colors.white10,
-                color: AppTheme.glassBlue,
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
                 minHeight: 2,
               ),
             ),
