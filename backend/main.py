@@ -110,7 +110,10 @@ def save_devices(devices):
         print(f"ERROR saving devices: {e}")
 
 def send_onesignal_notification(alerts, devices):
-    if not alerts or not devices:
+    if not alerts:
+        return
+    if not devices:
+        print("DEBUG: Skipping notification - No devices registered.")
         return
     app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
     api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "")

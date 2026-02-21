@@ -134,6 +134,9 @@ async def analyze_headline(headline_text):
     # ... existing RAG-lite code ...
     
     # [Lines 108-154 truncated for brevity in thought, but included in tool call]
+    # Current date for context
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    
     # RAG-lite: Fetch relevant training examples
     relevant_examples = get_relevant_examples(headline_text, limit=3)
     examples_text = ""
@@ -141,6 +144,7 @@ async def analyze_headline(headline_text):
         examples_text += f"\n    Example {i+1}:\n    News: {ex.get('news')}\n    Output: {json.dumps(ex)}\n"
 
     prompt = f"""
+    Today's Date: {current_date}
     You are an AI that detects whether a news event may impact publicly traded stocks or sectors.
     Analyze the news and return a structured JSON response.
 
@@ -355,6 +359,9 @@ async def perform_deep_analysis(full_content, headline):
     """
     PASS 2: Performs a deep dive on full article content.
     """
+    # Current date for context
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    
     # RAG-lite: Fetch relevant training examples
     relevant_examples = get_relevant_examples(headline, limit=3)
     examples_text = ""
