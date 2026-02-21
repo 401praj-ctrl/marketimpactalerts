@@ -317,8 +317,13 @@ async def analyze_headline(headline_text):
                 
                 if results and hasattr(results, 'output') and results.output:
                     print("      >> Bytez analysis successful!")
-                    content = results.output.strip().replace('```json', '').replace('```', '')
-                    data = json.loads(content)
+                    
+                    if isinstance(results.output, dict):
+                        data = results.output
+                    else:
+                        content = results.output.strip().replace('```json', '').replace('```', '')
+                        data = json.loads(content)
+                        
                     if 'company' in data and data['company']:
                         validated_name = validate_company_name(data['company'])
                         data['company'] = validated_name
@@ -504,8 +509,13 @@ async def perform_deep_analysis(full_content, headline):
                 
                 if results and hasattr(results, 'output') and results.output:
                     print("      >> Bytez DEEP analysis successful!")
-                    content = results.output.strip().replace('```json', '').replace('```', '')
-                    data = json.loads(content)
+                    
+                    if isinstance(results.output, dict):
+                        data = results.output
+                    else:
+                        content = results.output.strip().replace('```json', '').replace('```', '')
+                        data = json.loads(content)
+                        
                     if 'company' in data and data['company']:
                         validated_name = validate_company_name(data['company'])
                         data['company'] = validated_name
