@@ -275,24 +275,33 @@ async def run_analysis(source="AUTOMATED"):
             if not new_headlines:
                 print("DEBUG: All processed. Skipping AI run.")
                 print("="*50 + "\n")
-                return
+                return # Keep the return here to prevent unnecessary AI calls
 
-            candidates = await identify_high_impact_events(new_headlines[:20]) 
+            # Identify high impact events (Pass 1)
+            high_impact_events = await identify_high_impact_events(headlines)
+            
+            # Filter by probability: Only keep >= 50%
+            filtered_high_impact = [e for e in high_impact_events if e.get("probability", 0) >= 50]
+            print(f"Probability Filter: Kept {len(filtered_high_impact)} / {len(high_impact_events)} alerts (>= 50%)")
+            
             final_alerts = []
             
-            for candidate in candidates:
+            # Only process the top 20 filtered high-impact events for deep dive
+            for event in filtered_high_impact[:20]:
                 # The AI already confirmed in Pass 1 this impacts stocks. We now do a full article Deep Dive on ALL of them.
-                print(f"  --> DEEP DIVE: {candidate['event']}")
-                full_text = await fetch_article_content(candidate['link'])
-                deep_report = await perform_deep_analysis(full_text, candidate['event'])
+                print(f"  --> DEEP DIVE: {event['event']}")
+                full_text = await fetch_article_content(event['link'])
+                deep_report = await perform_deep_analysis(full_text, event['event'])
+                
                 if deep_report:
-                    candidate.update(deep_report)
+                    event.update(deep_report)
                 
-                candidate['timestamp'] = candidate.get('published', datetime.datetime.now().isoformat())
-                candidate['article_summary'] = candidate.get('article_summary', candidate.get('reason', ''))
+                event['timestamp'] = event.get('published', datetime.datetime.now().isoformat())
+                event['article_summary'] = event.get('article_summary', event.get('reason', ''))
                 
-                # Include all valid events that the AI identified as having an impact, regardless of the exact probability percentage.
-                final_alerts.append(candidate)
+                # Double check probability after deep dive
+                if event.get("probability", 0) >= 50:
+                    final_alerts.append(event)
 
             # Update Processed Links
             for h in new_headlines[:20]:
