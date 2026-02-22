@@ -117,10 +117,14 @@ def send_onesignal_notification(alerts, devices):
     if not alerts:
         return
     app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
-    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "")
+    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "").strip()
     if not api_key:
         print("ERROR: ONESIGNAL_REST_API_KEY is not set. Cannot send push notifications.")
         return
+
+    # Debug: Confirm key presence without exposing it
+    key_hint = f"...{api_key[-4:]}" if len(api_key) > 4 else "too-short"
+    print(f"DEBUG: Attempting OneSignal push with key length {len(api_key)} (Hint: {key_hint})")
 
     headers = {
         "Authorization": f"Basic {api_key}",
