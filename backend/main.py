@@ -334,8 +334,14 @@ async def run_analysis(source="AUTOMATED"):
 
 async def background_scheduler():
     await asyncio.sleep(5)
+    print("DEBUG: background_scheduler initialized and waiting for intervals.")
     while True:
-        await run_analysis(source="AUTOMATED")
+        try:
+            print(f"DEBUG: background_scheduler triggering AUTOMATED analysis at {datetime.datetime.now()}")
+            await run_analysis(source="AUTOMATED")
+        except Exception as e:
+            print(f"ERROR: background_scheduler caught exception: {e}")
+        print("DEBUG: background_scheduler sleeping for 120 minutes...")
         await asyncio.sleep(7200) # Run every 120 minutes (2 hours) as requested
 
 async def self_ping():
@@ -358,10 +364,15 @@ async def self_ping():
             print(f"DEBUG: Self-ping failed: {e}")
         await asyncio.sleep(600)  # 10 minutes
 
+# Keep strong references to background tasks to prevent garbage collection
+background_tasks_set = set()
+
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(background_scheduler())
-    asyncio.create_task(self_ping())
+    task1 = asyncio.create_task(background_scheduler())
+    background_tasks_set.add(task1)
+    task2 = asyncio.create_task(self_ping())
+    background_tasks_set.add(task2)
 
 @app.get("/")
 async def root():
@@ -392,21 +403,17 @@ async def register_device(req: DeviceRequest):
 async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\nRECEIVED REFRESH REQUEST")
     
-    # ALWAYS CLEAR CACHE FIRST so old dates are immediately gone from feed
-    global processed_links, cached_alerts
-    processed_links.clear()
-    save_processed(processed_links)
-    
-    cached_alerts.clear()
-    save_alerts(cached_alerts)
-    print("DEBUG: Cache and Processed links cleared. Feed is now clean.")
+    # Instead of wiping the cache entirely (which forces a 5-minute re-analysis of old news),
+    # we just trigger run_analysis. It will already filter out processed links.
+    # ONLY clear cache if the user specifies a full wipe, but standard refresh shouldn't.
+    print("DEBUG: Standard refresh requested. Reusing processed_links. Only fetching new items.")
     
     if analysis_lock.locked():
         print("DEBUG: Analysis already running in background.")
-        return {"status": "Cache wiped. Analysis already running."}
+        return {"status": "Analysis already running."}
         
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
-    return {"status": "Analysis started. Entire cache cleared."}
+    return {"status": "Analysis started. Checking for new events only."}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

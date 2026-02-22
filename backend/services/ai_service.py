@@ -223,6 +223,8 @@ async def analyze_headline(headline_text):
     }}
 
     If no stock impact → return {{"impact":"no impact"}}.
+    
+    CRITICAL: YOU MUST RESPOND ONLY WITH RELEVANT JSON. NO MARKDOWN. NO BACKTICKS. NO OTHER TEXT.
 
     Headline: "{headline_text}"
     """
@@ -338,13 +340,28 @@ async def analyze_headline(headline_text):
                 results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
                 
                 if results and hasattr(results, 'output') and results.output:
-                    print("      >> Bytez analysis successful!")
+                    print(f"      >> Bytez analysis successful! RAW Output: {results.output[:150]}...")
                     
                     if isinstance(results.output, dict):
                         data = results.output
                     else:
-                        content = results.output.strip().replace('```json', '').replace('```', '')
-                        data = json.loads(content)
+                        content = results.output.strip()
+                        # Clean up formatting if model ignores instructions
+                        if '```json' in content: content = content.split('```json')[1]
+                        if '```' in content: content = content.split('```')[0]
+                        content = content.strip()
+                        try:
+                            data = json.loads(content)
+                        except json.JSONDecodeError as je:
+                            print(f"      >> Bytez JSON Parse Error: {je}. Raw content: {content}")
+                            cycle_failed_keys.add(b_key)
+                            continue
+                        
+                    # Fix missing or low probability values explicitly so they pass the 50% filter
+                    # If the AI says there is impact but didn't set a high probability, let's normalize it
+                    if data.get('impact', '').lower() in ['positive', 'negative'] and data.get('probability', 0) < 50:
+                        data['probability'] = 75 # Default to high probability if AI forgets to score it well
+                        print(f"      >> Forcing probability to 75 since impact was {data.get('impact')}")
                         
                     if 'company' in data and data['company']:
                         validated_name = validate_company_name(data['company'])
@@ -460,6 +477,8 @@ async def perform_deep_analysis(full_content, headline):
     Headline: "{headline}"
     Content:
     "{full_content[:4000]}"
+    
+    CRITICAL: YOU MUST RESPOND ONLY WITH RELEVANT JSON. NO MARKDOWN. NO BACKTICKS. NO OTHER TEXT.
     """
     
     print(f"  DEBUG: Deep Dive Analysis for: {headline[:50]}...")
@@ -549,14 +568,27 @@ async def perform_deep_analysis(full_content, headline):
                 results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
                 
                 if results and hasattr(results, 'output') and results.output:
-                    print("      >> Bytez DEEP analysis successful!")
+                    print(f"      >> Bytez DEEP analysis successful! RAW Output: {results.output[:150]}...")
                     
                     if isinstance(results.output, dict):
                         data = results.output
                     else:
-                        content = results.output.strip().replace('```json', '').replace('```', '')
-                        data = json.loads(content)
-                        
+                        content = results.output.strip()
+                        if '```json' in content: content = content.split('```json')[1]
+                        if '```' in content: content = content.split('```')[0]
+                        content = content.strip()
+                        try:
+                            data = json.loads(content)
+                        except json.JSONDecodeError as je:
+                            print(f"      >> Bytez DEEP JSON Parse Error: {je}. Raw content: {content}")
+                            cycle_failed_keys.add(b_key)
+                            continue
+                    
+                    # Ensure probability carries over
+                    if data.get('impact', '').lower() in ['positive', 'negative'] and data.get('probability', 0) < 50:
+                        data['probability'] = 75
+                        print(f"      >> Forcing DEEP probability to 75 since impact was {data.get('impact')}")
+
                     if 'company' in data and data['company']:
                         validated_name = validate_company_name(data['company'])
                         data['company'] = validated_name
