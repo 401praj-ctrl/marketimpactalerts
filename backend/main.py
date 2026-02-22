@@ -292,7 +292,7 @@ async def run_analysis(source="AUTOMATED"):
             final_alerts = []
             
             # Only process the top 20 filtered high-impact events for deep dive
-            for event in filtered_high_impact[:20]:
+            for event in filtered_high_impact:
                 # The AI already confirmed in Pass 1 this impacts stocks. We now do a full article Deep Dive on ALL of them.
                 print(f"  --> DEEP DIVE: {event['event']}")
                 full_text = await fetch_article_content(event['link'])

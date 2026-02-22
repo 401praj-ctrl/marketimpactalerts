@@ -112,7 +112,7 @@ class RealImpactCollector:
         for url in RSS_FEEDS:
             try:
                 feed = feedparser.parse(url)
-                for entry in feed.entries[:5]: # Top 5 only
+                for entry in feed.entries: 
                     # Check duplication
                     if entry.link in self.pending_checks:
                         continue
