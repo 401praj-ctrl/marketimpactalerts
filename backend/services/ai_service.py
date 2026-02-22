@@ -340,7 +340,7 @@ async def analyze_headline(headline_text):
                 results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
                 
                 if results and hasattr(results, 'output') and results.output:
-                    print(f"      >> Bytez analysis successful! RAW Output: {results.output[:150]}...")
+                    print(f"      >> Bytez analysis successful! RAW Output: {str(results.output)[:150]}...")
                     
                     if isinstance(results.output, dict):
                         data = results.output
@@ -568,7 +568,7 @@ async def perform_deep_analysis(full_content, headline):
                 results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
                 
                 if results and hasattr(results, 'output') and results.output:
-                    print(f"      >> Bytez DEEP analysis successful! RAW Output: {results.output[:150]}...")
+                    print(f"      >> Bytez DEEP analysis successful! RAW Output: {str(results.output)[:150]}...")
                     
                     if isinstance(results.output, dict):
                         data = results.output
