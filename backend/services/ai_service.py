@@ -285,10 +285,10 @@ async def analyze_headline(headline_text):
                         print(f"      >> AI Error {response.status_code}: {response.text}")
 
                     if response.status_code == 200:
-
+                        print(f"      >> SUCCESS: OpenRouter Model {model} with Key {i+1} responded.")
                         result = response.json()
                         if 'choices' not in result:
-                            print(f"      >> Unexpected response: {result}")
+                            print(f"      >> Unexpected response structure: {result}")
                             continue
                         content = result['choices'][0]['message']['content']
                         content = content.strip().replace('```json', '').replace('```', '')
@@ -306,36 +306,32 @@ async def analyze_headline(headline_text):
                             
                         return data
                     elif response.status_code == 402:
-                        print(f"      >> Key {i+1} is out of credits (402). Skipping for this session.")
+                        print(f"      >> FAILED: Key {i+1} is out of credits (402 Payment Required).")
                         depleted_keys.add(api_key)
                         continue
+                    elif response.status_code == 401:
+                        print(f"      >> FAILED: Key {i+1} is Unauthorized (401). Check if the key is valid.")
+                        cycle_failed_keys.add(api_key)
+                        continue
                     elif response.status_code == 404:
-                        # Descriptive 404 for OpenRouter privacy settings
+                        print(f"      >> FAILED: Model/Resource not found (404) on Key {i+1}.")
                         err_text = response.text
-                        if "Free model publication" in err_text or "data policy" in err_text:
-                            print(f"      >> CRITICAL: Key {i+1} cannot use {model} due to OpenRouter Privacy Settings.")
-                            print(f"         FIX: Enable 'Allow free models to use my data for training/publication' and disable 'ZDR Only' at https://openrouter.ai/settings/privacy")
-                        else:
-                            print(f"      >> Model {model} not found on Key {i+1}. Skipping.")
+                        if "Free model" in err_text:
+                            print(f"         DETAIL: Check OpenRouter Privacy Settings (Allow free models).")
                         continue
                     elif response.status_code == 429:
-                        print(f"      >> Rate Limit (429) on {model} with Key {i+1}. Blacklisting for this cycle.")
+                        print(f"      >> FAILED: Rate Limited (429) on {model} with Key {i+1}.")
+                        print(f"         RESPONSE: {response.text[:200]}")
                         cycle_failed_keys.add(api_key)
                         continue
                     elif str(response.status_code).startswith('5'):
-                        # 500, 502, 503, etc.. Model outage. Do not blacklist key.
-                        print(f"      >> Model Outage ({response.status_code}) on {model}. Trying next key/model...")
+                        print(f"      >> FAILED: Provider Outage ({response.status_code}) for model {model}.")
                         continue
                     else:
-                        # Other errors (e.g. 401 Unauthorized)
-                        print(f"      >> Error {response.status_code} on {model}: {response.text[:100]}...")
-                        if response.status_code == 401:
-                             print(f"         WARNING: Key {i+1} might be invalid.")
-                             cycle_failed_keys.add(api_key)
-                             
+                        print(f"      >> FAILED: Error {response.status_code} on model {model}: {response.text[:200]}")
                         continue
                 except Exception as e:
-                    print(f"      >> Exception with Key {i+1} on {model}: {e}")
+                    print(f"      >> EXCEPTION with Key {i+1} on model {model}: {str(e)}")
                     continue
             
     # --- FALLBACK TO BYTEZ ---
@@ -358,40 +354,33 @@ async def analyze_headline(headline_text):
                 )
                 
                 if results and hasattr(results, 'output') and results.output:
-                    print(f"      >> Bytez analysis successful! RAW Output: {str(results.output)[:150]}...")
+                    print(f"      >> SUCCESS: Bytez analysis successful! Key {b_key_idx+1}")
                     
                     if isinstance(results.output, dict):
-                        # Sometimes Bytez returns {"role": "assistant", "content": "```json..."}
                         content = results.output.get("content", "")
                         if not content and "message" in results.output:
                             content = results.output["message"].get("content", "")
                         
-                        # If we found string content, we need to parse it
                         if content:
                             content = clean_json_string(content)
                             try:
                                 data = json.loads(content)
                             except json.JSONDecodeError as je:
-                                print(f"      >> Bytez JSON Parse Error from dict: {je}. Raw content: {content}")
-                                cycle_failed_keys.add(b_key)
+                                print(f"      >> FAILED: Bytez JSON Parse Error: {je}. Content: {content[:100]}...")
                                 continue
                         else:
-                            # If it truly is just the pure final JSON data mapped as dict directly
                             data = results.output
                     else:
                         content = clean_json_string(str(results.output))
                         try:
                             data = json.loads(content)
                         except json.JSONDecodeError as je:
-                            print(f"      >> Bytez JSON Parse Error: {je}. Raw content: {content}")
-                            cycle_failed_keys.add(b_key)
+                            print(f"      >> FAILED: Bytez JSON Parse Error: {je}.")
                             continue
                         
-                    # Fix missing or low probability values explicitly so they pass the 50% filter
-                    # If the AI says there is impact but didn't set a high probability, let's normalize it
                     if data.get('impact', '').lower() in ['positive', 'negative'] and data.get('probability', 0) < 50:
-                        data['probability'] = 75 # Default to high probability if AI forgets to score it well
-                        print(f"      >> Forcing probability to 75 since impact was {data.get('impact')}")
+                        data['probability'] = 75
+                        print(f"      >> Normalizing probability to 75")
                         
                     if 'company' in data and data['company']:
                         validated_name = validate_company_name(data['company'])
@@ -400,10 +389,11 @@ async def analyze_headline(headline_text):
                             data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
                     return data
                 else:
-                    print(f"      >> Bytez error or empty output: {getattr(results, 'error', 'Unknown error')}")
+                    err = getattr(results, 'error', 'Empty response')
+                    print(f"      >> FAILED: Bytez error with Key {b_key_idx+1}: {err}")
                     cycle_failed_keys.add(b_key)
             except Exception as e:
-                print(f"      >> Bytez exception: {e}")
+                print(f"      >> EXCEPTION: Bytez key {b_key_idx+1} failed: {str(e)}")
                 cycle_failed_keys.add(b_key)
                 continue
 
