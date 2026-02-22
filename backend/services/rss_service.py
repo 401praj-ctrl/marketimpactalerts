@@ -98,7 +98,7 @@ def fetch_latest_headlines():
         print(f"  Category: {category}")
         for url in urls:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:5]: 
+            for entry in feed.entries: 
                 if entry.title not in seen_titles:
                     headlines.append({
                         "title": entry.title,

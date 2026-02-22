@@ -63,7 +63,7 @@ async def fetch_twitter_headlines():
                 
                 if feed.entries:
                     print(f"    -> Found {len(feed.entries)} tweets from @{account}")
-                    for entry in feed.entries[:5]: # Top 5 tweets
+                    for entry in feed.entries[:15]: # Top 15 tweets
                         headlines.append({
                             "title": f"@{account}: {entry.title}",
                             "link": entry.link,
@@ -90,7 +90,7 @@ async def fetch_social_media_headlines():
     headers = {'User-Agent': 'MarketImpactAlertsApp/1.0 by User'}
     async with httpx.AsyncClient() as client:
         for sub in SUBREDDITS:
-            url = f"https://www.reddit.com/r/{sub}/hot.json?limit=10"
+            url = f"https://www.reddit.com/r/{sub}/hot.json?limit=30"
             try:
                 await asyncio.sleep(0.5)
                 response = await client.get(url, headers=headers, timeout=10)

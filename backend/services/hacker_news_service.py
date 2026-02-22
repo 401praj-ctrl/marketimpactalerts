@@ -13,7 +13,7 @@ async def fetch_hacker_news_headlines():
             response = await client.get(top_ids_url, timeout=10)
             
             if response.status_code == 200:
-                story_ids = response.json()[:20] 
+                story_ids = response.json()[:50] 
                 print(f"    -> Found {len(story_ids)} top stories. Fetching details...")
                 
                 tasks = []
