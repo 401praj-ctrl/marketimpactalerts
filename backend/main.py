@@ -116,9 +116,6 @@ def save_devices(devices):
 def send_onesignal_notification(alerts, devices):
     if not alerts:
         return
-    if not devices:
-        print("DEBUG: Skipping notification - No devices registered.")
-        return
     app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
     api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "")
     if not api_key:
@@ -132,9 +129,10 @@ def send_onesignal_notification(alerts, devices):
     
     # We only send one notification for the most critical top alert
     top_alert = alerts[0]
+    # Target ALL users who have installed and enabled notifications
     payload = {
         "app_id": app_id,
-        "include_player_ids": list(devices),
+        "included_segments": ["Total Subscriptions"],
         "headings": {"en": f"Market Alert: {top_alert.get('event', 'High Impact Event')}"},
         "contents": {"en": f"Confidence: {top_alert.get('probability')}% | Impact: {top_alert.get('impact_direction')} on {', '.join(top_alert.get('stocks', []))}"},
         "data": {"alert_id": top_alert.get('id')}
