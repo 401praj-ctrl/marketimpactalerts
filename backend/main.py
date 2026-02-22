@@ -382,6 +382,13 @@ async def root():
 async def health():
     return {"status": "ok"}
 
+@app.get("/status")
+async def get_status():
+    return {
+        "is_analyzing": analysis_lock.locked(),
+        "last_run_time": last_search_end
+    }
+
 @app.get("/alerts")
 async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
