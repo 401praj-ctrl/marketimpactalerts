@@ -165,8 +165,9 @@ async def analyze_headline(headline_text):
     1. Efficient Market Hypothesis (EMH) [Eugene Fama]: In an efficient market, prices instantly incorporate all available info. News doesn't just affect price; price is the sum of past news. You must determine if this news is genuinely new information or already priced in.
     2. Abnormal Returns (AR) Formula: AR = Actual Return - Expected Return. Think: What should the stock have done vs what will this news make it do? Positive AR means news is "better than expected". Zero AR means "priced in".
     3. The "Drift" Effect (PEAD) [Ball & Brown, 1968]: Post-Earnings Announcement Drift. Stocks don't react instantly to massive surprises; they drift in that direction for weeks. News has a "long tail" impact.
-    4. Behavioral Finance: Markets overreact to negative panic and underreact to complex positive news. Consider sentiment extremes.
     5. Sector Contagion: A bankruptcy drags down a sector but benefits direct competitors. Supply chain breaks hurt downstream.
+    6. Global to Local Contagion: Foreign macroeconomic news (US Fed rates, China slowdowns, Middle East conflicts) heavily impacts Indian domestic markets. Identify HOW a foreign event directly or indirectly affects Indian sectors (e.g., "US Tech slowdown" -> impacts "Indian IT Services").
+    7. Domestic Sensitivity: Local Indian news (RBI rate changes, monsoon data, government policies, local elections) has direct, intense impacts on domestic stocks.
 
     THE MASTER FORMULA: NEWS IMPACT SCORE
     You MUST calculate the impact using this exact quantitative NLP framework internally.
@@ -208,9 +209,11 @@ async def analyze_headline(headline_text):
     RULES:
     1. Identify the EVENT, COMPANY, SECTOR, and IMPACT.
     2. If the news is irrelevant to stocks (e.g., crime, sports, entertainment without business angle), return {{"impact": "no impact"}}.
-    3. Use "NSE:SYMBOL" format for stocks if known (e.g., "NSE:RELIANCE").
-    4. "probability" is confidence event happened (1-100).
-    5. "confidence" is analysis confidence (1-100).
+    3. If the news is FOREIGN (e.g., US economy, Global Tech), you MUST identify which specific INDIAN SECTOR or INDIAN COMPANY will be impacted (e.g., "US Tech slowdown" -> impacts "Indian IT Services" like "NSE:INFY", or "Global oil price spike" hurts "Indian Aviation").
+    4. If the news is LOCAL/DOMESTIC, map it directly to the affected Indian companies or sectors.
+    5. Use "NSE:SYMBOL" format for stocks if known (e.g., "NSE:RELIANCE").
+    6. "probability" is confidence event happened (1-100).
+    7. "confidence" is analysis confidence (1-100).
 
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
