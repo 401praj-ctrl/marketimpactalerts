@@ -275,12 +275,13 @@ async def run_analysis(source="AUTOMATED"):
             print(f"DEBUG: {len(new_headlines)} fresh items for analysis.")
             
             if not new_headlines:
-                print("DEBUG: All processed. Skipping AI run.")
+                print(f"DEBUG: Auto-Scanner activated at {datetime.datetime.now().time()} but found 0 new headlines.")
+                print("DEBUG: All articles already processed. Skipping AI run.")
                 print("="*50 + "\n")
                 return # Keep the return here to prevent unnecessary AI calls
 
             # Identify high impact events (Pass 1)
-            high_impact_events = await identify_high_impact_events(headlines)
+            high_impact_events = await identify_high_impact_events(new_headlines)
             
             # Filter by probability: Only keep >= 50%
             filtered_high_impact = [e for e in high_impact_events if e.get("probability", 0) >= 50]
