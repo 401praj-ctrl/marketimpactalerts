@@ -1,5 +1,6 @@
 import httpx
 import json
+import re
 import os
 import asyncio
 import datetime
@@ -96,6 +97,15 @@ try:
 except Exception as e:
     print(f"Warning: Could not load training examples: {e}")
 
+
+def clean_json_string(content: str) -> str:
+    if not isinstance(content, str): return ""
+    if '```json' in content: content = content.split('```json')[1]
+    if '```' in content: content = content.split('```')[0]
+    content = content.strip()
+    # Remove trailing commas before closing braces/brackets that cause JSONDecodeError
+    content = re.sub(r',\s*([}\]])', r'\1', content)
+    return content
 
 def get_relevant_examples(headline, limit=3):
     """
@@ -350,9 +360,7 @@ async def analyze_headline(headline_text):
                         
                         # If we found string content, we need to parse it
                         if content:
-                            if '```json' in content: content = content.split('```json')[1]
-                            if '```' in content: content = content.split('```')[0]
-                            content = content.strip()
+                            content = clean_json_string(content)
                             try:
                                 data = json.loads(content)
                             except json.JSONDecodeError as je:
@@ -363,11 +371,7 @@ async def analyze_headline(headline_text):
                             # If it truly is just the pure final JSON data mapped as dict directly
                             data = results.output
                     else:
-                        content = str(results.output).strip()
-                        # Clean up formatting if model ignores instructions
-                        if '```json' in content: content = content.split('```json')[1]
-                        if '```' in content: content = content.split('```')[0]
-                        content = content.strip()
+                        content = clean_json_string(str(results.output))
                         try:
                             data = json.loads(content)
                         except json.JSONDecodeError as je:
@@ -594,9 +598,7 @@ async def perform_deep_analysis(full_content, headline):
                             content = results.output["message"].get("content", "")
                             
                         if content:
-                            if '```json' in content: content = content.split('```json')[1]
-                            if '```' in content: content = content.split('```')[0]
-                            content = content.strip()
+                            content = clean_json_string(content)
                             try:
                                 data = json.loads(content)
                             except json.JSONDecodeError as je:
@@ -606,10 +608,7 @@ async def perform_deep_analysis(full_content, headline):
                         else:
                             data = results.output
                     else:
-                        content = str(results.output).strip()
-                        if '```json' in content: content = content.split('```json')[1]
-                        if '```' in content: content = content.split('```')[0]
-                        content = content.strip()
+                        content = clean_json_string(str(results.output))
                         try:
                             data = json.loads(content)
                         except json.JSONDecodeError as je:
