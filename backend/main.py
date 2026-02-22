@@ -306,8 +306,9 @@ async def run_analysis(source="AUTOMATED"):
                 if event.get("probability", 0) >= 50:
                     final_alerts.append(event)
 
-            # Update Processed Links
-            for h in new_headlines[:20]:
+            # Update Processed Links - Mark ALL fresh headlines as seen
+            print(f"DEBUG: Marking {len(new_headlines)} headlines as processed.")
+            for h in new_headlines:
                 processed_links.add(h['link'])
             save_processed(processed_links)
 
