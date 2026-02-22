@@ -642,9 +642,9 @@ async def identify_high_impact_events(headlines):
     results = []
     print(f"PASS 1: Identifying high-impact candidates from {len(headlines)} headlines...")
     
-    # We use the existing analyze_headline as Pass 1 filter
-    for i, h in enumerate(headlines[:20]):
-        print(f"  Check ({i+1}/{min(len(headlines), 20)}): {h['title'][:50]}...")
+    # Analyze all headlines provided (Pass 1 filtering)
+    for i, h in enumerate(headlines):
+        print(f"  Check ({i+1}/{len(headlines)}): {h['title'][:50]}...")
         analysis = await analyze_headline(h['title'])
         if analysis.get('impact', '').lower() != "no impact":
             # Tag as a candidate for Pass 2 if probability or strength is high
