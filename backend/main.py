@@ -282,6 +282,12 @@ async def run_analysis(source="AUTOMATED"):
                 print("="*50 + "\n")
                 return # Keep the return here to prevent unnecessary AI calls
 
+            # IMMEDIATELY mark as processed to prevent race conditions during long AI runs
+            print(f"DEBUG: Pre-emptively marking {len(new_headlines)} headlines as processed.")
+            for h in new_headlines:
+                processed_links.add(h['link'])
+            save_processed(processed_links)
+
             # Identify high impact events (Pass 1)
             high_impact_events = await identify_high_impact_events(new_headlines)
             
@@ -308,11 +314,10 @@ async def run_analysis(source="AUTOMATED"):
                 if event.get("probability", 0) >= 50:
                     final_alerts.append(event)
 
-            # Update Processed Links - Mark ALL fresh headlines as seen
-            print(f"DEBUG: Marking {len(new_headlines)} headlines as processed.")
-            for h in new_headlines:
-                processed_links.add(h['link'])
-            save_processed(processed_links)
+            # Update Processed Links - Moved to start of function to prevent race conditions
+            # for h in new_headlines:
+            #     processed_links.add(h['link'])
+            # save_processed(processed_links)
 
             if final_alerts:
                 # Sort by probability DESC so the top_alert is truly the most important
