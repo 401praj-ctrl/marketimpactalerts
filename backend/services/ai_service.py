@@ -89,10 +89,12 @@ MODELS = [
 # Load training examples
 TRAINING_EXAMPLES = []
 try:
-    examples_path = os.path.join(BASE_DIR, "data", "training_examples.json")
+    examples_path = os.path.join(BASE_DIR, "data", "training_data.jsonl")
     if os.path.exists(examples_path):
         with open(examples_path, "r", encoding="utf-8") as f:
-            TRAINING_EXAMPLES = json.load(f)
+            for line in f:
+                if line.strip():
+                    TRAINING_EXAMPLES.append(json.loads(line))
         print(f"Loaded {len(TRAINING_EXAMPLES)} training examples.")
 except Exception as e:
     print(f"Warning: Could not load training examples: {e}")
