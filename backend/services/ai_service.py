@@ -352,7 +352,10 @@ async def analyze_headline(headline_text):
                 model = sdk.model(b_model_name)
                 # Bytez SDK is synchronous, so run in executor to avoid blocking the loop
                 loop = asyncio.get_event_loop()
-                results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
+                results = await asyncio.wait_for(
+                    loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
+                    timeout=35.0
+                )
                 
                 if results and hasattr(results, 'output') and results.output:
                     print(f"      >> Bytez analysis successful! RAW Output: {str(results.output)[:150]}...")
@@ -592,7 +595,10 @@ async def perform_deep_analysis(full_content, headline):
                 
                 model = sdk.model(b_model_name)
                 loop = asyncio.get_event_loop()
-                results = await loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}]))
+                results = await asyncio.wait_for(
+                    loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
+                    timeout=45.0
+                )
                 
                 if results and hasattr(results, 'output') and results.output:
                     print(f"      >> Bytez DEEP analysis successful! RAW Output: {str(results.output)[:150]}...")
