@@ -343,9 +343,27 @@ async def analyze_headline(headline_text):
                     print(f"      >> Bytez analysis successful! RAW Output: {str(results.output)[:150]}...")
                     
                     if isinstance(results.output, dict):
-                        data = results.output
+                        # Sometimes Bytez returns {"role": "assistant", "content": "```json..."}
+                        content = results.output.get("content", "")
+                        if not content and "message" in results.output:
+                            content = results.output["message"].get("content", "")
+                        
+                        # If we found string content, we need to parse it
+                        if content:
+                            if '```json' in content: content = content.split('```json')[1]
+                            if '```' in content: content = content.split('```')[0]
+                            content = content.strip()
+                            try:
+                                data = json.loads(content)
+                            except json.JSONDecodeError as je:
+                                print(f"      >> Bytez JSON Parse Error from dict: {je}. Raw content: {content}")
+                                cycle_failed_keys.add(b_key)
+                                continue
+                        else:
+                            # If it truly is just the pure final JSON data mapped as dict directly
+                            data = results.output
                     else:
-                        content = results.output.strip()
+                        content = str(results.output).strip()
                         # Clean up formatting if model ignores instructions
                         if '```json' in content: content = content.split('```json')[1]
                         if '```' in content: content = content.split('```')[0]
@@ -571,9 +589,24 @@ async def perform_deep_analysis(full_content, headline):
                     print(f"      >> Bytez DEEP analysis successful! RAW Output: {str(results.output)[:150]}...")
                     
                     if isinstance(results.output, dict):
-                        data = results.output
+                        content = results.output.get("content", "")
+                        if not content and "message" in results.output:
+                            content = results.output["message"].get("content", "")
+                            
+                        if content:
+                            if '```json' in content: content = content.split('```json')[1]
+                            if '```' in content: content = content.split('```')[0]
+                            content = content.strip()
+                            try:
+                                data = json.loads(content)
+                            except json.JSONDecodeError as je:
+                                print(f"      >> Bytez DEEP JSON Parse Error: {je}. Raw content: {content}")
+                                cycle_failed_keys.add(b_key)
+                                continue
+                        else:
+                            data = results.output
                     else:
-                        content = results.output.strip()
+                        content = str(results.output).strip()
                         if '```json' in content: content = content.split('```json')[1]
                         if '```' in content: content = content.split('```')[0]
                         content = content.strip()
