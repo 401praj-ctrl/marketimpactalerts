@@ -167,9 +167,15 @@ while len(dataset) < TARGET_COUNT:
     else:
         conf = random.randint(40, 60)
         
+    import datetime
+    years_ago = random.uniform(0, 5)
+    days_ago = int(years_ago * 365)
+    event_date = (datetime.datetime.now() - datetime.timedelta(days=days_ago)).strftime('%Y-%m-%d')
+    
     example = {
         "news": headline,
         "event": headline.split(',')[0][:65].strip(),
+        "date": event_date,
         "company": comp if '{company}' in headline_template else "",
         "sector": sector if '{sector}' in headline_template or '{company}' in headline_template else "Macro Economy",
         "stocks": [symbol] if '{company}' in headline_template else [],

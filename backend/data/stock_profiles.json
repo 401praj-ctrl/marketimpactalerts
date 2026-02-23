@@ -1,0 +1,35 @@
+{
+  "RELIANCE INDUSTRIES LIMITED": {
+    "sector": "Energy/Telecom/Retail",
+    "export_exposure": "Medium",
+    "global_beta": "Medium",
+    "news_sensitivity": "High",
+    "liquidity": "Very High",
+    "market_cap": "Large"
+  },
+  "HDFC BANK LIMITED": {
+    "sector": "Financial Services",
+    "export_exposure": "Low",
+    "global_beta": "Medium",
+    "news_sensitivity": "High",
+    "liquidity": "Very High",
+    "market_cap": "Large"
+  },
+  "TCS": {
+    "sector": "IT Services",
+    "export_exposure": "Very High",
+    "global_beta": "High",
+    "news_sensitivity": "High",
+    "liquidity": "High",
+    "market_cap": "Large"
+  },
+  "MAANALU": {
+    "sector": "Metals",
+    "export_exposure": "Low",
+    "global_beta": "Low",
+    "news_sensitivity": "Medium",
+    "operator_risk": "High",
+    "liquidity": "Low",
+    "market_cap": "Small"
+  }
+}
