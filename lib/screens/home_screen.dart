@@ -1025,6 +1025,15 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => _UpdateProgressDialog(url: url, version: version),
     );
   }
+
+  String _formatAlertTime(String timestamp) {
+    try {
+      DateTime dt = DateTime.parse(timestamp);
+      return DateFormat("hh:mm a").format(dt);
+    } catch (e) {
+      return "";
+    }
+  }
 }
 
 class _UpdateProgressDialog extends StatefulWidget {
@@ -1190,14 +1199,5 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
         ],
       ),
     );
-  }
-
-  String _formatAlertTime(String timestamp) {
-    try {
-      DateTime dt = DateTime.parse(timestamp);
-      return DateFormat("hh:mm a").format(dt);
-    } catch (e) {
-      return "";
-    }
   }
 }
