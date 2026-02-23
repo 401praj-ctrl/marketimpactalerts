@@ -155,7 +155,7 @@ def get_relevant_examples(headline, limit=3, regime="NORMAL"):
         scored_examples.append((final_score, ex))
         
     scored_examples.sort(key=lambda x: x[0], reverse=True)
-    return [ex[1] for score, ex in scored_examples[:limit]]
+    return [ex for score, ex in scored_examples[:limit]]
 
 # Track keys that are out of credits to avoid retrying them in the same session
 depleted_keys = set()

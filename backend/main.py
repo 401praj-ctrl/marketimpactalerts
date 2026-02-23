@@ -385,12 +385,12 @@ async def run_analysis(source="AUTOMATED"):
             else:
                 print("DEBUG: No impact detected.")
             
-            # Update last run time on success
-            last_search_end = start_time.isoformat()
             save_last_run_time(last_search_end)
                 
         except Exception as e:
+            import traceback
             print(f"ERROR: {e}")
+            traceback.print_exc()
         print("="*50 + "\n")
 
 async def background_scheduler():
