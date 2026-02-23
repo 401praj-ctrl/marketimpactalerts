@@ -12,6 +12,10 @@ class EventAlert {
   final String reason;
   final String timestamp;
   final String? articleSummary;
+  final double? livePrice;
+  final double? predictedPrice;
+  final String? upsidePct;
+  final String impactType; // 'Direct' or 'Indirect'
 
   EventAlert({
     required this.id,
@@ -27,6 +31,10 @@ class EventAlert {
     required this.reason,
     required this.timestamp,
     this.articleSummary,
+    this.livePrice,
+    this.predictedPrice,
+    this.upsidePct,
+    this.impactType = 'Direct',
   });
 
   factory EventAlert.fromJson(Map<String, dynamic> json) {
@@ -44,7 +52,18 @@ class EventAlert {
       reason: json['reason'] ?? '',
       timestamp: json['timestamp'] ?? DateTime.now().toIso8601String(),
       articleSummary: json['article_summary'],
+      livePrice: _toDouble(json['live_price']),
+      predictedPrice: _toDouble(json['predicted_price']),
+      upsidePct: json['upside_pct']?.toString(),
+      impactType: json['impact_type'] ?? 'Direct',
     );
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -62,6 +81,10 @@ class EventAlert {
       'reason': reason,
       'timestamp': timestamp,
       'article_summary': articleSummary,
+      'live_price': livePrice,
+      'predicted_price': predictedPrice,
+      'upside_pct': upsidePct,
+      'impact_type': impactType,
     };
   }
 }

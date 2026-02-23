@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event_alert.dart';
@@ -7,11 +8,19 @@ import '../theme/app_theme.dart';
 import 'alert_details_screen.dart';
 import 'watchlist_screen.dart';
 import 'settings_screen.dart';
+import 'prediction_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/app_logo.dart';
 import '../services/notification_service.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,21 +37,57 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _errorMessage;
   bool _isAutoDeleteEnabled = true;
   bool _notificationsEnabled = true;
+  String _selectedSector = 'All';
+  Set<String> _userWatchlist = {};
   bool _isRefreshing = false;
+  bool _isAnalyzing = true; // Assume true on boot until confirmed false
   Set<String> _previousAlertIds = {};
   Timer? _refreshTimer;
+  Timer? _statusTimer;
+
+  // Search state
+  bool _isSearchActive = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _appVersion = '1.0.0';
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
     _startRefreshTimer();
+    _startStatusTimer();
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _statusTimer?.cancel();
     super.dispose();
+  }
+
+  void _startStatusTimer() {
+    _statusTimer?.cancel();
+    // Poll every 5 seconds for backend analysis status
+    _statusTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (!mounted) return;
+      
+      bool currentlyAnalyzing = await _apiService.checkAnalysisStatus();
+      
+      if (!mounted) return;
+      
+      // Transition from TRUE to FALSE means cycle just completed
+      if (_isAnalyzing && !currentlyAnalyzing) {
+        print('HomeScreen: Analysis cycle completed. Fetching latest alerts...');
+        _loadAlerts();
+      }
+      
+      if (_isAnalyzing != currentlyAnalyzing) {
+        setState(() {
+          _isAnalyzing = currentlyAnalyzing;
+        });
+      }
+    });
   }
 
   void _startRefreshTimer() {
@@ -59,6 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadSettings();
     await _loadCachedAlerts();
     await _loadAlerts();
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = packageInfo.version;
+      });
+    }
+    _checkForUpdate();
   }
 
   Future<void> _loadCachedAlerts() async {
@@ -86,6 +138,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _hiddenAlertIds = prefs.getStringList('hidden_alerts')?.toSet() ?? {};
       _isAutoDeleteEnabled = prefs.getBool('auto_delete_enabled') ?? true;
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+      // Load watchlist for highlighting
+      _userWatchlist = ['HDFC Bank', 'Reliance', 'Nvidia', 'TCS'].toSet(); // Default for now, ideally from shared_prefs
     });
   }
 
@@ -131,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
     
     setState(() {
       _isRefreshing = true;
+      _isAnalyzing = true; // Show synchronizing UI immediately
     });
     
     try {
@@ -142,22 +197,100 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<EventAlert> _filterAlerts(List<EventAlert> alerts) {
-    DateTime now = DateTime.now();
     return alerts.where((alert) {
       // 1. Filter out manually hidden alerts
       if (_hiddenAlertIds.contains(alert.id)) return false;
 
-      // 2. Filter out alerts older than 7 days if enabled
-      if (_isAutoDeleteEnabled) {
-        try {
-          DateTime alertDate = DateFormat("yyyy-MM-dd").parse(alert.eventDate);
-          if (now.difference(alertDate).inDays > 7) return false;
-        } catch (e) {
-          // If date parsing fails, keep it
-        }
+      // 2. Filter by selected sector
+      if (_selectedSector != 'All' && alert.sector != _selectedSector) return false;
+
+      // 3. Filter by search query (Stock Names or Event content)
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final matchesEvent = alert.event.toLowerCase().contains(query);
+        final matchesSector = alert.sector.toLowerCase().contains(query);
+        final matchesStocks = alert.stocks.any((stock) => stock.toLowerCase().contains(query));
+        
+        if (!matchesEvent && !matchesSector && !matchesStocks) return false;
       }
+
       return true;
     }).toList();
+  }
+
+  Future<void> _checkForUpdate() async {
+    final updateInfo = await _apiService.getLatestAppVersion();
+    if (updateInfo == null) return;
+
+    final String latestVersion = updateInfo['latest_version'] ?? '1.0.0';
+    final String downloadUrl = updateInfo['download_url'] ?? '';
+    final String releaseNotes = updateInfo['release_notes'] ?? '';
+
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final String currentVersion = packageInfo.version;
+
+    if (_isVersionNewer(currentVersion, latestVersion)) {
+      _showUpdateDialog(latestVersion, downloadUrl, releaseNotes);
+    }
+  }
+
+  bool _isVersionNewer(String current, String latest) {
+    List<int> currentParts = current.split('+')[0].split('.').map(int.parse).toList();
+    List<int> latestParts = latest.split('+')[0].split('.').map(int.parse).toList();
+
+    for (int i = 0; i < 3; i++) {
+      int c = i < currentParts.length ? currentParts[i] : 0;
+      int l = i < latestParts.length ? latestParts[i] : 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
+  }
+
+  void _showUpdateDialog(String version, String url, String notes) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(Icons.system_update_rounded, color: AppTheme.glassBlue),
+            const SizedBox(width: 12),
+            Text('Update Available', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Version $version is now available.', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text(notes, style: const TextStyle(color: AppTheme.silver, fontSize: 13)),
+            const SizedBox(height: 16),
+            const Text('Would you like to download the latest APK?', style: TextStyle(color: AppTheme.silver, fontSize: 12)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('LATER', style: TextStyle(color: AppTheme.silver)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _startInAppUpdate(url, version);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.glassBlue,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('UPDATE NOW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _checkAndNotifyNewAlerts(List<EventAlert> currentAlerts) {
@@ -204,8 +337,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: _buildAppLogoTitle(),
+        title: _isSearchActive ? _buildSearchField() : _buildAppLogoTitle(),
         actions: [
+          IconButton(
+            icon: Icon(_isSearchActive ? Icons.close_rounded : Icons.search_rounded, color: AppTheme.glassBlue),
+            onPressed: () {
+              setState(() {
+                if (_isSearchActive) {
+                  _isSearchActive = false;
+                  _searchController.clear();
+                  _searchQuery = '';
+                } else {
+                  _isSearchActive = true;
+                }
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.analytics_outlined, color: AppTheme.glassBlue),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PredictionScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: _isRefreshing ? AppTheme.silver : AppTheme.glassBlue),
             onPressed: _handleManualRefresh,
@@ -217,17 +373,176 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppTheme.glassBlue))
           : _errorMessage != null && _alerts.isEmpty
               ? _buildErrorPlaceholder()
-              : RefreshIndicator(
-                  onRefresh: _handleManualRefresh,
-                  color: AppTheme.glassBlue,
-                  backgroundColor: AppTheme.cardDark,
-                  child: _buildGroupedList(groupedAlerts),
+              : Column(
+                  children: [
+                    _buildMarketPulseDashboard(),
+                    _buildSectorFilter(),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _handleManualRefresh,
+                        color: AppTheme.glassBlue,
+                        backgroundColor: AppTheme.cardDark,
+                        child: _buildGroupedList(groupedAlerts),
+                      ),
+                    ),
+                  ],
                 ),
     );
   }
 
+  Widget _buildMarketPulseDashboard() {
+    if (_alerts.isEmpty) return const SizedBox.shrink();
+
+    int bullish = _alerts.where((a) => a.impactDirection.toLowerCase() == 'up').length;
+    int bearish = _alerts.where((a) => a.impactDirection.toLowerCase() == 'down').length;
+    int total = _alerts.length;
+    int bullishPercent = total > 0 ? ((bullish / total) * 100).round() : 0;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.glassBlue.withOpacity(0.15), AppTheme.accentCyan.withOpacity(0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.glassBlue.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MARKET PULSE',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.glassBlue,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  bullishPercent >= 50 ? 'BULLISH SENTIMENT' : 'CAUTIOUS SENTIMENT',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$bullish Altas Up | $bearish Down | $total Total Events',
+                  style: TextStyle(color: AppTheme.silver, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  value: bullishPercent / 100,
+                  backgroundColor: AppTheme.white10,
+                  color: AppTheme.getImpactColor('up'),
+                  strokeWidth: 6,
+                ),
+              ),
+              Text(
+                '$bullishPercent%',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectorFilter() {
+    Set<String> sectors = {'All'};
+    for (var alert in _alerts) {
+      sectors.add(alert.sector);
+    }
+    List<String> sortedSectors = sectors.toList()..sort();
+
+    return Container(
+      height: 50,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: sortedSectors.length,
+        itemBuilder: (context, index) {
+          String sector = sortedSectors[index];
+          bool isSelected = _selectedSector == sector;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(sector.toUpperCase()),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedSector = sector;
+                });
+              },
+              backgroundColor: Colors.transparent,
+              selectedColor: AppTheme.glassBlue.withOpacity(0.2),
+              labelStyle: GoogleFonts.inter(
+                color: isSelected ? AppTheme.glassBlue : AppTheme.silver,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isSelected ? AppTheme.glassBlue : AppTheme.white10,
+                ),
+              ),
+              showCheckmark: false,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildAppLogoTitle() {
-    return const AppLogo();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AppLogo(showText: MediaQuery.of(context).size.width > 400);
+      },
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      decoration: InputDecoration(
+        hintText: 'Search stocks or events...',
+        hintStyle: TextStyle(color: AppTheme.silver.withOpacity(0.5), fontSize: 16),
+        border: InputBorder.none,
+      ),
+      style: const TextStyle(color: Colors.white, fontSize: 16),
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+      },
+    );
   }
 
   Widget _buildGroupedList(Map<String, List<EventAlert>> groups) {
@@ -287,16 +602,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAlertCard(EventAlert alert) {
     final impactColor = AppTheme.getImpactColor(alert.impactDirection);
+    bool isInWatchlist = alert.stocks.any((s) => _userWatchlist.contains(s));
     
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: AppTheme.cardDark.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.white05, width: 1),
+        border: Border.all(
+          color: isInWatchlist ? AppTheme.glassBlue.withOpacity(0.3) : AppTheme.white05, 
+          width: isInWatchlist ? 2 : 1
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: isInWatchlist ? AppTheme.glassBlue.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -319,7 +638,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildImpactBadge(alert.impactDirection, impactColor),
+                      Row(
+                        children: [
+                          _buildImpactBadge(alert.impactDirection, impactColor),
+                          if (isInWatchlist) ...[
+                            const SizedBox(width: 8),
+                            _buildWatchlistBadge(),
+                          ],
+                        ],
+                      ),
                       IconButton(
                         icon: const Icon(Icons.close_rounded, color: Colors.white24, size: 22),
                         onPressed: () => _showDeleteConfirmation(alert),
@@ -374,7 +701,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _buildStockChips(alert.stocks),
+                  _buildStockChips(alert),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(Icons.access_time_rounded, size: 10, color: AppTheme.silver.withOpacity(0.3)),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatAlertTime(alert.timestamp),
+                        style: GoogleFonts.inter(
+                          color: AppTheme.silver.withOpacity(0.4),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -410,22 +753,75 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStockChips(List<String> stocks) {
+  Widget _buildStockChips(EventAlert alert) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: stocks.map((stock) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      children: alert.stocks.map((stock) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppTheme.glassBlue.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.glassBlue.withOpacity(0.1)),
         ),
-        child: Text(
-          stock,
-          style: const TextStyle(color: AppTheme.glassBlue, fontSize: 11, fontWeight: FontWeight.bold),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              stock,
+              style: const TextStyle(color: AppTheme.glassBlue, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+            if (alert.livePrice != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '₹${alert.livePrice}',
+                    style: TextStyle(color: AppTheme.silver, fontSize: 11, fontWeight: FontWeight.w500),
+                  ),
+                  if (alert.predictedPrice != null) ...[
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white24),
+                    const SizedBox(width: 4),
+                    Text(
+                      '₹${alert.predictedPrice}',
+                      style: GoogleFonts.inter(
+                        color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : AppTheme.getImpactColor('down'),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ],
         ),
       )).toList(),
+    );
+  }
+
+  Widget _buildWatchlistBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.glassBlue.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppTheme.glassBlue.withOpacity(0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, size: 14, color: AppTheme.glassBlue),
+          const SizedBox(width: 4),
+          Text(
+            'WATCHLIST',
+            style: GoogleFonts.inter(color: AppTheme.glassBlue, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1),
+          ),
+        ],
+      ),
     );
   }
 
@@ -468,7 +864,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const Spacer(),
           _buildDrawerItem(Icons.settings_suggest_rounded, 'Settings', () {
             Navigator.pop(context);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())).then((_) => _initializeApp());
           }),
           const SizedBox(height: 20),
         ],
@@ -502,8 +898,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
           ),
-          const Text(
-            'Alpha Engine v1.0.5',
+          Text(
+            'Alpha Engine v$_appVersion',
             style: TextStyle(color: AppTheme.silver, fontSize: 13, letterSpacing: 1),
           ),
         ],
@@ -529,7 +925,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildErrorPlaceholder() {
-    bool isInitialSync = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+    bool isEmptyNoError = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
     
     return Center(
       child: Padding(
@@ -537,7 +933,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isInitialSync) ...[
+            if (isEmptyNoError && _isAnalyzing) ...[
               const AppLogo(size: 80, showText: false),
               const SizedBox(height: 32),
               Text(
@@ -562,6 +958,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: Colors.white10,
                   color: AppTheme.glassBlue,
                   minHeight: 2,
+                ),
+              ),
+            ] else if (isEmptyNoError && !_isAnalyzing) ...[
+              Icon(Icons.check_circle_outline_rounded, size: 80, color: AppTheme.silver.withOpacity(0.5)),
+              const SizedBox(height: 24),
+              Text(
+                'NO NEW ALERTS',
+                style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white70),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Alpha Engine has completed its analysis cycle.\nNo high impact events detected.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.silver, height: 1.5),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _handleManualRefresh,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('REFRESH NOW'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.glassBlue.withOpacity(0.2),
+                  foregroundColor: AppTheme.glassBlue,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  elevation: 0,
                 ),
               ),
             ] else ...[
@@ -594,5 +1016,188 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _startInAppUpdate(String url, String version) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _UpdateProgressDialog(url: url, version: version),
+    );
+  }
+}
+
+class _UpdateProgressDialog extends StatefulWidget {
+  final String url;
+  final String version;
+
+  const _UpdateProgressDialog({required this.url, required this.version});
+
+  @override
+  State<_UpdateProgressDialog> createState() => _UpdateProgressDialogState();
+}
+
+class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
+  String _status = 'Initializing...';
+  double _progress = 0;
+  String _mbDownloaded = '0';
+  String _totalMb = '...';
+  bool _isDone = false;
+  bool _isError = false;
+  CancelToken _cancelToken = CancelToken();
+
+  @override
+  void initState() {
+    super.initState();
+    _executeUpgrade();
+  }
+
+  @override
+  void dispose() {
+    _cancelToken.cancel();
+    super.dispose();
+  }
+
+  Future<void> _executeUpgrade() async {
+    try {
+      // 1. Get documents directory
+      final Directory docsDir = await getApplicationDocumentsDirectory();
+      final String savePath = "${docsDir.path}/market_impact_${widget.version}.apk";
+
+      // 2. Start Download with Dio
+      final dio = Dio();
+      await dio.download(
+        widget.url,
+        savePath,
+        cancelToken: _cancelToken,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            setState(() {
+              _status = 'Downloading update...';
+              _progress = (received / total * 100);
+              _totalMb = (total / (1024 * 1024)).toStringAsFixed(1);
+              _mbDownloaded = (received / (1024 * 1024)).toStringAsFixed(1);
+            });
+          }
+        },
+      );
+
+      setState(() {
+        _status = 'Download complete! Checking permissions...';
+      });
+
+      // 3. Request Install Permission (Android 8+)
+      if (Platform.isAndroid) {
+        setState(() {
+          _status = 'Checking install permissions...';
+        });
+        var status = await Permission.requestInstallPackages.status;
+        if (status.isDenied || status.isPermanentlyDenied) {
+          setState(() {
+            _status = 'Please allow install permissions...';
+          });
+          status = await Permission.requestInstallPackages.request();
+        }
+
+        if (!status.isGranted) {
+          setState(() {
+            _status = "Install permission required. Please enable 'Install unknown apps' for Alpha Impact in settings.";
+            _isError = true;
+          });
+          return;
+        }
+      }
+
+      // 4. Open APK with OpenFile
+      setState(() {
+        _status = 'Launching installer...';
+      });
+      final result = await OpenFile.open(savePath);
+      if (result.type != ResultType.done) {
+        setState(() {
+          _status = "Error opening APK: ${result.message}";
+          _isError = true;
+        });
+      } else {
+        setState(() {
+          _status = 'Installer launched!';
+          _isDone = true;
+        });
+      }
+    } catch (e) {
+      print('Manual Update Exception: $e');
+      if (!mounted) return;
+      setState(() {
+        _status = 'Update failed. Please check connection.';
+        _isError = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.cardDark,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Row(
+        children: [
+          const Icon(Icons.cloud_download_rounded, color: AppTheme.glassBlue),
+          const SizedBox(width: 12),
+          Text('Downloading Update', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18)),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(_status, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          const SizedBox(height: 24),
+          if (!_isError && !_isDone) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: _progress / 100,
+                backgroundColor: Colors.white.withOpacity(0.05),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
+                minHeight: 10,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${_mbDownloaded}MB / ${_totalMb}MB', style: const TextStyle(color: AppTheme.silver, fontSize: 12)),
+                Text('${_progress.toInt()}%', style: const TextStyle(color: AppTheme.glassBlue, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+          if (_isError) ...[
+            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CLOSE', style: TextStyle(color: AppTheme.silver)),
+            ),
+          ],
+          if (_isDone) ...[
+            const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent, size: 48),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.glassBlue),
+              child: const Text('OK', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatAlertTime(String timestamp) {
+    try {
+      DateTime dt = DateTime.parse(timestamp);
+      return DateFormat("hh:mm a").format(dt);
+    } catch (e) {
+      return "";
+    }
   }
 }

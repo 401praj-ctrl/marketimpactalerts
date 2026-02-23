@@ -4,6 +4,7 @@ import re
 import os
 import asyncio
 import datetime
+import math
 from dotenv import load_dotenv
 from thefuzz import process
 from bytez import Bytez
@@ -30,8 +31,16 @@ try:
         with open(symbols_path, "r", encoding="utf-8") as f:
             COMPANY_SYMBOLS = json.load(f)
         print(f"Loaded {len(COMPANY_SYMBOLS)} symbol mappings.")
+
+    # Load stock profiles for sensitivity context
+    STOCK_PROFILES = {}
+    profiles_path = os.path.join(BASE_DIR, "data", "stock_profiles.json")
+    if os.path.exists(profiles_path):
+        with open(profiles_path, "r", encoding="utf-8") as f:
+            STOCK_PROFILES = json.load(f)
+        print(f"Loaded {len(STOCK_PROFILES)} stock profiles.")
 except Exception as e:
-    print(f"Warning: Could not load company data: {e}")
+    print(f"Warning: Could not load data: {e}")
 
 
 def validate_company_name(name):
@@ -109,28 +118,44 @@ def clean_json_string(content: str) -> str:
     content = re.sub(r',\s*([}\]])', r'\1', content)
     return content
 
-def get_relevant_examples(headline, limit=3):
+def get_relevant_examples(headline, limit=3, regime="NORMAL"):
     """
     Returns the most relevant training examples for a given headline.
-    Uses simple keyword matching for RAG-lite.
+    Uses keyword matching + Regime-Aware Time-Decay Weighting.
     """
     if not TRAINING_EXAMPLES: return []
     
-    # Simple keyword extraction
     keywords = set(headline.lower().split())
-    
+    current_date = datetime.datetime.now()
     scored_examples = []
-    for ex in TRAINING_EXAMPLES:
-        # Match against event, sector, or reason keywords
-        content = (ex['event'] + " " + ex.get('sector', '') + " " + ex.get('reason', '')).lower()
-        score = sum(1 for k in keywords if k in content and len(k) > 3)
-        scored_examples.append((score, ex))
-        
-    # Sort by score descending
-    scored_examples.sort(key=lambda x: x[0], reverse=True)
     
-    # Return top N examples
-    return [ex for score, ex in scored_examples[:limit]]
+    # Lambda (Decay Rate) shifts based on Regime
+    # NORMAL: 0.5 (~40% after 2 years)
+    # HIGH_VOLATILITY: 1.5 (~5% after 2 years) -> Prioritize ultra-recent news during crises.
+    decay_lambda = 0.5
+    if regime == "HIGH_VOLATILITY":
+        decay_lambda = 1.5
+    
+    for ex in TRAINING_EXAMPLES:
+        # Match against news, sector, or reason keywords
+        content = (ex.get('news', '') + " " + ex.get('sector', '') + " " + ex.get('reason', '')).lower()
+        keyword_matches = sum(1 for k in keywords if k in content and len(k) > 3)
+        if keyword_matches == 0: continue
+        
+        # Recency Weighting: e^(-lambda * YearsAgo)
+        recency_weight = 1.0
+        if 'date' in ex:
+            try:
+                ex_date = datetime.datetime.strptime(ex['date'], '%Y-%m-%d')
+                years_ago = (current_date - ex_date).days / 365.25
+                recency_weight = math.exp(-decay_lambda * years_ago)
+            except: pass
+            
+        final_score = keyword_matches * recency_weight
+        scored_examples.append((final_score, ex))
+        
+    scored_examples.sort(key=lambda x: x[0], reverse=True)
+    return [ex[1] for score, ex in scored_examples[:limit]]
 
 # Track keys that are out of credits to avoid retrying them in the same session
 depleted_keys = set()
@@ -143,12 +168,12 @@ def start_new_cycle():
     print("  DEBUG: Starting new analysis cycle - Resetting per-cycle API key blacklists.")
     cycle_failed_keys.clear()
 
-async def analyze_headline(headline_text):
+async def analyze_headline(headline_text, regime="NORMAL"):
     # Current date for context
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")
     
     # RAG-lite: Fetch relevant training examples
-    relevant_examples = get_relevant_examples(headline_text, limit=3)
+    relevant_examples = get_relevant_examples(headline_text, limit=3, regime=regime)
     examples_text = ""
     for i, ex in enumerate(relevant_examples):
         # Dynamically inject current date to prevent AI from copying hardcoded old dates
@@ -169,51 +194,43 @@ async def analyze_headline(headline_text):
     6. Global to Local Contagion: Foreign macroeconomic news (US Fed rates, China slowdowns, Middle East conflicts) heavily impacts Indian domestic markets. Identify HOW a foreign event directly or indirectly affects Indian sectors (e.g., "US Tech slowdown" -> impacts "Indian IT Services").
     7. Domestic Sensitivity: Local Indian news (RBI rate changes, monsoon data, government policies, local elections) has direct, intense impacts on domestic stocks.
 
-    THE MASTER FORMULA: NEWS IMPACT SCORE
-    You MUST calculate the impact using this exact quantitative NLP framework internally.
+    THE MASTER FORMULA: 7-MODULE IMPACT SCORING
+    You MUST calculate the impact using this exact professional framework.
     
-    Step 1. NLP Sentiment Score (-1 to +1)
-    - Very positive = +1.0, Positive = +0.5, Neutral = 0.0, Negative = -0.5, Very negative = -1.0
-    
-    Step 2. Surprise Factor (0.0 to 1.0) [MOST IMPORTANT]
-    - If news is already known/expected = 0.1
-    - Massive unexpected surprise = 1.0
-    
-    Step 3. Importance Weight (0.0 to 1.0)
-    - Earnings/Major M&A = 1.0
-    - Govt Policy/Interest Rates = 0.9
-    - Large Order/Contract = 0.8
-    - CEO/Mgmt Change = 0.6
-    - Rumor/Speculation = 0.3
-    - Trivial/Tweet = 0.2
-    
-    Step 4. Source Credibility (0.0 to 1.0)
-    - Official Filing/Press Release = 1.0
-    - Reuters/Bloomberg/Major Outlet = 0.9
-    - Standard News Channel = 0.8
-    - Twitter/Social Media = 0.4
-    - Unknown/Unverified = 0.2
-    
-    Step 5. The News Z-Score (Outlier Check)
-    - Evaluate if this news volume/severity is "market noise" (routine daily updates) or a "statistical outlier" (>2 standard deviations from normal = Real Trade Signal).
-    - If it is just noise, artificially lower your final impact confidence.
+    1. Impact Strength Tiering:
+    - Tier-1: Direct Earnings Impact (M&A, Govt Tax, Major Contract) ➔ VERY HIGH Impact.
+    - Tier-2: Sector Impact (Industry trends, Sector-wide regulations) ➔ MEDIUM Impact.
+    - Tier-3: Macro Sentiment (Global trends, Geopolitics, General news) ➔ LOW Impact.
 
-    Step 6. IMPACT SCORE CALCULATION
-    Internal Raw Score = (Sentiment * Surprise * Importance * Credibility)
-    - If Raw Score > 0.7 AND high Z-Score ➔ STRONG BUY (Probability 85-100)
-    - If Raw Score > 0.3 ➔ BUY (Probability 60-84)
-    - If Raw Score between -0.3 and 0.3 or low Z-Score (noise) ➔ IGNORE (Return "impact": "no impact")
-    - If Raw Score < -0.3 ➔ SELL (Probability 60-84)
-    - If Raw Score < -0.7 AND high Z-Score ➔ STRONG SELL (Probability 85-100)
+    2. Master Formula (Non-Linear Interaction):
+    ImpactScore = (DirectRevenueLink * 0.4) + (SectorRelevance * 0.25) + (MarketSentiment * 0.2) + (LiquiditySensitivity * 0.15) + (0.1 * DirectRevenueLink * MarketSentiment)
+    
+    Values are 0.0 to 1.0. If Final Score < 0.4 ➔ Return "no impact".
+    The interaction term (0.1 * Direct * Sentiment) captures non-linear reaction spikes where news intensity multiplies sentiment.
+
+    3. Stock Sensitivity:
+    Consider the stock's profile: Sector, Export exposure, Global beta, Liquidity, and Market Cap. 
+    Small-cap stocks with low liquidity should have REDUCED prediction confidence to avoid volatility noise.
+
+    4. Market Context & Momentum:
+    - If VIX is high ➔ Amplify impact.
+    - If Market is bullish ➔ Reduce negative impact significance.
+    - If Earnings season ➔ Filter out macro noise.
+
+    5. Multi-Signal Check:
+    News sentiment must be CROSS-REFERENCED with existing trends. 
+
+    6. Confidence Calibration (STRICT):
+    - Tier-1 (Strong Direct News) ➔ 70-80% Probability.
+    - Tier-2 (Medium Sector News) ➔ 55-65% Probability.
+    - Tier-3 (Weak Macro News) ➔ 20-35% Probability.
+    NEVER give > 80% unless it is a catastrophic or guaranteed massive earnings event.
 
     RULES:
-    1. Identify the EVENT, COMPANY, SECTOR, and IMPACT.
-    2. If the news is irrelevant to stocks (e.g., crime, sports, entertainment without business angle), return {{"impact": "no impact"}}.
-    3. If the news is FOREIGN (e.g., US economy, Global Tech), you MUST identify which specific INDIAN SECTOR or INDIAN COMPANY will be impacted (e.g., "US Tech slowdown" -> impacts "Indian IT Services" like "NSE:INFY", or "Global oil price spike" hurts "Indian Aviation").
-    4. If the news is LOCAL/DOMESTIC, map it directly to the affected Indian companies or sectors.
-    5. Use "NSE:SYMBOL" format for stocks if known (e.g., "NSE:RELIANCE").
-    6. "probability" is confidence event happened (1-100).
-    7. "confidence" is analysis confidence (1-100).
+    1. Identify the EVENT, COMPANY, SECTOR, and TIER.
+    2. If the news is Tier-3 or macro noise, avoid high probability moves.
+    3. If the news is FOREIGN, identify the Indian sector linkage (Tier-2).
+    4. "probability" MUST reflect the Tier Calibration rules above.
 
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
@@ -231,10 +248,13 @@ async def analyze_headline(headline_text):
      "event_date": "YYYY-MM-DD",
      "impact_date_est": "YYYY-MM-DD",
      "probability": 1-100,
+     "tier": "Tier-1/Tier-2/Tier-3",
+     "impact_score": 0.0-1.0,
      "reason": "Brief financial reasoning",
      "impact": "positive/negative/neutral",
      "strength": "low/medium/high",
-     "confidence": 1-100
+     "confidence": 1-100,
+     "impact_type": "Direct/Indirect"
     }}
 
     If no stock impact → return {{"impact":"no impact"}}.
@@ -300,9 +320,13 @@ async def analyze_headline(headline_text):
                             validated_name = validate_company_name(data['company'])
                             data['company'] = validated_name
                             
-                            # Auto-inject symbol if known
+                            # Auto-inject symbols if known
                             if validated_name in COMPANY_SYMBOLS:
-                                data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                                symbols = COMPANY_SYMBOLS[validated_name]
+                                if isinstance(symbols, list):
+                                    data['stocks'] = symbols
+                                else:
+                                    data['stocks'] = [symbols]
                             
                         return data
                     elif response.status_code == 402:
@@ -382,11 +406,15 @@ async def analyze_headline(headline_text):
                         data['probability'] = 75
                         print(f"      >> Normalizing probability to 75")
                         
-                    if 'company' in data and data['company']:
-                        validated_name = validate_company_name(data['company'])
-                        data['company'] = validated_name
-                        if validated_name in COMPANY_SYMBOLS:
-                            data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                        if 'company' in data and data['company']:
+                            validated_name = validate_company_name(data['company'])
+                            data['company'] = validated_name
+                            if validated_name in COMPANY_SYMBOLS:
+                                symbols = COMPANY_SYMBOLS[validated_name]
+                                if isinstance(symbols, list):
+                                    data['stocks'] = symbols
+                                else:
+                                    data['stocks'] = [symbols]
                     return data
                 else:
                     err = getattr(results, 'error', 'Empty response')
@@ -400,7 +428,7 @@ async def analyze_headline(headline_text):
     print("  ERROR: All models (OpenRouter & Bytez) and keys failed.")
     return {"impact": "no impact"}
 
-async def perform_deep_analysis(full_content, headline):
+async def perform_deep_analysis(full_content, headline, regime="NORMAL", current_prices=None):
     """
     PASS 2: Performs a deep dive on full article content.
     """
@@ -408,7 +436,7 @@ async def perform_deep_analysis(full_content, headline):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")
     
     # RAG-lite: Fetch relevant training examples
-    relevant_examples = get_relevant_examples(headline, limit=3)
+    relevant_examples = get_relevant_examples(headline, limit=3, regime=regime)
     examples_text = ""
     for i, ex in enumerate(relevant_examples):
         # Dynamically inject current date to prevent AI from copying hardcoded old dates
@@ -427,50 +455,45 @@ async def perform_deep_analysis(full_content, headline):
     4. Behavioral Finance: Markets overreact to negative panic and underreact to complex positive news. Consider sentiment extremes.
     5. Sector Contagion: A bankruptcy drags down a sector but benefits direct competitors. Supply chain breaks hurt downstream.
 
-    THE MASTER FORMULA: NEWS IMPACT SCORE
-    You MUST calculate the impact using this exact quantitative NLP framework internally.
+    THE MASTER FORMULA: 7-MODULE IMPACT SCORING
+    You MUST calculate the impact using this exact professional framework.
     
-    Step 1. NLP Sentiment Score (-1 to +1)
-    - Very positive = +1.0, Positive = +0.5, Neutral = 0.0, Negative = -0.5, Very negative = -1.0
-    
-    Step 2. Surprise Factor (0.0 to 1.0) [MOST IMPORTANT]
-    - If news is already known/expected = 0.1
-    - Massive unexpected surprise = 1.0
-    
-    Step 3. Importance Weight (0.0 to 1.0)
-    - Earnings/Major M&A = 1.0
-    - Govt Policy/Interest Rates = 0.9
-    - Large Order/Contract = 0.8
-    - CEO/Mgmt Change = 0.6
-    - Rumor/Speculation = 0.3
-    - Trivial/Tweet = 0.2
-    
-    Step 4. Source Credibility (0.0 to 1.0)
-    - Official Filing/Press Release = 1.0
-    - Reuters/Bloomberg/Major Outlet = 0.9
-    - Standard News Channel = 0.8
-    - Twitter/Social Media = 0.4
-    - Unknown/Unverified = 0.2
-    
-    Step 5. The News Z-Score (Outlier Check)
-    - Evaluate if this news volume/severity is "market noise" (routine daily updates) or a "statistical outlier" (>2 standard deviations from normal = Real Trade Signal).
-    - If it is just noise, artificially lower your final impact confidence.
+    1. Impact Strength Tiering:
+    - Tier-1: Direct Earnings Impact (M&A, Govt Tax, Major Contract) ➔ VERY HIGH Impact.
+    - Tier-2: Sector Impact (Industry trends, Sector-wide regulations) ➔ MEDIUM Impact.
+    - Tier-3: Macro Sentiment (Global trends, Geopolitics, General news) ➔ LOW Impact.
 
-    Step 6. IMPACT SCORE CALCULATION
-    Internal Raw Score = (Sentiment * Surprise * Importance * Credibility)
-    (Note: Assume Volume Spike is neutral/1.0 since you cannot read live volume)
-    
-    - If Raw Score > 0.7 AND high Z-Score ➔ STRONG BUY (Probability 85-100)
-    - If Raw Score > 0.3 ➔ BUY (Probability 60-84)
-    - If Raw Score between -0.3 and 0.3 or low Z-Score (noise) ➔ IGNORE (Return "impact": "no impact")
-    - If Raw Score < -0.3 ➔ SELL (Probability 60-84)
-    - If Raw Score < -0.7 AND high Z-Score ➔ STRONG SELL (Probability 85-100)
+    2. Weighted Formula:
+    ImpactScore = (DirectRevenueLink * 0.4) + (SectorRelevance * 0.25) + (MarketSentiment * 0.2) + (LiquiditySensitivity * 0.15)
+    Values are 0.0 to 1.0. If Final Score < 0.4 ➔ Return "no impact".
+
+    3. Stock Sensitivity:
+    Consider the stock's profile: Sector, Export exposure, Global beta, Liquidity, and Market Cap. 
+    Small-cap stocks with low liquidity should have REDUCED prediction confidence.
+
+    4. Market Context & Momentum:
+    - If VIX is high ➔ Amplify impact.
+    - If Market is bullish ➔ Reduce negative impact significance.
+
+    5. Confidence Calibration (STRICT):
+    - Tier-1 (Strong Direct News) ➔ 70-80% Probability.
+    - Tier-2 (Medium Sector News) ➔ 55-65% Probability.
+    - Tier-3 (Weak Macro News) ➔ 20-35% Probability.
+    NEVER give > 80% unless it is a catastrophic or guaranteed massive earnings event.
+
+    6. Impact Type Classification:
+    - Direct: The news is directly about the company (e.g., Earnings, M&A, specific regulatory action).
+    - Indirect: The news affects the broader sector, macro environment, or supply chain, which then affects the company. Typically Tier-2 and Tier-3 events are Indirect.
 
     RULES:
-    1. Focus on specific stock/sector impacts.
-    2. "probability" = likelihood the event happened (1-100).
-    3. "confidence" = your analytical confidence (1-100).
-    4. Use "NSE:SYMBOL" format.
+    1. Identify the EVENT, COMPANY, SECTOR, and TIER.
+    2. Focus on specific stock/sector impacts.
+    3. "probability" MUST reflect the Tier Calibration rules.
+    4. PREDICT STOCK PRICE: If current_prices {current_prices} are provided, calculate a "predicted_price" for the primary stock on the "impact_date_est" based on the probability, impact strength, and direction.
+       - Use the mapping: {current_prices} to find the current rate.
+       - Formula logic: PredictedPrice = CurrentPrice * (1 + (VolatilityFactor * Probability/100 * DirectionMultiplier))
+       - Be realistic. SME stocks like MAANALU can move 5-20% on major news, Large-caps move 1-5%.
+       - "live_price" should be the numeric value from the provided current_prices.
 
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
@@ -487,11 +510,17 @@ async def perform_deep_analysis(full_content, headline):
      "stocks": ["NSE:SYMBOL", ...],
      "impact_direction": "UP/DOWN/NEUTRAL",
      "probability": 1-100,
+     "tier": "Tier-1/Tier-2/Tier-3",
+     "impact_score": 0.0-1.0,
      "event_date": "YYYY-MM-DD",
      "impact_date_est": "YYYY-MM-DD",
      "impact": "positive/negative/neutral",
      "strength": "low/medium/high",
-     "reason": "Technical/Financial reason"
+     "reason": "Technical/Financial reason",
+     "live_price": "Current price provided",
+     "predicted_price": "Target price for impact date",
+     "upside_pct": "Percentage change from live to predicted",
+     "impact_type": "Direct if company specific, Indirect if sector/macro"
     }}
 
     Headline: "{headline}"
@@ -549,9 +578,13 @@ async def perform_deep_analysis(full_content, headline):
                             validated_name = validate_company_name(data['company'])
                             data['company'] = validated_name
                             
-                            # Auto-inject symbol if known
+                            # Auto-inject symbols if known
                             if validated_name in COMPANY_SYMBOLS:
-                                data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                                symbols = COMPANY_SYMBOLS[validated_name]
+                                if isinstance(symbols, list):
+                                    data['stocks'] = symbols
+                                else:
+                                    data['stocks'] = [symbols]
                             
                         return data
                     elif response.status_code == 402:
@@ -622,11 +655,15 @@ async def perform_deep_analysis(full_content, headline):
                         data['probability'] = 75
                         print(f"      >> Forcing DEEP probability to 75 since impact was {data.get('impact')}")
 
-                    if 'company' in data and data['company']:
-                        validated_name = validate_company_name(data['company'])
-                        data['company'] = validated_name
-                        if validated_name in COMPANY_SYMBOLS:
-                            data['stocks'] = [COMPANY_SYMBOLS[validated_name]]
+                        if 'company' in data and data['company']:
+                            validated_name = validate_company_name(data['company'])
+                            data['company'] = validated_name
+                            if validated_name in COMPANY_SYMBOLS:
+                                symbols = COMPANY_SYMBOLS[validated_name]
+                                if isinstance(symbols, list):
+                                    data['stocks'] = symbols
+                                else:
+                                    data['stocks'] = [symbols]
                     return data
             except Exception as e:
                 print(f"      >> Bytez DEEP analysis exception: {e}")
@@ -635,17 +672,17 @@ async def perform_deep_analysis(full_content, headline):
 
     return None
 
-async def identify_high_impact_events(headlines):
+async def identify_high_impact_events(headlines, regime="NORMAL"):
     """
     PASS 1: Quickly identifies which headlines are highly impactful for the app.
     """
     results = []
-    print(f"PASS 1: Identifying high-impact candidates from {len(headlines)} headlines...")
+    print(f"PASS 1: Identifying high-impact candidates from {len(headlines)} headlines in {regime} regime...")
     
     # Analyze all headlines provided (Pass 1 filtering)
     for i, h in enumerate(headlines):
         print(f"  Check ({i+1}/{len(headlines)}): {h['title'][:50]}...")
-        analysis = await analyze_headline(h['title'])
+        analysis = await analyze_headline(h['title'], regime=regime)
         if analysis.get('impact', '').lower() != "no impact":
             # Tag as a candidate for Pass 2 if probability or strength is high
             analysis['id'] = h['link']

@@ -1,0 +1,5 @@
+{
+    "latest_version": "1.2.0",
+    "download_url": "https://market-impact-backend.onrender.com/app/download",
+    "release_notes": "🚀 Major Update v1.2.0:\n• Fixed live & target price fetching for Indian stocks (Powered by yfinance)\n• Added precise alert timestamps to all cards\n• Dynamic versioning in UI (SplashScreen & Drawer)\n• Robust backend connectivity for physical devices\n• Improved impact classification (Direct/Indirect)"
+}

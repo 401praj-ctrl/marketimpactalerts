@@ -7,6 +7,7 @@ import uvicorn
 import requests
 import httpx
 from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dateutil import parser as date_parser
 from typing import List
@@ -31,6 +32,9 @@ from services.hacker_news_service import fetch_hacker_news_headlines
 from services.social_media_service import fetch_social_media_headlines
 from services.ai_service import identify_high_impact_events, perform_deep_analysis, start_new_cycle
 from services.scraper_service import fetch_article_content
+from services.prediction_tracker import tracker
+from services.regime_service import regime_service
+from services.price_service import price_service
 
 app = FastAPI(title="ALPHA IMPACT API")
 
@@ -61,6 +65,7 @@ ALERTS_FILE = os.path.join(DATA_DIR, "cached_alerts.json")
 PROCESSED_FILE = os.path.join(DATA_DIR, "processed_links.json")
 DEVICES_FILE = os.path.join(DATA_DIR, "devices.json")
 LAST_RUN_FILE = os.path.join(DATA_DIR, "last_run_time.json")
+CONFIG_FILE = os.path.join(DATA_DIR, "app_config.json")
 
 # Ensure DATA_DIR exists
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -201,9 +206,13 @@ async def run_analysis(source="AUTOMATED"):
     global last_search_end
     async with analysis_lock:
         start_new_cycle()
+        # Regime Update
+        await regime_service.update_regime()
+        current_regime = regime_service.get_regime()
+        
         print("\n" + "="*50)
         print(f"STARTING {source} ALPHA IMPACT ANALYSIS")
-        print(f"WINDOW START: {last_search_end}")
+        print(f"WINDOW START: {last_search_end} | REGIME: {current_regime}")
         print("="*50)
         try:
             start_time = datetime.datetime.now()
@@ -289,11 +298,21 @@ async def run_analysis(source="AUTOMATED"):
             save_processed(processed_links)
 
             # Identify high impact events (Pass 1)
-            high_impact_events = await identify_high_impact_events(new_headlines)
+            high_impact_events = await identify_high_impact_events(new_headlines, regime=current_regime)
             
             # Filter by probability: Only keep >= 50%
             filtered_high_impact = [e for e in high_impact_events if e.get("probability", 0) >= 50]
             print(f"Probability Filter: Kept {len(filtered_high_impact)} / {len(high_impact_events)} alerts (>= 50%)")
+            
+            # Mapping of sectors to Yahoo Finance symbols for cross-sectional validation
+            SECTOR_INDEX_MAPPING = {
+                "Banking": "^NSEBANK",
+                "IT Services": "NIFTY_IT.NS", # Placeholder/Simulated
+                "Automobile": "NIFTY_AUTO.NS",
+                "Pharmaceuticals": "NIFTY_PHARMA.NS",
+                "Energy": "NIFTY_ENERGY.NS",
+                "Retail": "^CNXRETAIL", # Placeholder
+            }
             
             final_alerts = []
             
@@ -301,8 +320,16 @@ async def run_analysis(source="AUTOMATED"):
             for event in filtered_high_impact:
                 # The AI already confirmed in Pass 1 this impacts stocks. We now do a full article Deep Dive on ALL of them.
                 print(f"  --> DEEP DIVE: {event['event']}")
+                
+                # Fetch live prices for context
+                current_prices = {}
+                for symbol in event.get('stocks', []):
+                    price = await price_service.get_live_price(symbol)
+                    if price:
+                        current_prices[symbol] = price
+                
                 full_text = await fetch_article_content(event['link'])
-                deep_report = await perform_deep_analysis(full_text, event['event'])
+                deep_report = await perform_deep_analysis(full_text, event['event'], regime=current_regime, current_prices=current_prices)
                 
                 if deep_report:
                     event.update(deep_report)
@@ -312,6 +339,31 @@ async def run_analysis(source="AUTOMATED"):
                 
                 # Double check probability after deep dive
                 if event.get("probability", 0) >= 50:
+                    # Pass 2: Cross-Sectional Validation (Sector Check)
+                    sector = event.get('sector')
+                    if sector in SECTOR_INDEX_MAPPING:
+                        index_symbol = SECTOR_INDEX_MAPPING[sector]
+                        print(f"  [VALIDATION] Checking Sector Correlation for {sector} ({index_symbol})...")
+                        try:
+                            # Check if the sector index is already moving in the same direction
+                            hist = yf.Ticker(index_symbol).history(period="1d", interval="15m")
+                            if not hist.empty:
+                                last_move = (hist['Close'].iloc[-1] / hist['Close'].iloc[0]) - 1
+                                direction = event.get('impact_direction', '').lower()
+                                
+                                # If sentiment aligns with sector move, boost confidence
+                                if (direction == "positive" and last_move > 0.002) or (direction == "negative" and last_move < -0.002):
+                                    event['probability'] = min(80, event.get('probability', 0) + 5)
+                                    print(f"  [CONFIRMED] Sector {sector} move aligns. Confidence boosted.")
+                                else:
+                                    # If sector is doing the opposite, slightly penalize
+                                    if (direction == "positive" and last_move < -0.005) or (direction == "negative" and last_move > 0.005):
+                                        event['probability'] -= 10
+                                        print(f"  [CAUTION] Sector {sector} move opposes sentiment. Confidence reduced.")
+                        except: pass
+                    
+                    # Log prediction for tracking
+                    tracker.save_prediction(event)
                     final_alerts.append(event)
 
             # Update Processed Links - Moved to start of function to prevent race conditions
@@ -382,6 +434,24 @@ async def startup_event():
     background_tasks_set.add(task1)
     task2 = asyncio.create_task(self_ping())
     background_tasks_set.add(task2)
+    task3 = asyncio.create_task(automated_verification_job())
+    background_tasks_set.add(task3)
+
+async def automated_verification_job():
+    """
+    Background job that runs every 6 hours to verify past predictions.
+    """
+    await asyncio.sleep(60) # Wait 1 minute after startup
+    print("DEBUG: automated_verification_job initialized.")
+    while True:
+        try:
+            print(f"DEBUG: automated_verification_job starting check at {datetime.datetime.now()}")
+            await tracker.run_cleanup_and_verification()
+        except Exception as e:
+            print(f"ERROR: automated_verification_job caught exception: {e}")
+        
+        # Run every 6 hours
+        await asyncio.sleep(21600)
 
 @app.get("/")
 async def root():
@@ -403,8 +473,30 @@ async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
     return cached_alerts
 
+@app.get("/stats")
+async def get_prediction_stats():
+    return tracker.get_stats()
+
 class DeviceRequest(BaseModel):
     player_id: str
+
+@app.get("/app/version")
+async def get_app_version():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                config = json.load(f)
+                return config
+        except:
+            pass
+    return {"latest_version": "1.0.0", "download_url": "", "release_notes": ""}
+
+@app.get("/app/download")
+async def download_apk():
+    apk_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "app-release.apk")
+    if os.path.exists(apk_path):
+        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename="market-impact-v1.2.0.apk")
+    return {"error": "APK file not found on server. Please ensure data/app-release.apk exists."}
 
 @app.post("/register_device")
 async def register_device(req: DeviceRequest):

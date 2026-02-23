@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:market_impact_alerts/widgets/app_logo.dart';
 import 'package:market_impact_alerts/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() async {
   try {
@@ -73,6 +74,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String _appVersion = '1.0.0';
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +84,14 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
+    // Fetch dynamic version
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = packageInfo.version;
+      });
+    }
+
     // Always request/verify permissions and register with OneSignal on startup
     await NotificationService.requestPermissions();
     
@@ -131,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'POWERING ALPHA ENGINE v1.0.5',
+              'POWERING ALPHA ENGINE v$_appVersion',
               style: GoogleFonts.inter(
                 color: AppTheme.silver.withOpacity(0.5),
                 fontSize: 10,
