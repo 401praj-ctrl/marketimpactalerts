@@ -87,8 +87,9 @@ class ApiService {
     int retries = 3;
     while (retries > 0) {
       try {
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
         final response = await http
-            .get(Uri.parse('$baseUrl/app/version'))
+            .get(Uri.parse('$baseUrl/app/version?t=$timestamp'))
             .timeout(const Duration(seconds: 30)); // Incresed timeout for cold starts
         if (response.statusCode == 200) {
           return json.decode(response.body) as Map<String, dynamic>;
