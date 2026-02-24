@@ -41,16 +41,26 @@ class PredictionTracker:
                 pass
         return default_stats
 
-    def save_prediction(self, alert_data):
+    def save_prediction(self, alert_data, silent=False):
+        # Prevent duplicates by checking if the event is already logged
+        event_name = alert_data.get("event")
+        if os.path.exists(PREDICTIONS_FILE):
+            try:
+                with open(PREDICTIONS_FILE, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if event_name in line:
+                            return None # Already exists
+            except: pass
+
         prediction = {
             "timestamp": datetime.now().isoformat(),
-            "event": alert_data.get("event"),
+            "event": event_name,
             "company": alert_data.get("company"),
             "stocks": alert_data.get("stocks", []),
             "direction": alert_data.get("impact_direction"),
-            "probability": alert_data.get("probability", 50) / 100.0, # Store as decimal
-            "tier": alert_data.get("tier"),
-            "impact_score": alert_data.get("impact_score"),
+            "probability": float(alert_data.get("probability", 50)) / 100.0, 
+            "tier": alert_data.get("tier", "Tier-3"),
+            "impact_score": alert_data.get("impact_score", 50),
             "live_price": alert_data.get("live_price"),
             "predicted_price": alert_data.get("predicted_price"),
             "verified": False,
@@ -61,7 +71,8 @@ class PredictionTracker:
             f.write(json.dumps(prediction) + "\n")
         
         self.stats["total_predictions"] += 1
-        self.save_stats()
+        if not silent:
+            self.save_stats()
         return prediction
 
     async def verify_prediction(self, symbol, actual_move_pct):

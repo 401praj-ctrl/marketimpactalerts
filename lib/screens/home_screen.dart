@@ -965,26 +965,48 @@ class _HomeScreenState extends State<HomeScreen> {
   String _formatAlertTime(String? timestamp) {
     if (timestamp == null || timestamp.isEmpty) return "--:-- --";
     try {
-      // Standard backend sends ISO format: 2026-02-21T00:16:17.015170
+      // 1. Standard ISO Parse
       DateTime dt = DateTime.parse(timestamp);
-      
-      // Convert to local time
-      dt = dt.toLocal();
-      
-      final now = DateTime.now();
-      final difference = now.difference(dt);
-
-      if (difference.inMinutes < 60) {
-        return "${difference.inMinutes}m ago";
-      } else if (difference.inHours < 24) {
-        return "${difference.inHours}h ago";
-      } else if (difference.inHours < 48) {
-        return "Yesterday";
-      } else {
-        return "${dt.day} ${_getMonth(dt.month)}";
-      }
+      return _formatRelative(dt);
     } catch (e) {
-      return timestamp.contains(' ') ? timestamp.split(' ')[0] : timestamp;
+      // 2. Regex Fallback for "Tue, 21 Feb 2026..." common in feeds
+      try {
+        // Look for DD Mon YYYY
+        final regex = RegExp(r'(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})');
+        final match = regex.firstMatch(timestamp);
+        if (match != null) {
+          final day = int.parse(match.group(1)!);
+          final monthStr = match.group(2)!;
+          final year = int.parse(match.group(3)!);
+          
+          final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          final month = months.indexOf(monthStr) + 1;
+          
+          DateTime dt = DateTime(year, month, day);
+          return _formatRelative(dt);
+        }
+      } catch (re) {}
+      
+      // 3. Simple split fallback
+      return timestamp.contains(',') ? timestamp.split(',')[0] : timestamp;
+    }
+  }
+
+  String _formatRelative(DateTime dt) {
+    final now = DateTime.now();
+    // Convert to local if naive/UTC (frontend assumption)
+    dt = dt.isUtc ? dt.toLocal() : dt;
+    
+    final difference = now.difference(dt);
+
+    if (difference.inMinutes < 60 && difference.inMinutes >= 0) {
+      return "${difference.inMinutes}m ago";
+    } else if (difference.inHours < 24 && difference.inHours >= 0) {
+      return "${difference.inHours}h ago";
+    } else if (difference.inHours < 48 && difference.inHours >= 0) {
+      return "Yesterday";
+    } else {
+      return "${dt.day} ${_getMonth(dt.month)}";
     }
   }
 

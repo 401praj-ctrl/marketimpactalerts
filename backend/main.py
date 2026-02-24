@@ -176,22 +176,51 @@ def parse_published_date(date_str):
     if not date_str:
         return None
     try:
-        # 1. ISO format (NewsAPI: 2026-02-21T12:34:56Z)
+        # If it's already an ISO string with T, return parsed
         if "T" in date_str:
-            clean_date = date_str.replace("Z", "+00:00")
-            dt = datetime.datetime.fromisoformat(clean_date)
-            return dt.replace(tzinfo=None) # Convert to naive for comparison
-        # 2. Space format (NewsData: 2026-02-21 12:34:56)
-        if " " in date_str and ":" in date_str and not "," in date_str:
-            return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-        # 3. RFC 2822 (RSS: Sat, 21 Feb 2026 12:34:56 +0000)
-        # We use a simple slice for now or trust fromisoformat/strptime if we can
-        # But for robustness with RSS dates, let's try a common strip or use the built-in email.utils
-        import email.utils
-        tup = email.utils.parsedate_to_datetime(date_str)
-        return tup.replace(tzinfo=None) # Convert to naive for comparison
-    except:
+            try:
+                # Handle cases like 2026-02-21T12:34:56.123Z
+                clean_date = date_str.replace("Z", "+00:00")
+                return datetime.datetime.fromisoformat(clean_date).replace(tzinfo=None)
+            except: pass
+
+        # Use dateutil.parser for maximum robustness (handles "Tue, 21 Feb 2026 ...")
+        from dateutil import parser as d_parser
+        dt = d_parser.parse(date_str)
+        # If the date is surprisingly in the future (some feeds have bad clocks), cap it at now
+        now = datetime.datetime.now()
+        if dt > now + datetime.timedelta(hours=24):
+            return now
+        return dt.replace(tzinfo=None)
+    except Exception as e:
+        print(f"DEBUG: Failed to parse date '{date_str}': {e}")
         return None
+
+def migrate_legacy_alerts():
+    """Converts any non-ISO timestamps in cached_alerts.json to ISO."""
+    global cached_alerts
+    changed = False
+    print(f"DEBUG: Starting legacy alert migration for {len(cached_alerts)} items...")
+    
+    for alert in cached_alerts:
+        ts = alert.get('timestamp', '')
+        # Check if it looks like a standardized ISO already (YYYY-MM-DDTHH...)
+        if not (isinstance(ts, str) and len(ts) >= 19 and ts[4] == '-' and ts[7] == '-' and 'T' in ts):
+            print(f"  --> Migrating timestamp: {ts}")
+            parsed = parse_published_date(ts)
+            if parsed:
+                alert['timestamp'] = parsed.isoformat()
+                changed = True
+            else:
+                # Fallback to now if unparseable
+                alert['timestamp'] = datetime.datetime.now().isoformat()
+                changed = True
+    
+    if changed:
+        print("DEBUG: Migration complete. Saving sanitized alerts.")
+        save_alerts(cached_alerts)
+    else:
+        print("DEBUG: No migration needed.")
 
 # Global State
 cached_alerts = [a for a in load_alerts() if a.get("probability", 0) >= 50]
@@ -437,6 +466,14 @@ background_tasks_set = set()
 
 @app.on_event("startup")
 async def startup_event():
+    # 1. Clean up any existing alert timestamps
+    migrate_legacy_alerts()
+    
+    # 2. Ensure all high-impact alerts are in the prediction log for the tracker.
+    # This helps recover the dashboard if the stats file was lost but cache exists.
+    for alert in cached_alerts:
+        tracker.save_prediction(alert, silent=True) # Add silent mode to skip extra saves
+
     task1 = asyncio.create_task(background_scheduler())
     background_tasks_set.add(task1)
     task2 = asyncio.create_task(self_ping())
