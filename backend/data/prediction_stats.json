@@ -1,0 +1,14 @@
+{
+  "total_predictions": 1,
+  "correct_predictions": 0,
+  "false_signals": 0,
+  "avg_accuracy": 0.0,
+  "profit_simulation_pct": 0.0,
+  "brier_score": 1.0,
+  "tier_accuracy": {
+    "Tier-1": 0,
+    "Tier-2": 0,
+    "Tier-3": 0
+  },
+  "recent_performance": []
+}

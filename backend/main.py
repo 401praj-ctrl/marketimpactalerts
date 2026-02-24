@@ -334,7 +334,14 @@ async def run_analysis(source="AUTOMATED"):
                 if deep_report:
                     event.update(deep_report)
                 
-                event['timestamp'] = event.get('published', datetime.datetime.now().isoformat())
+                # Standardize timestamp format
+                raw_time = event.get('published', datetime.datetime.now().isoformat())
+                parsed_dt = parse_published_date(raw_time)
+                if parsed_dt:
+                    event['timestamp'] = parsed_dt.isoformat()
+                else:
+                    event['timestamp'] = datetime.datetime.now().isoformat()
+                
                 event['article_summary'] = event.get('article_summary', event.get('reason', ''))
                 
                 # Double check probability after deep dive

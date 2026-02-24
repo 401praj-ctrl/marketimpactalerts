@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.3",
+    "latest_version": "1.2.4",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 Alert Persistence Update v1.2.3:\n• Fixed: Historical alerts are now preserved across updates and restarts\n• Smart Merging: New alerts seamlessly integrate with your existing history\n• Reliable Storage: All analyzed insights are strictly saved to local memory"
+    "release_notes": "🚀 Alpha Engine Update v1.2.4:\n• Fixed: Accuracy Dashboard metrics now correctly display non-zero values\n• Accurate Prices: Reliable nominal stock prices for Indian market symbols\n• Timing Fix: Standardized alert timestamps with clear local relative time (e.g., '5m ago')"
 }

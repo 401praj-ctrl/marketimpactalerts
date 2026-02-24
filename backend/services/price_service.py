@@ -57,25 +57,38 @@ class PriceService:
             loop = asyncio.get_event_loop()
             ticker = yf.Ticker(yf_symbol)
             
-            # fast_info is better for just getting the latest price
+            # The history() method is much more reliable for Indian symbols than fast_info
+            # We fetch 1 day of data and take the latest close
+            # Strategy 1: Ticker.info['currentPrice'] - Often the most accurate for nominal price
             try:
-                info = await loop.run_in_executor(None, lambda: ticker.fast_info)
-                # Safely attempt to get last_price, if fast_info is a dict or object
-                if hasattr(info, 'last_price'):
-                    price = info.last_price
-                elif isinstance(info, dict) and 'last_price' in info:
-                    price = info['last_price']
-            except Exception as fe:
-                print(f"DEBUG: fast_info access failed for {yf_symbol}: {fe}")
-                price = None
-            
-            if not price:
-                # Fallback to history if fast_info fails
-                hist = await loop.run_in_executor(None, lambda: ticker.history(period="1d"))
+                info = await loop.run_in_executor(None, lambda: ticker.info)
+                if info and 'currentPrice' in info:
+                    price = info['currentPrice']
+                    print(f"DEBUG: Fetched price for {yf_symbol} via info['currentPrice']: {price}")
+                elif info and 'regularMarketPrice' in info:
+                    price = info['regularMarketPrice']
+                    print(f"DEBUG: Fetched price for {yf_symbol} via info['regularMarketPrice']: {price}")
+            except:
+                pass
+
+            # Strategy 2: history(period="1d") - Fallback if info fails
+            if price is None:
+                hist = await loop.run_in_executor(None, lambda: ticker.history(period="1d", auto_adjust=False))
                 if not hist.empty:
                     price = float(hist['Close'].iloc[-1])
+                    print(f"DEBUG: Fetched price for {yf_symbol} via history(): {price}")
 
-            if price is not None and not math.isnan(price):
+            # Strategy 3: fast_info (Last Resort)
+            if price is None:
+                try:
+                    f_info = await loop.run_in_executor(None, lambda: ticker.fast_info)
+                    if hasattr(f_info, 'last_price'):
+                        price = f_info.last_price
+                    print(f"DEBUG: Fallback to fast_info for {yf_symbol}: {price}")
+                except:
+                    pass
+
+            if price is not None and not math.isnan(price) and price > 0:
                 price_val = round(float(price), 2)
                 self.cache[yf_symbol] = {
                     "price": price_val,

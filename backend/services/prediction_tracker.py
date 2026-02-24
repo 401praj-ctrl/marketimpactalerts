@@ -15,6 +15,9 @@ class PredictionTracker:
     def __init__(self):
         os.makedirs(DATA_DIR, exist_ok=True)
         self.stats = self.load_stats()
+        # Ensure the file exists immediately so the frontend can fetch initial zero stats
+        if not os.path.exists(STATS_FILE):
+            self.save_stats()
 
     def load_stats(self):
         default_stats = {
@@ -87,7 +90,7 @@ class PredictionTracker:
         if "NSE:" in symbol or ".NS" not in symbol:
             av_symbol = f"{clean_symbol}.NS"
         else:
-            av_symbol = f"{clean_symbol}.BSE"
+            av_symbol = f"{clean_symbol}.BO"
 
         url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={av_symbol}&apikey={api_key}"
         

@@ -962,12 +962,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _formatAlertTime(String timestamp) {
+  String _formatAlertTime(String? timestamp) {
+    if (timestamp == null || timestamp.isEmpty) return "--:-- --";
     try {
-      DateTime dt = DateTime.parse(timestamp).toLocal();
-      return DateFormat("hh:mm a").format(dt);
+      // Standard backend sends ISO format: 2026-02-21T00:16:17.015170
+      DateTime dt = DateTime.parse(timestamp);
+      
+      // Convert to local time
+      dt = dt.toLocal();
+      
+      final now = DateTime.now();
+      final difference = now.difference(dt);
+
+      if (difference.inMinutes < 60) {
+        return "${difference.inMinutes}m ago";
+      } else if (difference.inHours < 24) {
+        return "${difference.inHours}h ago";
+      } else if (difference.inHours < 48) {
+        return "Yesterday";
+      } else {
+        return "${dt.day} ${_getMonth(dt.month)}";
+      }
     } catch (e) {
-      return "--:-- --";
+      return timestamp.contains(' ') ? timestamp.split(' ')[0] : timestamp;
     }
+  }
+
+  String _getMonth(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
   }
 }
