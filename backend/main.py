@@ -495,7 +495,7 @@ async def get_app_version():
 async def download_apk():
     apk_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "app-release.apk")
     if os.path.exists(apk_path):
-        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename="market-impact-v1.2.0.apk")
+        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename="market-impact-v1.2.1.apk")
     return {"error": "APK file not found on server. Please ensure data/app-release.apk exists."}
 
 @app.post("/register_device")
