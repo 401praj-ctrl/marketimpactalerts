@@ -567,6 +567,42 @@ async def refresh_alerts(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
     return {"status": "Analysis started. Checking for new events only."}
 
+@app.post("/app/broadcast_update")
+async def broadcast_update():
+    """Manual trigger to push update notification to all users with direct download link."""
+    app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
+    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "").strip()
+    
+    if not api_key:
+        return {"error": "ONESIGNAL_REST_API_KEY missing on server"}
+
+    headers = {
+        "Authorization": f"Basic {api_key}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+
+    # Direct URL to the APK file on Render
+    download_url = "https://market-impact-backend.onrender.com/app/download"
+
+    payload = {
+        "app_id": app_id,
+        "included_segments": ["Total Subscriptions"],
+        "headings": {"en": "🎁 Essential Upgrade v1.2.7 Ready"},
+        "contents": {"en": "Tap here to download and install the final engine upgrade. Fixes dashboard and timing issues instantly!"},
+        "url": download_url,  # This will open the download in the mobile browser
+        "buttons": [
+            {"id": "download", "text": "Install Now", "icon": "ic_menu_download", "url": download_url}
+        ],
+        "data": {"type": "direct_download"}
+    }
+
+    try:
+        import requests
+        req = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload, timeout=10)
+        return {"status": "success", "onesignal_response": req.json()}
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
