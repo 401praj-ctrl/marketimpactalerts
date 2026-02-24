@@ -153,24 +153,39 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     
     try {
-      final alerts = await _apiService.fetchAlerts();
+      final serverAlerts = await _apiService.fetchAlerts();
       
       if (_previousAlertIds.isNotEmpty && _notificationsEnabled) {
-        _checkAndNotifyNewAlerts(alerts);
+        _checkAndNotifyNewAlerts(serverAlerts);
       }
 
       setState(() {
-        _allAlerts = alerts;
+        // Create a map for fast lookup of existing alerts by ID
+        final Map<String, EventAlert> alertMap = {
+          for (var a in _allAlerts) a.id: a
+        };
+        
+        // Merge server alerts (overwrite older versions with same ID if needed)
+        for (var sa in serverAlerts) {
+          alertMap[sa.id] = sa;
+        }
+        
+        // Update the master list with all unique alerts
+        _allAlerts = alertMap.values.toList();
+        
+        // Sort by date/timestamp descending to keep newest at top
+        _allAlerts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        
         _isLoading = false;
-        _previousAlertIds = alerts.map((a) => a.id).toSet();
+        _previousAlertIds = _allAlerts.map((a) => a.id).toSet();
         if (_allAlerts.isEmpty) {
-          _errorMessage = "No alerts found for the current filter.";
+          _errorMessage = "No alerts found.";
         }
       });
       
-      // Cache the result
+      // Cache the merged list to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('cached_alerts', json.encode(alerts.map((a) => a.toJson()).toList()));
+      await prefs.setString('cached_alerts', json.encode(_allAlerts.map((a) => a.toJson()).toList()));
       
     } catch (e) {
       setState(() {
