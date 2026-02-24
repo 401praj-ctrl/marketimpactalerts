@@ -4,10 +4,10 @@ import '../models/event_alert.dart';
 
 class ApiService {
   // 1. LIVE (Render) - Recommended for Physical Devices
-  // static const String baseUrl = 'https://market-impact-backend.onrender.com';
+  static const String baseUrl = 'https://market-impact-backend.onrender.com';
   
   // 2. LOCAL (Emulator/Testing)
-  static const String baseUrl = 'http://localhost:8000';
+  // static const String baseUrl = 'http://localhost:8000';
   // static const String baseUrl = 'http://192.168.1.7:8000'; // Replace with your machine's local IP for physical phone testing
 
   Future<List<EventAlert>> fetchAlerts() async {
