@@ -108,26 +108,29 @@ class _SplashScreenState extends State<SplashScreen> {
     await prefs.setBool('is_first_launch', false);
 
     // 3. Check for Update
-    await _performVersionCheck(packageInfo.version);
+    try {
+      await _performVersionCheck(packageInfo.version).timeout(const Duration(seconds: 15));
+    } catch (e) {
+      print('Splash: Update check timed out or failed: $e');
+    }
     
-    // 4. If no update, proceed to home after delay
+    // 4. If no update, proceed to home after at least 3 seconds of splash total
     if (!_showUpdateUI) {
       _navigateToHome();
     }
   }
 
   Future<void> _performVersionCheck(String currentVersion) async {
-    print('Splash: Current App Version: $currentVersion');
+    print('Splash: Checking for update... Current: $currentVersion');
     try {
       final updateInfo = await _apiService.getLatestAppVersion();
       if (updateInfo != null) {
-        final String latestVersion = updateInfo['latest_version'] ?? '1.2.0';
-        print('Splash: Latest Server Version: $latestVersion');
+        final String latestVersion = updateInfo['latest_version'] ?? '';
+        print('Splash: Server reports latest: $latestVersion');
         
         bool isNewer = _isVersionNewer(currentVersion, latestVersion);
-        print('Splash: Is newer version available? $isNewer');
-
         if (isNewer) {
+          print('Splash: New version available. Showing update UI.');
           if (mounted) {
             setState(() {
               _updateInfo = updateInfo;
@@ -136,12 +139,14 @@ class _SplashScreenState extends State<SplashScreen> {
             });
           }
           return;
+        } else {
+          print('Splash: App is up to date.');
         }
       } else {
-        print('Splash: No update info received from server (null)');
+        print('Splash: Could not reach update server.');
       }
     } catch (e) {
-      print('Splash: Update check failed with error: $e');
+      print('Splash: Error during update check: $e');
     }
     
     if (mounted) {

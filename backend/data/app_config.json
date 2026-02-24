@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.5",
+    "latest_version": "1.2.6",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 Alpha Engine Final Fixes v1.2.5:\n• Persistent Dashboard: Statistics are now automatically synced even after server restarts\n• High-Fidelity Timing: Fixed the 'Tue' date issue; all alerts now show correct local relative time (e.g., '10m ago')\n• Legacy Cleanup: Automatically standardizes all historical alert data"
+    "release_notes": "🚀 Critical Alpha Engine Update v1.2.6:\n• Final Dashboard Fix: Statistics now strictly persist and sync across all sessions\n• Precise Timing: All alerts standardized to local relative time (e.g. '5m ago')\n• Production Fix: Corrected server connectivity for all users"
 }
