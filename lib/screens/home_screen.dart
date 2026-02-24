@@ -31,7 +31,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
-  List<EventAlert> _alerts = [];
+  List<EventAlert> _allAlerts = [];
   Set<String> _hiddenAlertIds = {};
   bool _isLoading = true;
   String? _errorMessage;
@@ -119,11 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         List jsonResponse = json.decode(cachedStr);
         final alerts = jsonResponse.map((data) => EventAlert.fromJson(data)).toList();
-        final filteredAlerts = _filterAlerts(alerts);
         setState(() {
-          _alerts = filteredAlerts;
+          _allAlerts = alerts;
           _isLoading = false; // Stop loading spinner immediately
-          _previousAlertIds = filteredAlerts.map((a) => a.id).toSet();
+          _previousAlertIds = alerts.map((a) => a.id).toSet();
         });
       } catch (e) {
         // Ignore cache parsing errors
@@ -144,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Helper method for dynamic filtering inside build method or when state changes
   List<EventAlert> _getFilteredAlerts() {
-    return _filterAlerts(_alerts);
+    return _filterAlerts(_allAlerts);
   }
 
   Future<void> _loadAlerts() async {
@@ -161,10 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        _alerts = alerts;
+        _allAlerts = alerts;
         _isLoading = false;
         _previousAlertIds = alerts.map((a) => a.id).toSet();
-        if (_alerts.isEmpty) {
+        if (_allAlerts.isEmpty) {
           _errorMessage = "No alerts found for the current filter.";
         }
       });
@@ -176,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        if (_alerts.isEmpty) {
+        if (_allAlerts.isEmpty) {
           _errorMessage = "Connection error: $e";
         }
       });
@@ -239,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _hiddenAlertIds.add(id);
-      _alerts.removeWhere((a) => a.id == id);
+      _allAlerts.removeWhere((a) => a.id == id);
     });
     await prefs.setStringList('hidden_alerts', _hiddenAlertIds.toList());
   }
@@ -298,9 +297,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: _buildDrawer(),
-      body: _isLoading && _alerts.isEmpty
+      body: _isLoading && _allAlerts.isEmpty
           ? const Center(child: CircularProgressIndicator(color: AppTheme.glassBlue))
-          : _errorMessage != null && _alerts.isEmpty
+          : _errorMessage != null && _allAlerts.isEmpty
               ? _buildErrorPlaceholder()
               : Column(
                   children: [
@@ -402,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSectorFilter() {
     Set<String> sectors = {'All'};
-    for (var alert in _alerts) {
+    for (var alert in _allAlerts) {
       sectors.add(alert.sector);
     }
     List<String> sortedSectors = sectors.toList()..sort();
@@ -855,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildErrorPlaceholder() {
-    bool isEmptyNoError = _alerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
+    bool isEmptyNoError = _allAlerts.isEmpty && (_errorMessage == null || _errorMessage!.contains("No alerts"));
     
     return Center(
       child: Padding(

@@ -221,22 +221,27 @@ class PredictionTracker:
                                     # Update Tier Accuracy
                                     tier = pred.get("tier", "Tier-3")
                                     if tier in self.stats["tier_accuracy"]:
-                                        if "total_" + tier not in self.stats:
-                                            self.stats["total_" + tier] = 0
-                                            self.stats["correct_" + tier] = 0
+                                        total_key = "total_" + tier.lower().replace("-", "")
+                                        correct_key = "correct_" + tier.lower().replace("-", "")
+                                        
+                                        if total_key not in self.stats:
+                                            self.stats[total_key] = 0
+                                            self.stats[correct_key] = 0
                                             
-                                        self.stats["total_" + tier] += 1
+                                        self.stats[total_key] += 1
                                         if is_correct:
-                                            self.stats["correct_" + tier] += 1
+                                            self.stats[correct_key] += 1
                                             
-                                        self.stats["tier_accuracy"][tier] = int((self.stats["correct_" + tier] / self.stats["total_" + tier]) * 100)
+                                        # Calculate percentage
+                                        self.stats["tier_accuracy"][tier] = int((self.stats[correct_key] / self.stats[total_key]) * 100)
                                         
                                     # Update Profit Simulation
-                                    if is_correct:
-                                        self.stats["profit_simulation_pct"] += abs(actual_move) * 100
-                                    else:
-                                        self.stats["profit_simulation_pct"] -= abs(actual_move) * 100
-                                        
+                                    # We simulate taking a trade in the predicted direction
+                                    # if UP and move is +5%, we gain 5%
+                                    # if UP and move is -5%, we lose 5%
+                                    move_capture = actual_move if direction == "UP" else (-actual_move if direction == "DOWN" else 0)
+                                    
+                                    self.stats["profit_simulation_pct"] += move_capture * 100
                                     self.stats["profit_simulation_pct"] = round(self.stats["profit_simulation_pct"], 2)
                                     
                                     # Calculate average accuracy

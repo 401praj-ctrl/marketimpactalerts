@@ -153,8 +153,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   bool _isVersionNewer(String current, String latest) {
     try {
-      List<int> currentParts = current.split('+')[0].split('.').map(int.parse).toList();
-      List<int> latestParts = latest.split('+')[0].split('.').map(int.parse).toList();
+      // Trim and ignore build numbers (+)
+      List<int> currentParts = current.trim().split('+')[0].split('.').map(int.parse).toList();
+      List<int> latestParts = latest.trim().split('+')[0].split('.').map(int.parse).toList();
 
       for (int i = 0; i < 3; i++) {
         int c = i < currentParts.length ? currentParts[i] : 0;
@@ -266,7 +267,12 @@ class _SplashScreenState extends State<SplashScreen> {
           const SizedBox(height: 8),
           Text(
             'Version $version is available',
-            style: TextStyle(color: AppTheme.silver, fontSize: 14),
+            style: TextStyle(color: AppTheme.glassBlue, fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Current App: $_appVersion',
+            style: TextStyle(color: AppTheme.silver.withOpacity(0.5), fontSize: 12),
           ),
           const SizedBox(height: 40),
           Container(

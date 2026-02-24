@@ -65,9 +65,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 15,
-      crossAxisSpacing: 15,
-      childAspectRatio: 1.5,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.6, // Adjusted for slightly taller cards
       children: [
         _buildStatCard('Total Predictions', (_stats?['total_predictions'] ?? 0).toString(), Icons.analytics_rounded),
         _buildStatCard('Accuracy %', '${_stats?['avg_accuracy'] ?? 0.0}%', Icons.check_circle_rounded),
