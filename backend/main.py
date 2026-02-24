@@ -567,38 +567,6 @@ async def refresh_alerts(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
     return {"status": "Analysis started. Checking for new events only."}
 
-@app.post("/app/broadcast_update")
-async def broadcast_update():
-    """Manual trigger to push update notification to all users."""
-    app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
-    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "").strip()
-    
-    if not api_key:
-        return {"error": "ONESIGNAL_REST_API_KEY missing on server"}
-
-    headers = {
-        "Authorization": f"Basic {api_key}",
-        "Content-Type": "application/json; charset=utf-8"
-    }
-
-    payload = {
-        "app_id": app_id,
-        "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 Mandatory Engine Upgrade v1.2.7"},
-        "contents": {"en": "Stability improved: Dashboard stats and alert timing fixed. Tap to download the final engine upgrade now!"},
-        "buttons": [
-            {"id": "download", "text": "Download Now", "icon": "ic_menu_download"}
-        ],
-        "data": {"type": "update_nudge"}
-    }
-
-    try:
-        import requests
-        req = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload, timeout=10)
-        return {"status": "success", "onesignal_response": req.json()}
-    except Exception as e:
-        return {"error": str(e)}
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
