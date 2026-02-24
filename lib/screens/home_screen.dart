@@ -110,7 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _appVersion = packageInfo.version;
       });
     }
-    _checkForUpdate();
   }
 
   Future<void> _loadCachedAlerts() async {
@@ -143,6 +142,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Helper method for dynamic filtering inside build method or when state changes
+  List<EventAlert> _getFilteredAlerts() {
+    return _filterAlerts(_alerts);
+  }
+
   Future<void> _loadAlerts() async {
     setState(() {
       _isLoading = true;
@@ -151,16 +155,15 @@ class _HomeScreenState extends State<HomeScreen> {
     
     try {
       final alerts = await _apiService.fetchAlerts();
-      final filteredAlerts = _filterAlerts(alerts);
       
       if (_previousAlertIds.isNotEmpty && _notificationsEnabled) {
-        _checkAndNotifyNewAlerts(filteredAlerts);
+        _checkAndNotifyNewAlerts(alerts);
       }
 
       setState(() {
-        _alerts = filteredAlerts;
+        _alerts = alerts;
         _isLoading = false;
-        _previousAlertIds = filteredAlerts.map((a) => a.id).toSet();
+        _previousAlertIds = alerts.map((a) => a.id).toSet();
         if (_alerts.isEmpty) {
           _errorMessage = "No alerts found for the current filter.";
         }
@@ -218,81 +221,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
-  Future<void> _checkForUpdate() async {
-    final updateInfo = await _apiService.getLatestAppVersion();
-    if (updateInfo == null) return;
-
-    final String latestVersion = updateInfo['latest_version'] ?? '1.0.0';
-    final String downloadUrl = updateInfo['download_url'] ?? '';
-    final String releaseNotes = updateInfo['release_notes'] ?? '';
-
-    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    final String currentVersion = packageInfo.version;
-
-    if (_isVersionNewer(currentVersion, latestVersion)) {
-      _showUpdateDialog(latestVersion, downloadUrl, releaseNotes);
-    }
-  }
-
-  bool _isVersionNewer(String current, String latest) {
-    List<int> currentParts = current.split('+')[0].split('.').map(int.parse).toList();
-    List<int> latestParts = latest.split('+')[0].split('.').map(int.parse).toList();
-
-    for (int i = 0; i < 3; i++) {
-      int c = i < currentParts.length ? currentParts[i] : 0;
-      int l = i < latestParts.length ? latestParts[i] : 0;
-      if (l > c) return true;
-      if (l < c) return false;
-    }
-    return false;
-  }
-
-  void _showUpdateDialog(String version, String url, String notes) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            const Icon(Icons.system_update_rounded, color: AppTheme.glassBlue),
-            const SizedBox(width: 12),
-            Text('Update Available', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Version $version is now available.', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text(notes, style: const TextStyle(color: AppTheme.silver, fontSize: 13)),
-            const SizedBox(height: 16),
-            const Text('Would you like to download the latest APK?', style: TextStyle(color: AppTheme.silver, fontSize: 12)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('LATER', style: TextStyle(color: AppTheme.silver)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _startInAppUpdate(url, version);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.glassBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('UPDATE NOW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _checkAndNotifyNewAlerts(List<EventAlert> currentAlerts) {
     for (var alert in currentAlerts) {
       if (!_previousAlertIds.contains(alert.id)) {
@@ -318,7 +246,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Map<String, List<EventAlert>> _groupAlerts() {
     Map<String, List<EventAlert>> groups = {};
-    for (var alert in _alerts) {
+    final filtered = _getFilteredAlerts();
+    for (var alert in filtered) {
       String dateStr = alert.eventDate;
       if (!groups.containsKey(dateStr)) {
         groups[dateStr] = [];
@@ -391,11 +320,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMarketPulseDashboard() {
-    if (_alerts.isEmpty) return const SizedBox.shrink();
+    final currentAlerts = _getFilteredAlerts();
+    if (currentAlerts.isEmpty) return const SizedBox.shrink();
 
-    int bullish = _alerts.where((a) => a.impactDirection.toLowerCase() == 'up').length;
-    int bearish = _alerts.where((a) => a.impactDirection.toLowerCase() == 'down').length;
-    int total = _alerts.length;
+    int bullish = currentAlerts.where((a) => a.impactDirection.toLowerCase() == 'up').length;
+    int bearish = currentAlerts.where((a) => a.impactDirection.toLowerCase() == 'down').length;
+    int total = currentAlerts.length;
     int bullishPercent = total > 0 ? ((bullish / total) * 100).round() : 0;
 
     return Container(
@@ -1018,186 +948,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _startInAppUpdate(String url, String version) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _UpdateProgressDialog(url: url, version: version),
-    );
-  }
-
   String _formatAlertTime(String timestamp) {
     try {
-      DateTime dt = DateTime.parse(timestamp);
+      DateTime dt = DateTime.parse(timestamp).toLocal();
       return DateFormat("hh:mm a").format(dt);
     } catch (e) {
-      return "";
+      return "--:-- --";
     }
-  }
-}
-
-class _UpdateProgressDialog extends StatefulWidget {
-  final String url;
-  final String version;
-
-  const _UpdateProgressDialog({required this.url, required this.version});
-
-  @override
-  State<_UpdateProgressDialog> createState() => _UpdateProgressDialogState();
-}
-
-class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
-  String _status = 'Initializing...';
-  double _progress = 0;
-  String _mbDownloaded = '0';
-  String _totalMb = '...';
-  bool _isDone = false;
-  bool _isError = false;
-  CancelToken _cancelToken = CancelToken();
-
-  @override
-  void initState() {
-    super.initState();
-    _executeUpgrade();
-  }
-
-  @override
-  void dispose() {
-    _cancelToken.cancel();
-    super.dispose();
-  }
-
-  Future<void> _executeUpgrade() async {
-    try {
-      // 1. Get documents directory
-      final Directory docsDir = await getApplicationDocumentsDirectory();
-      final String savePath = "${docsDir.path}/market_impact_${widget.version}.apk";
-
-      // 2. Start Download with Dio
-      final dio = Dio();
-      await dio.download(
-        widget.url,
-        savePath,
-        cancelToken: _cancelToken,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            setState(() {
-              _status = 'Downloading update...';
-              _progress = (received / total * 100);
-              _totalMb = (total / (1024 * 1024)).toStringAsFixed(1);
-              _mbDownloaded = (received / (1024 * 1024)).toStringAsFixed(1);
-            });
-          }
-        },
-      );
-
-      setState(() {
-        _status = 'Download complete! Checking permissions...';
-      });
-
-      // 3. Request Install Permission (Android 8+)
-      if (Platform.isAndroid) {
-        setState(() {
-          _status = 'Checking install permissions...';
-        });
-        var status = await Permission.requestInstallPackages.status;
-        if (status.isDenied || status.isPermanentlyDenied) {
-          setState(() {
-            _status = 'Please allow install permissions...';
-          });
-          status = await Permission.requestInstallPackages.request();
-        }
-
-        if (!status.isGranted) {
-          setState(() {
-            _status = "Install permission required. Please enable 'Install unknown apps' for Alpha Impact in settings.";
-            _isError = true;
-          });
-          return;
-        }
-      }
-
-      // 4. Open APK with OpenFile
-      setState(() {
-        _status = 'Launching installer...';
-      });
-      final result = await OpenFile.open(savePath);
-      if (result.type != ResultType.done) {
-        setState(() {
-          _status = "Error opening APK: ${result.message}";
-          _isError = true;
-        });
-      } else {
-        setState(() {
-          _status = 'Installer launched!';
-          _isDone = true;
-        });
-      }
-    } catch (e) {
-      print('Manual Update Exception: $e');
-      if (!mounted) return;
-      setState(() {
-        _status = 'Update failed. Please check connection.';
-        _isError = true;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppTheme.cardDark,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Row(
-        children: [
-          const Icon(Icons.cloud_download_rounded, color: AppTheme.glassBlue),
-          const SizedBox(width: 12),
-          Text('Downloading Update', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18)),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_status, style: const TextStyle(color: Colors.white, fontSize: 14)),
-          const SizedBox(height: 24),
-          if (!_isError && !_isDone) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _progress / 100,
-                backgroundColor: Colors.white.withOpacity(0.05),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
-                minHeight: 10,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${_mbDownloaded}MB / ${_totalMb}MB', style: const TextStyle(color: AppTheme.silver, fontSize: 12)),
-                Text('${_progress.toInt()}%', style: const TextStyle(color: AppTheme.glassBlue, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ],
-          if (_isError) ...[
-            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('CLOSE', style: TextStyle(color: AppTheme.silver)),
-            ),
-          ],
-          if (_isDone) ...[
-            const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent, size: 48),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.glassBlue),
-              child: const Text('OK', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ],
-      ),
-    );
   }
 }

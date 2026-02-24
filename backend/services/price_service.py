@@ -3,6 +3,7 @@ import json
 import asyncio
 import yfinance as yf
 from datetime import datetime, timedelta
+import math
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "data", "price_cache.json")
@@ -58,7 +59,7 @@ class PriceService:
             
             # fast_info is better for just getting the latest price
             info = await loop.run_in_executor(None, lambda: ticker.fast_info)
-            price = info.get('last_price') or info.get('lastPrice')
+            price = getattr(info, 'last_price', None)
             
             if not price:
                 # Fallback to history if fast_info fails

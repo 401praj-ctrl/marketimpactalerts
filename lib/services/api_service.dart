@@ -84,13 +84,22 @@ class ApiService {
 
   Future<Map<String, dynamic>?> getLatestAppVersion() async {
     print('ApiService: Checking for app update at $baseUrl/app/version...');
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/app/version')).timeout(const Duration(seconds: 10));
-      if (response.statusCode == 200) {
-        return json.decode(response.body) as Map<String, dynamic>;
+    int retries = 3;
+    while (retries > 0) {
+      try {
+        final response = await http
+            .get(Uri.parse('$baseUrl/app/version'))
+            .timeout(const Duration(seconds: 30)); // Incresed timeout for cold starts
+        if (response.statusCode == 200) {
+          return json.decode(response.body) as Map<String, dynamic>;
+        }
+        print('ApiService: Update check status: ${response.statusCode}');
+      } catch (e) {
+        print('ApiService: Update check attempt failed (${4 - retries}): $e');
+        if (retries == 1) return null;
+        await Future.delayed(const Duration(seconds: 2));
       }
-    } catch (e) {
-      print('ApiService: Update check exception: $e');
+      retries--;
     }
     return null;
   }

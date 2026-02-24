@@ -218,6 +218,27 @@ class PredictionTracker:
                                     outcome = 1.0 if is_correct else 0.0
                                     self.update_calibration(pred.get("probability", 0.5), outcome)
                                     
+                                    # Update Tier Accuracy
+                                    tier = pred.get("tier", "Tier-3")
+                                    if tier in self.stats["tier_accuracy"]:
+                                        if "total_" + tier not in self.stats:
+                                            self.stats["total_" + tier] = 0
+                                            self.stats["correct_" + tier] = 0
+                                            
+                                        self.stats["total_" + tier] += 1
+                                        if is_correct:
+                                            self.stats["correct_" + tier] += 1
+                                            
+                                        self.stats["tier_accuracy"][tier] = int((self.stats["correct_" + tier] / self.stats["total_" + tier]) * 100)
+                                        
+                                    # Update Profit Simulation
+                                    if is_correct:
+                                        self.stats["profit_simulation_pct"] += abs(actual_move) * 100
+                                    else:
+                                        self.stats["profit_simulation_pct"] -= abs(actual_move) * 100
+                                        
+                                    self.stats["profit_simulation_pct"] = round(self.stats["profit_simulation_pct"], 2)
+                                    
                                     # Calculate average accuracy
                                     total_verified = self.stats["correct_predictions"] + self.stats["false_signals"]
                                     if total_verified > 0:

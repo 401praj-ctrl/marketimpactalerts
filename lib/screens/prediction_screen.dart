@@ -72,23 +72,24 @@ class _PredictionScreenState extends State<PredictionScreen> {
         _buildStatCard('Total Predictions', (_stats?['total_predictions'] ?? 0).toString(), Icons.analytics_rounded),
         _buildStatCard('Accuracy %', '${_stats?['avg_accuracy'] ?? 0.0}%', Icons.check_circle_rounded),
         _buildStatCard('Correct Moves', (_stats?['correct_predictions'] ?? 0).toString(), Icons.trending_up_rounded),
-        _buildStatCard('Profit Sim', '+${_stats?['profit_simulation_pct'] ?? 0.0}%', Icons.account_balance_wallet_rounded),
+        _buildStatCard('Wrong Moves', (_stats?['false_signals'] ?? 0).toString(), Icons.trending_down_rounded, color: Colors.redAccent),
+        _buildStatCard('Profit Sim', '${_stats?['profit_simulation_pct'] ?? 0.0}%', Icons.account_balance_wallet_rounded),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon) {
+  Widget _buildStatCard(String label, String value, IconData icon, {Color color = AppTheme.glassBlue}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.glassBlue.withOpacity(0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.glassBlue.withOpacity(0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: AppTheme.glassBlue, size: 24),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
           Text(label, style: TextStyle(fontSize: 12, color: AppTheme.silver.withOpacity(0.7))),
@@ -112,6 +113,8 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   Widget _buildTierBar(String label, int value, Color color) {
+    // Value represents the accuracy percentage from 0 to 100
+    double progressValue = (value / 100.0).clamp(0.0, 1.0);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -121,14 +124,14 @@ class _PredictionScreenState extends State<PredictionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
-              Text('$value verified', style: TextStyle(color: AppTheme.silver, fontSize: 12)),
+              Text('$value% accuracy', style: TextStyle(color: AppTheme.silver, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: 0.1, // Placeholder since we don't have enough data to calculate % per tier yet
+              value: progressValue,
               backgroundColor: color.withOpacity(0.1),
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 8,
