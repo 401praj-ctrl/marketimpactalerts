@@ -160,7 +160,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
           if (nextAuto != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('Next Scheduled Auto Analysis: ${_formatDateTime(nextAuto.toIsoFormat())}', 
+              child: Text('Next Scheduled Auto Analysis: ${_formatDateTime(nextAuto.toIso8601String())}', 
                 style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.w500)),
             ),
           if (lastManual != null)
