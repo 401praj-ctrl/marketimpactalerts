@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+23",
+    "latest_version": "1.2.14+24",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 STABILITY UPGRADE v1.2.14+23:\n• Improved Splash Reliability: Fixed the issue where the update prompt was skipped on slow connections.\n• Currency Accuracy: Final fixes for USD vs INR symbol consistency."
+    "release_notes": "💎 ENGINE STABILITY v1.2.14+24:\n• Accuracy Dashboard Persistence: Stats now auto-sync from the log on startup.\n• Midnight Analysis: Daily verification job optimized for 12:00 AM.\n• Result Notifications: Get notified when your predictions match the market!"
 }

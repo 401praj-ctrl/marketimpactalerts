@@ -1,5 +1,5 @@
 {
-  "total_predictions": 1,
+  "total_predictions": 17,
   "correct_predictions": 0,
   "false_signals": 0,
   "avg_accuracy": 0.0,
@@ -10,5 +10,7 @@
     "Tier-2": 0,
     "Tier-3": 0
   },
-  "recent_performance": []
+  "recent_performance": [],
+  "last_auto_verification": "2026-02-25T15:54:25.486075",
+  "last_manual_verification": null
 }

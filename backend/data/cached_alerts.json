@@ -1,5 +1,90 @@
 [
   {
+    "event": "HSBC India profit up 11%",
+    "company": "HSBC",
+    "sector": "Banking",
+    "stocks": [
+      "HSBC"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "HSBC's strong profit growth in India, driven by corporate and institutional business, indicates increased demand for financial services within the Indian market. This positive performance suggests a favorable operating environment for the bank.",
+    "event_date": "2026-02-25",
+    "impact_date_est": "2026-02-25",
+    "probability": 75,
+    "tier": "Tier-2",
+    "impact_score": 0.65,
+    "reason": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector.",
+    "impact": "positive",
+    "strength": "medium",
+    "confidence": 75,
+    "impact_type": "Direct",
+    "id": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
+    "link": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
+    "published": "Wed, 25 Feb 2026 19:36:36 +0530",
+    "live_price": 87.88,
+    "currency": "USD",
+    "timestamp": "2026-02-25T19:36:36",
+    "article_summary": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector."
+  },
+  {
+    "event": "IRFC OFS Subscription Failure",
+    "company": "Indian Railway Finance Corporation Limited",
+    "sector": "Financial Services",
+    "stocks": [
+      "BSE:IRFC",
+      "NSE:IRFC"
+    ],
+    "impact_direction": "DOWN",
+    "impact_description": "The failure of IRFC's Offer for Sale (OFS) to be fully subscribed, coupled with the government's decision to forgo the green shoe option, indicates weaker-than-expected investor demand and potential concerns about the company's valuation. This could negatively impact investor sentiment and lead to a price correction.",
+    "event_date": "2026-02-25",
+    "impact_date_est": "2026-03-05",
+    "probability": 60,
+    "tier": "Tier-2",
+    "impact_score": 0.55,
+    "reason": "Lower investor demand for IRFC's OFS suggests potential concerns about its financial health or valuation. The government's decision to not utilize the green shoe option further reinforces this negative sentiment.",
+    "impact": "negative",
+    "strength": "medium",
+    "confidence": 65,
+    "impact_type": "Direct",
+    "id": "https://economictimes.indiatimes.com/markets/stocks/news/govt-to-skip-green-shoe-option-as-irfc-ofs-not-fully-subscribed/articleshow/128785147.cms",
+    "link": "https://economictimes.indiatimes.com/markets/stocks/news/govt-to-skip-green-shoe-option-as-irfc-ofs-not-fully-subscribed/articleshow/128785147.cms",
+    "published": "Wed, 25 Feb 2026 19:37:42 +0530",
+    "live_price": 104.55,
+    "currency": "INR",
+    "timestamp": "2026-02-25T19:37:42",
+    "article_summary": "Lower investor demand for IRFC's OFS suggests potential concerns about its financial health or valuation. The government's decision to not utilize the green shoe option further reinforces this negative sentiment."
+  },
+  {
+    "event": "Zerodha's Kamath advocates for loan against shares facility",
+    "company": "Zerodha Mutual Fund",
+    "sector": "Financial Services",
+    "stocks": [
+      "BSE:MID150CASE",
+      "BSE:NIFTYCASE",
+      "BSE:SML100CASE",
+      "BSE:TOP100CASE"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "The proposal for a loan against shares facility could increase accessibility to credit for retail investors, potentially boosting trading activity. This could benefit brokerage firms like Zerodha.",
+    "event_date": "2026-02-25",
+    "impact_date_est": "2026-03-01",
+    "probability": 60,
+    "tier": "Tier-2",
+    "impact_score": 0.55,
+    "reason": "Sector-specific regulatory change proposal impacting credit access and trading volumes.",
+    "impact": "positive",
+    "strength": "medium",
+    "confidence": 62,
+    "impact_type": "Indirect",
+    "id": "https://economictimes.indiatimes.com/markets/stocks/news/zerodhas-nithin-kamath-bats-for-loan-against-shares-facility-to-service-high-interest-loans/articleshow/128784136.cms",
+    "link": "https://economictimes.indiatimes.com/markets/stocks/news/zerodhas-nithin-kamath-bats-for-loan-against-shares-facility-to-service-high-interest-loans/articleshow/128784136.cms",
+    "published": "Wed, 25 Feb 2026 19:03:11 +0530",
+    "live_price": 11.0,
+    "currency": "INR",
+    "timestamp": "2026-02-25T19:03:11",
+    "article_summary": "Sector-specific regulatory change proposal impacting credit access and trading volumes."
+  },
+  {
     "event": "Copper prices surge to highest in over a week",
     "company": "Hindalco Industries Limited",
     "sector": "Metals and Mining",
@@ -25,9 +110,7 @@
     "timestamp": "2026-02-25T01:24:02.961474",
     "article_summary": "Increased demand from China, a major consumer of copper, leads to higher prices, benefiting Indian metal producers.",
     "live_price": 936.9,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Trump Tariff Refund Deadline Looms",
@@ -54,9 +137,7 @@
     "article_summary": "The article reports on an approaching deadline for US importers to file refund requests related to tariffs imposed during the Trump administration. These tariffs, initially levied on goods from China, are now subject to potential refunds for businesses that paid them. The deadline is rapidly approaching, creating a sense of urgency for importers seeking to recover these costs.",
     "timestamp": "2026-02-20T18:42:50",
     "live_price": 15070.0,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Trump Announces Stronger Tariffs - Content Unavailable",
@@ -84,9 +165,7 @@
     "article_summary": "The provided news article is inaccessible, preventing a full analysis. However, based on the headline indicating stronger tariffs announced by Donald Trump, we can infer potential impacts on Indian companies and sectors reliant on international trade. The lack of content makes a precise assessment impossible.",
     "timestamp": "2026-02-20T18:39:10",
     "live_price": 1398.5,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "US-India Relations Analysis - Potential Trade & Policy Impacts",
@@ -114,9 +193,7 @@
     "article_summary": "Illinois Governor Pritzker's State of the State address highlighted concerns about the Trump administration's policies and their financial impact on Illinois, citing $8.4 billion in illegally withheld funds and detrimental trade practices. He drew parallels to historical figures advocating for social justice and economic stability, emphasizing Illinois's resilience in the face of federal challenges. The speech suggests potential for continued friction and legal battles between Illinois and the federal government.",
     "timestamp": "2026-02-19T06:51:41Z",
     "live_price": 1398.5,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Bill Gates Cancels AI Summit Keynote Amidst Epstein Allegations",
@@ -142,9 +219,7 @@
     "article_summary": "Bill Gates abruptly cancelled his keynote address at the AI Impact Summit in New Delhi, India, just hours before he was scheduled to speak. This decision follows recent scrutiny and allegations stemming from newly released emails purportedly written by Jeffrey Epstein, which claim Gates had inappropriate interactions and sought medication to conceal a sexually transmitted infection from his wife. Gates has vehemently denied these claims, but the controversy has prompted his withdrawal from the summit.",
     "timestamp": "2026-02-19T05:06:09Z",
     "live_price": 1290.1,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Bernie Sanders Advocates for Wealth Tax in California",
@@ -174,9 +249,7 @@
     "article_summary": "Bernie Sanders, a prominent US politician, has publicly advocated for the implementation of a wealth tax in California. This proposal aims to tax the assets of the wealthiest individuals in the state, potentially generating significant revenue for public programs. The advocacy occurred during a recent visit to California.",
     "timestamp": "2026-02-19T04:03:49Z",
     "live_price": 907.6,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Expanded ICE Detention Powers",
@@ -203,9 +276,7 @@
     "timestamp": "2026-02-19T03:59:00Z",
     "article_summary": "Increased demand for surveillance tech (positive) is offset by ethical concerns and potential reputational damage (negative). The net effect is likely a downward pressure on valuations, particularly for companies heavily involved in government contracts.",
     "live_price": 1290.1,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Bird Flu Outbreak in Hainesport Twp.",
@@ -229,10 +300,7 @@
     "link": "https://6abc.com/post/bird-flu-concerns-traumatized-hainesport-twp-residents-forced-dispose-dead-birds-amid-suspected-outbreak/18618685/",
     "published": "2026-02-19T03:57:15Z",
     "article_summary": "A suspected bird flu outbreak is impacting Hainesport Township, New Jersey, with a significant number of geese and ducks dying. Residents are facing the responsibility of cleaning up the dead birds, and local parks have been closed. The New Jersey Department of Environmental Protection is monitoring the situation and has established a reporting system.",
-    "timestamp": "2026-02-19T03:57:15Z",
-    "live_price": null,
-    "predicted_price": null,
-    "upside_pct": null
+    "timestamp": "2026-02-19T03:57:15Z"
   },
   {
     "event": "Deutsche Welle Correspondent Arrested in Ankara",
@@ -258,9 +326,7 @@
     "article_summary": "A Deutsche Welle correspondent, Alijian Uludag, has been arrested in Ankara on charges of \"insulting the president\" and \"spreading false information\" related to his social media posts on X (formerly Twitter). The Istanbul Chief Prosecutor's Office initiated an investigation and Uludag is expected to be transferred to Istanbul for questioning.",
     "timestamp": "2026-02-20T06:46:00",
     "live_price": 4577.0,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "Marcos Review of ICI Report - No Content Available",
@@ -280,10 +346,7 @@
     "link": "https://mb.com.ph/article/10906537/philippines/national/palace-result-of-marcos-review-of-ici-report-may-be-issued-this-february",
     "published": "2026-02-20 06:46:00",
     "article_summary": "The headline indicates a review of an ICI (Insurance Claims Investigation) report by Marcos. However, the provided content is unavailable, preventing a detailed analysis. Without the report's findings, assessing the potential impact is impossible.",
-    "timestamp": "2026-02-20T06:46:00",
-    "live_price": null,
-    "predicted_price": null,
-    "upside_pct": null
+    "timestamp": "2026-02-20T06:46:00"
   },
   {
     "event": "F1 Energy Management Concerns - Sainz Calls for FIA Flexibility",
@@ -305,10 +368,7 @@
     "link": "https://motorsport.nextgen-auto.com/fr/formule-1/sainz-appelle-la-fia-a-rester-flexible-sur-la-gestion-de-l-energie-en-f1,206224.html",
     "published": "2026-02-20 06:46:00",
     "article_summary": "Carlos Sainz, driving for Williams, has expressed concerns about the new 2026 Formula 1 energy management regulations, particularly the increased reliance on battery power and the potential need for 'lift and coast' maneuvers. He is urging the FIA and FOM to remain flexible and potentially adjust the rules if the energy management proves overly restrictive on certain circuits, like Melbourne and Jeddah. Sainz acknowledges the complexity of the changes and the uncertainty surrounding the new power units.",
-    "timestamp": "2026-02-20T06:46:00",
-    "live_price": null,
-    "predicted_price": null,
-    "upside_pct": null
+    "timestamp": "2026-02-20T06:46:00"
   },
   {
     "event": "Hypersonix Launch Window Set for Landmark Hypersonic Flight Test",
@@ -334,9 +394,7 @@
     "article_summary": "Australian hypersonic flight pioneer Hypersonix Launch Systems has announced a launch window for a critical flight test of its DART AE hypersonic aircraft, powered by a hydrogen-based scramjet engine. The Cassowary Vex mission, launching with Rocket Lab, aims to validate advanced propulsion, materials, and guidance systems at real hypersonic conditions. The project is backed by significant funding and partnerships, accelerating the development of reusable, sustainable hypersonic vehicles.",
     "timestamp": "2026-02-20T06:46:00",
     "live_price": 3985.0,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   },
   {
     "event": "India's Trade Deficit Widens",
@@ -356,10 +414,7 @@
     "link": "https://www.tportal.hr/biznis/clanak/sad-u-trgovinskom-deficitu-s-ostatkom-svijeta-poznato-i-za-koliko-20260220",
     "published": "2026-02-20 06:46:00",
     "timestamp": "2026-02-20T06:46:00",
-    "article_summary": "Increased trade deficit puts downward pressure on the Indian economy, potentially impacting corporate earnings and investor sentiment. The EMH suggests this is priced in, but the magnitude warrants monitoring.",
-    "live_price": null,
-    "predicted_price": null,
-    "upside_pct": null
+    "article_summary": "Increased trade deficit puts downward pressure on the Indian economy, potentially impacting corporate earnings and investor sentiment. The EMH suggests this is priced in, but the magnitude warrants monitoring."
   },
   {
     "event": "Google's Commitment to Open Android",
@@ -385,8 +440,6 @@
     "timestamp": "2026-02-21T00:16:17.015170",
     "article_summary": "An open Android platform encourages wider adoption and innovation, which is generally positive for companies operating within the mobile ecosystem. This is likely priced in, but reinforces existing positive trends.",
     "live_price": 1290.1,
-    "currency": "INR",
-    "predicted_price": null,
-    "upside_pct": null
+    "currency": "INR"
   }
 ]

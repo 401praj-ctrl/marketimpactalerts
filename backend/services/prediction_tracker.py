@@ -13,9 +13,28 @@ class PredictionTracker:
     def __init__(self):
         os.makedirs(DATA_DIR, exist_ok=True)
         self.stats = self.load_stats()
-        # Ensure the file exists immediately so the frontend can fetch initial zero stats
+        # Always rebuild total_predictions from the log on startup to ensure zero-loss persistence
+        self.sync_from_log()
+        
         if not os.path.exists(STATS_FILE):
             self.save_stats()
+
+    def sync_from_log(self):
+        """
+        Re-synchronizes the total_predictions count by scanning the log file.
+        This ensures that even if stats are lost on Render, the log remains the source of truth.
+        """
+        if os.path.exists(PREDICTIONS_FILE):
+            try:
+                count = 0
+                with open(PREDICTIONS_FILE, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip():
+                            count += 1
+                self.stats["total_predictions"] = count
+                print(f"DEBUG: Synchronized {count} predictions from log file.")
+            except Exception as e:
+                print(f"ERROR: Sync from log failed: {e}")
 
     def load_stats(self):
         default_stats = {
@@ -73,8 +92,8 @@ class PredictionTracker:
             f.write(json.dumps(prediction) + "\n")
         
         self.stats["total_predictions"] += 1
-        if not silent:
-            self.save_stats()
+        # Always save stats immediately so the dashboard reflects the new count
+        self.save_stats()
         return prediction
 
     async def verify_prediction(self, symbol, actual_move_pct):
@@ -238,6 +257,13 @@ class PredictionTracker:
                                     
                                     changes_made = True
                                     print(f"    --> Result: {'CORRECT' if is_correct else 'FALSE'} (Move: {actual_move:.2%})")
+                                    
+                                    # Trigger Result Notification
+                                    try:
+                                        from main import broadcast_verification_result
+                                        await broadcast_verification_result(pred.get('event'), is_correct, actual_move)
+                                    except Exception as ne:
+                                        print(f"    --> Notification Error: {ne}")
                                 except Exception as ve:
                                     print(f"    --> Error verifying {symbol}: {ve}")
                         
@@ -254,9 +280,9 @@ class PredictionTracker:
                     for p in updated_predictions:
                         f.write(json.dumps(p) + "\n")
                 self.save_stats()
-                print(f"DEBUG: Automated verification complete. Stats updated.")
+                print(f"DEBUG: Daily verification cycle complete. Stats updated.")
             else:
-                print(f"DEBUG: No predictions needed verification.")
+                print(f"DEBUG: No predictions needed verification today.")
                 
         except Exception as e:
             print(f"ERROR in run_cleanup_and_verification: {e}")

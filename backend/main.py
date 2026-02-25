@@ -504,6 +504,7 @@ async def startup_event():
     
     # 2. Ensure all high-impact alerts are in the prediction log for the tracker.
     # This helps recover the dashboard if the stats file was lost but cache exists.
+    tracker.sync_from_log()
     for alert in cached_alerts:
         tracker.save_prediction(alert, silent=True) # Add silent mode to skip extra saves
 
@@ -519,19 +520,26 @@ async def startup_event():
 
 async def automated_verification_job():
     """
-    Background job that runs every 6 hours to verify past predictions.
+    Background job that runs precisely once daily at midnight (12:00 AM) to verify past predictions.
     """
-    await asyncio.sleep(60) # Wait 1 minute after startup
-    print("DEBUG: automated_verification_job initialized.")
+    print("DEBUG: automated_verification_job standby.")
     while True:
         try:
-            print(f"DEBUG: automated_verification_job starting check at {datetime.datetime.now()}")
-            await tracker.run_cleanup_and_verification()
+            # 1. Calculate time until next midnight
+            now = datetime.datetime.now()
+            next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            seconds_until_midnight = (next_midnight - now).total_seconds()
+            
+            print(f"DEBUG: automated_verification_job sleeping for {seconds_until_midnight:.0f}s until {next_midnight}")
+            await asyncio.sleep(seconds_until_midnight)
+            
+            # 2. Run verification
+            print(f"DEBUG: automated_verification_job starting daily cycle at {datetime.datetime.now()}")
+            await tracker.run_cleanup_and_verification(source="auto")
+            
         except Exception as e:
             print(f"ERROR: automated_verification_job caught exception: {e}")
-        
-        # Run every 6 hours
-        await asyncio.sleep(21600)
+            await asyncio.sleep(3600) # Wait an hour before retrying on error
 
 @app.get("/")
 async def root():
@@ -598,6 +606,36 @@ async def trigger_verification(background_tasks: BackgroundTasks):
         
     background_tasks.add_task(tracker.run_cleanup_and_verification, source="manual")
     return {"status": "Manual verification analysis started."}
+
+async def broadcast_verification_result(event_name, is_correct, move):
+    """
+    Sends a push notification to all users when a prediction is verified.
+    """
+    app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
+    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "").strip()
+    if not api_key:
+        return
+        
+    headers = {
+        "Authorization": f"Basic {api_key}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
+    status_emoji = "🎯 CORRECT" if is_correct else "❌ WRONG"
+    move_str = f"{move:+.2%}"
+    
+    payload = {
+        "app_id": app_id,
+        "included_segments": ["Total Subscriptions"],
+        "headings": {"en": f"{status_emoji}: Alpha Impact Match"},
+        "contents": {"en": f"Prediction verified for: {event_name[:50]}... Actual Move: {move_str}. View Dashboard!"},
+        "data": {"type": "verification", "event": event_name, "is_correct": is_correct}
+    }
+    
+    try:
+        requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload, timeout=10)
+    except:
+        pass
 
 @app.post("/broadcast_update")
 async def trigger_update_broadcast():
