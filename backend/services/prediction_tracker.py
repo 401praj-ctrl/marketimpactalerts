@@ -3,17 +3,22 @@ import os
 import time
 import httpx
 from datetime import datetime, timedelta
-# import yfinance as yf # Replaced with Alpha Vantage
+# Replaced price source with Finnhub
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 PREDICTIONS_FILE = os.path.join(DATA_DIR, "predictions_log.jsonl")
 STATS_FILE = os.path.join(DATA_DIR, "prediction_stats.json")
 
 import numpy as np
+import finnhub
 
 class PredictionTracker:
     def __init__(self):
         os.makedirs(DATA_DIR, exist_ok=True)
+        self.api_key = os.environ.get("FINNHUB_API_KEY")
+        if not self.api_key:
+            print("WARNING: FINNHUB_API_KEY not set in environment.")
+        self.finnhub_client = finnhub.Client(api_key=self.api_key)
         self.stats = self.load_stats()
         # Ensure the file exists immediately so the frontend can fetch initial zero stats
         if not os.path.exists(STATS_FILE):
@@ -79,7 +84,7 @@ class PredictionTracker:
         """
         Calculates Z-Move and Brier Score to validate prediction quality.
         """
-        # Fetch 20-day volatility (using Alpha Vantage or default)
+        # Fetch 20-day volatility (using Finnhub or default)
         volatility = 0.02 # Default 2% daily vol if unknown
         
         # Professional Threshold: Only count if |Z| > 0.7 (significant move)
@@ -90,46 +95,39 @@ class PredictionTracker:
 
     async def _get_historical_price(self, symbol, target_date_str):
         """
-        Fetches historical price for a given date using Alpha Vantage.
+        Fetches historical price for a given date using Finnhub.
         """
-        api_key = os.environ.get("ALPHA_VANTAGE_API_KEY")
-        if not api_key:
-            print("WARNING: ALPHA_VANTAGE_API_KEY not set for verification.")
+        if not self.api_key:
+            print("WARNING: FINNHUB_API_KEY not set for verification.")
             return None
 
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "")
         if "NSE:" in symbol or ".NS" not in symbol:
-            av_symbol = f"{clean_symbol}.NS"
+            fh_symbol = f"{clean_symbol}.NS"
         else:
-            av_symbol = f"{clean_symbol}.BO"
+            fh_symbol = f"{clean_symbol}.BO"
 
-        url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={av_symbol}&apikey={api_key}"
-        
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                response = await client.get(url)
-                if response.status_code == 200:
-                    data = response.json()
-                    time_series = data.get("Time Series (Daily)", {})
-                    
-                    if not time_series:
-                        print(f"Alpha Vantage: No historical data for {av_symbol}")
-                        return None
-                    
-                    # Try exact date
-                    if target_date_str in time_series:
-                        return float(time_series[target_date_str]["4. close"])
-                    
-                    # Find closest date before target_date
-                    target_dt = datetime.strptime(target_date_str, "%Y-%m-%d").date()
-                    sorted_dates = sorted([datetime.strptime(d, "%Y-%m-%d").date() for d in time_series.keys()], reverse=True)
-                    
-                    for d in sorted_dates:
-                        if d <= target_dt:
-                            return float(time_series[d.strftime("%Y-%m-%d")]["4. close"])
-                            
+            # Convert date to timestamp
+            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
+            # Set to end of day to get the daily close
+            start_ts = int(target_dt.replace(hour=0, minute=0, second=0).timestamp())
+            end_ts = int(target_dt.replace(hour=23, minute=59, second=59).timestamp())
+
+            loop = asyncio.get_event_loop()
+            # Finnhub stock_candles: symbol, resolution, from, to
+            # Resolution 'D' for daily
+            res = await loop.run_in_executor(None, lambda: self.finnhub_client.stock_candles(fh_symbol, 'D', start_ts - 86400*3, end_ts))
+            
+            if res.get('s') == 'ok':
+                # 'c' list contains closing prices
+                closes = res.get('c', [])
+                if closes:
+                    return float(closes[-1])
+            
+            print(f"Finnhub: No historical data for {fh_symbol} on {target_date_str}")
         except Exception as e:
-            print(f"Historical Fetch Error for {av_symbol}: {e}")
+            print(f"Historical Fetch Error for {fh_symbol}: {e}")
             
         return None
 
@@ -190,7 +188,7 @@ class PredictionTracker:
                         if symbol:
                             print(f"  [VERIFYING] {pred.get('event')} for {symbol}...")
                             
-                            # Get price on event date and impact date via Alpha Vantage
+                            # Get price on event date and impact date via Finnhub
                             event_date_str = pred.get("timestamp")[:10]
                             
                             start_price = pred.get("live_price")

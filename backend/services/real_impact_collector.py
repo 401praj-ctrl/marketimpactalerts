@@ -4,7 +4,7 @@ import os
 import sys
 import time
 import feedparser
-import yfinance as yf
+import finnhub
 from datetime import datetime, timedelta
 
 # Add parent directory to path to import services
@@ -37,6 +37,8 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 class RealImpactCollector:
     def __init__(self):
+        self.api_key = os.environ.get("FINNHUB_API_KEY")
+        self.finnhub_client = finnhub.Client(api_key=self.api_key)
         self.pending_checks = self.load_pending()
         self.known_tickers = self.load_ticker_map()
         
@@ -91,11 +93,10 @@ class RealImpactCollector:
 
     def fetch_price(self, ticker):
         try:
-            stock = yf.Ticker(ticker)
-            # Fast fetch
-            data = stock.history(period="1d")
-            if not data.empty:
-                return data['Close'].iloc[-1]
+            # Finnhub quote
+            quote = self.finnhub_client.quote(ticker)
+            if quote and 'c' in quote and quote['c'] > 0:
+                return quote['c']
         except Exception as e:
             print(f"  [!] Error fetching price for {ticker}: {e}")
         return None
@@ -189,7 +190,7 @@ class RealImpactCollector:
             
         if to_remove:
             self.save_pending()
-
+ 
     async def run_loop(self):
         print("--- Real Impact Collector Started ---")
         print(f"Tracking {len(self.pending_checks)} pending items.")

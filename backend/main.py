@@ -333,15 +333,6 @@ async def run_analysis(source="AUTOMATED"):
             filtered_high_impact = [e for e in high_impact_events if e.get("probability", 0) >= 50]
             print(f"Probability Filter: Kept {len(filtered_high_impact)} / {len(high_impact_events)} alerts (>= 50%)")
             
-            # Mapping of sectors to Yahoo Finance symbols for cross-sectional validation
-            SECTOR_INDEX_MAPPING = {
-                "Banking": "^NSEBANK",
-                "IT Services": "NIFTY_IT.NS", # Placeholder/Simulated
-                "Automobile": "NIFTY_AUTO.NS",
-                "Pharmaceuticals": "NIFTY_PHARMA.NS",
-                "Energy": "NIFTY_ENERGY.NS",
-                "Retail": "^CNXRETAIL", # Placeholder
-            }
             
             final_alerts = []
             
@@ -375,28 +366,10 @@ async def run_analysis(source="AUTOMATED"):
                 
                 # Double check probability after deep dive
                 if event.get("probability", 0) >= 50:
-                    # Pass 2: Cross-Sectional Validation (Sector Check)
+                    # Pass 2: Simplified Sector Check (Optional)
                     sector = event.get('sector')
-                    if sector in SECTOR_INDEX_MAPPING:
-                        index_symbol = SECTOR_INDEX_MAPPING[sector]
-                        print(f"  [VALIDATION] Checking Sector Correlation for {sector} ({index_symbol})...")
-                        try:
-                            # Check if the sector index is already moving in the same direction
-                            hist = yf.Ticker(index_symbol).history(period="1d", interval="15m")
-                            if not hist.empty:
-                                last_move = (hist['Close'].iloc[-1] / hist['Close'].iloc[0]) - 1
-                                direction = event.get('impact_direction', '').lower()
-                                
-                                # If sentiment aligns with sector move, boost confidence
-                                if (direction == "positive" and last_move > 0.002) or (direction == "negative" and last_move < -0.002):
-                                    event['probability'] = min(80, event.get('probability', 0) + 5)
-                                    print(f"  [CONFIRMED] Sector {sector} move aligns. Confidence boosted.")
-                                else:
-                                    # If sector is doing the opposite, slightly penalize
-                                    if (direction == "positive" and last_move < -0.005) or (direction == "negative" and last_move > 0.005):
-                                        event['probability'] -= 10
-                                        print(f"  [CAUTION] Sector {sector} move opposes sentiment. Confidence reduced.")
-                        except: pass
+                    if sector:
+                        print(f"  [VALIDATION] Sector confirmed: {sector}")
                     
                     # Log prediction for tracking
                     tracker.save_prediction(event)

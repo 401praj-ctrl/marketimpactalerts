@@ -1,13 +1,16 @@
-import yfinance as yf
+import finnhub
 import json
 import os
 import datetime
+import asyncio
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGIME_FILE = os.path.join(BASE_DIR, "data", "market_regime.json")
 
 class RegimeService:
     def __init__(self):
+        self.api_key = os.environ.get("FINNHUB_API_KEY")
+        self.finnhub_client = finnhub.Client(api_key=self.api_key)
         self.current_regime = "NORMAL"
         self.vix_threshold = 20.0
         self.load_regime()
@@ -25,9 +28,18 @@ class RegimeService:
         Detects if we are in a High Volatility (Panic) or Low Volatility (Greed) regime.
         Also simulates FII flow trend check.
         """
+        if not self.api_key:
+            return False
+
         try:
-            # India VIX proxy or US VIX (highly correlated with global regimes)
-            vix = yf.Ticker("^VIX").history(period="5d")['Close'].iloc[-1]
+            # Finnhub doesn't always have ^VIX for free, but we can try basic index or quote
+            loop = asyncio.get_event_loop()
+            # Try to get quote for VIX
+            quote = await loop.run_in_executor(None, lambda: self.finnhub_client.quote("^VIX"))
+            vix = quote.get('c', 20.0) # Default to 20 if failed
+            
+            if vix == 0: # Finnhub returns 0 if ticker not found
+                 vix = 20.0
             
             new_regime = "NORMAL"
             if vix > 25.0:

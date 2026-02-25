@@ -60,32 +60,37 @@ def validate_company_name(name):
         return match
     return name
 
-# Updated API Keys logic: Find ALL OpenRouter keys dynamically
-API_KEYS = []
+# Updated API Keys logic: Find ALL OpenRouter keys dynamically and sort them
+_openrouter_keys = {}
 for key, value in os.environ.items():
     if key.startswith("OPENROUTER_API_KEY") and value and value.strip():
-        val = value.strip()
-        if val not in API_KEYS:
-            API_KEYS.append(val)
-            print(f"DEBUG: Found OpenRouter key from {key}: {val[:6]}...{val[-4:]}")
+        _openrouter_keys[key] = value.strip()
+
+# Sort by key name (e.g., KEY_1, KEY_2) for consistent order
+API_KEYS = [v for k, v in sorted(_openrouter_keys.items())]
 
 if not API_KEYS:
-    print("WARNING: No API keys found in environment. AI features will be disabled until keys are set.")
+    print("WARNING: No OpenRouter API keys found in environment.")
     API_KEYS = []
 else:
-    print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique OpenRouter API keys from environment.")
+    print(f"DEBUG: Successfully loaded {len(API_KEYS)} unique OpenRouter API keys.")
+    for i, val in enumerate(API_KEYS):
+        print(f"  Key {i+1}: {val[:6]}...{val[-4:]}")
 
-# Bytez API Keys Support: Find ALL Bytez keys dynamically
-BYTEZ_API_KEYS = []
+# Bytez API Keys Support: Find ALL Bytez keys dynamically and sort them
+_bytez_keys = {}
 for key, value in os.environ.items():
     if key.startswith("BYTEZ_API_KEY") and value and value.strip():
-        val = value.strip()
-        if val not in BYTEZ_API_KEYS:
-            BYTEZ_API_KEYS.append(val)
-            print(f"DEBUG: Found Bytez key from {key}: {val[:6]}...{val[-4:]}")
+        _bytez_keys[key] = value.strip()
+
+BYTEZ_API_KEYS = [v for k, v in sorted(_bytez_keys.items())]
 
 if BYTEZ_API_KEYS:
     print(f"DEBUG: Successfully loaded {len(BYTEZ_API_KEYS)} unique Bytez API keys.")
+    for i, val in enumerate(BYTEZ_API_KEYS):
+        print(f"  Bytez Key {i+1}: {val[:6]}...{val[-4:]}")
+else:
+    print("DEBUG: No Bytez API keys found.")
 
 # Models in order of preference: Exclusive free models as requested
 MODELS = [

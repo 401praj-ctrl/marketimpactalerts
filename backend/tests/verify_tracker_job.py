@@ -34,10 +34,10 @@ async def test_verification():
     
     print(f"Simulating verification for event on {expired_date}...")
     
-    # We can't easily mock Alpha Vantage without more effort, 
+    # We can't easily mock Finnhub without more effort, 
     # but we can verify the function exists and runs logic.
     try:
-        # Note: This will likely print "WARNING: ALPHA_VANTAGE_API_KEY not set" 
+        # Note: This will likely print "WARNING: FINNHUB_API_KEY not set" 
         # unless it's in the environment, which is expected.
         await test_tracker.run_cleanup_and_verification()
         print("SUCCESS: run_cleanup_and_verification executed (check output for warnings).")

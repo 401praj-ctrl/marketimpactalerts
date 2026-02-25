@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import yfinance as yf
 
 # Add backend directory to sys.path
 sys.path.append(os.path.join(os.getcwd(), 'backend'))
@@ -10,7 +9,7 @@ from services.price_service import price_service
 
 async def test_price_fetching():
     symbols = ["NSE:KALYANKJIL", "NSE:HDFCBANK", "NSE:RELIANCE", "BSE:RELIANCE", "NSE:TCS"]
-    print("Testing Price Service (yfinance - Nominal Prices)...")
+    print("Testing Price Service (Finnhub - Nominal Prices)...")
     print("-" * 30)
     
     for symbol in symbols:
