@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.9+15",
+    "latest_version": "1.2.9+16",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "⚠️ MANDATORY PERFORMANCE UPDATE v1.2.9+15:\n• Fixed: Real-time stock prices reliability.\n• Fixed: In-app update flow clashing.\n• New: Resilient update handler for all devices.\n• Note: This update is REQUIRED for continued service."
+    "release_notes": "🚀 CRITICAL FIXES v1.2.9+16:\n• Fixed: Home Screen loading indicator is now centered.\n• Fixed: Stale '26/02' dates in the feed have been corrected to Feb 25th IST.\n• New: Real-time Angel One pricing fully integrated for all past alerts.\n• Stability: Improved background price refresh performance."
 }
