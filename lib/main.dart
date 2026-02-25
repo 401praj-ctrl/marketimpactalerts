@@ -270,70 +270,80 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget _buildSplashScreenUI() {
     return Column(
       key: const ValueKey('splash'),
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const AppLogo(size: 100),
-        const SizedBox(height: 30),
-        Text(
-          'ALPHA IMPACT',
-          style: GoogleFonts.outfit(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 4,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'PRECISION MARKET INTELLIGENCE',
-          style: GoogleFonts.outfit(
-            fontSize: 12,
-            letterSpacing: 2,
-            color: AppTheme.glassBlue,
-          ),
-        ),
-        const SizedBox(height: 50),
-        if (_isCheckingUpdate) ...[
-          const SizedBox(
-            width: 40,
-            height: 40,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            _statusMessage,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
-          ),
-        ] else if (_showRetryButton) ...[
-          Text(
-            _statusMessage,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        const Spacer(flex: 3),
+        // Central Large Logo
+        const AppLogo(size: 140, showText: false),
+        const Spacer(flex: 1),
+        // Secondary Title Row
+        const AppLogo(size: 32, showText: true, isLarge: true),
+        const Spacer(flex: 2),
+        // Progress Section
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 60),
+          child: Column(
             children: [
-              TextButton(
-                onPressed: () => _initializeApp(),
-                child: const Text('RETRY', style: TextStyle(color: AppTheme.glassBlue)),
+              if (_isCheckingUpdate) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: const LinearProgressIndicator(
+                    backgroundColor: Colors.white10,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
+                    minHeight: 2,
+                  ),
+                ),
+              ] else if (_showRetryButton) ...[
+                Text(
+                  _statusMessage,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white30, fontSize: 13),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => _initializeApp(),
+                      child: const Text('RETRY', style: TextStyle(color: AppTheme.glassBlue)),
+                    ),
+                    const SizedBox(width: 20),
+                    TextButton(
+                      onPressed: () => _navigateToHome(),
+                      child: const Text('BYPASS', style: TextStyle(color: Colors.white24)),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        const Spacer(flex: 2),
+        // Footer
+        Opacity(
+          opacity: 0.3,
+          child: Column(
+            children: [
+              Text(
+                'POWERING ALPHA ENGINE',
+                style: GoogleFonts.outfit(
+                  fontSize: 10,
+                  letterSpacing: 2,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const SizedBox(width: 20),
-              TextButton(
-                onPressed: () => _navigateToHome(),
-                child: const Text('BYPASS', style: TextStyle(color: Colors.white30)),
+              const SizedBox(height: 4),
+              Text(
+                'v$_appVersion',
+                style: GoogleFonts.outfit(
+                  fontSize: 10,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
-        ],
-        const Spacer(),
-        Text(
-          'v$_appVersion',
-          style: const TextStyle(color: Colors.white24, fontSize: 12),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 50),
       ],
     );
   }

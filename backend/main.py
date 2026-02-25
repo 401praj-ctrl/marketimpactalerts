@@ -614,9 +614,9 @@ async def trigger_update_broadcast():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 Launch Fix v1.2.14+17"},
-        "contents": {"en": "Fixed the 'Only Launching' hang issue. Tap to update and enter the app immediately!"},
-        "data": {"type": "update", "version": "1.2.14+17"}
+        "headings": {"en": "✨ Brand New Look v1.2.14+19"},
+        "contents": {"en": "We've overhauled the launching speed and UI! Tap to experience the new Alpha Impact."},
+        "data": {"type": "update", "version": "1.2.14+19"}
     }
     
     try:
