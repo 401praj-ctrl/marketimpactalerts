@@ -81,10 +81,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final ApiService _apiService = ApiService();
-  String _appVersion = '1.0.0';
-  bool _showUpdateUI = false;
   Map<String, dynamic>? _updateInfo;
   bool _isCheckingUpdate = true;
+  String _statusMessage = 'Initializing...';
+  bool _showRetryButton = false;
 
   @override
   void initState() {
@@ -97,7 +97,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final packageInfo = await PackageInfo.fromPlatform();
     if (mounted) {
       setState(() {
-        _appVersion = packageInfo.version;
+        _appVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
+        _statusMessage = 'Checking for critical updates...';
       });
     }
 
@@ -170,6 +171,12 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } catch (e) {
       print('Splash: Error during update check: $e');
+      if (mounted) {
+        setState(() {
+          _statusMessage = 'Update check failed. Continuing...';
+          _showRetryButton = true;
+        });
+      }
     }
     
     if (mounted) {
@@ -257,33 +264,56 @@ class _SplashScreenState extends State<SplashScreen> {
       key: const ValueKey('splash'),
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const AppLogo(size: 80, showText: false),
-        const SizedBox(height: 40),
-        const AppLogo(showText: true, isLarge: true, size: 40),
-        const SizedBox(height: 60),
-        if (_isCheckingUpdate)
-          const SizedBox(
-            width: 160,
-            child: LinearProgressIndicator(
-              backgroundColor: Colors.white10,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
-              minHeight: 2,
-            ),
-          ),
-        const SizedBox(height: 20),
+        const AppLogo(size: 100),
+        const SizedBox(height: 30),
         Text(
-          'POWERING ALPHA ENGINE v$_appVersion',
-          style: GoogleFonts.inter(
-            color: AppTheme.silver.withOpacity(0.5),
-            fontSize: 10,
-            letterSpacing: 3,
+          'ALPHA IMPACT',
+          style: GoogleFonts.outfit(
+            fontSize: 32,
             fontWeight: FontWeight.bold,
+            letterSpacing: 4,
+            color: Colors.white,
           ),
         ),
+        const SizedBox(height: 10),
+        Text(
+          'PRECISION MARKET INTELLIGENCE',
+          style: GoogleFonts.outfit(
+            fontSize: 12,
+            letterSpacing: 2,
+            color: AppTheme.glassBlue,
+          ),
+        ),
+        const SizedBox(height: 50),
+        if (_isCheckingUpdate) ...[
+          const SizedBox(
+            width: 40,
+            height: 40,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            _statusMessage,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+          if (_showRetryButton)
+            TextButton(
+              onPressed: () => _initializeApp(),
+              child: const Text('RETRY CHECK', style: TextStyle(color: AppTheme.glassBlue)),
+            ),
+        ],
+        const Spacer(),
+        Text(
+          'v$_appVersion',
+          style: const TextStyle(color: Colors.white24, fontSize: 12),
+        ),
+        const SizedBox(height: 30),
       ],
     );
   }
-
   Widget _buildUpdateUI() {
     final version = _updateInfo?['latest_version'] ?? 'Latest';
     final notes = _updateInfo?['release_notes'] ?? 'Improvements and bug fixes.';

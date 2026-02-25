@@ -586,9 +586,10 @@ async def trigger_update_broadcast():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 Real-Time Update v1.2.8"},
-        "contents": {"en": "Angel One SmartAPI is live! Get 100% accurate real-time Indian stock prices and multi-currency support now. Tap to update!"},
-        "data": {"type": "update", "version": "1.2.8+13"}
+        "headings": {"en": "🚀 Critical Update v1.2.8+14"},
+        "contents": {"en": "Fix for Stock Prices is here! Tap to update and get real-time Angel One data. (If the app doesn't prompt, tap this message to download directly)"},
+        "url": "https://market-impact-backend.onrender.com/app/download",
+        "data": {"type": "update", "version": "1.2.8+14"}
     }
     
     try:
