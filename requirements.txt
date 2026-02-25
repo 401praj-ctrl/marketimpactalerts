@@ -15,3 +15,5 @@ lxml_html_clean
 bytez==3.0.1
 smartapi-python==1.5.5
 pyotp==2.9.0
+logzero==1.7.0
+websocket-client==1.7.0
