@@ -9,7 +9,6 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 PREDICTIONS_FILE = os.path.join(DATA_DIR, "predictions_log.jsonl")
 STATS_FILE = os.path.join(DATA_DIR, "prediction_stats.json")
 
-import numpy as np
 import finnhub
 
 class PredictionTracker:
