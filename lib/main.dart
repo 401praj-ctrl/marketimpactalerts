@@ -101,11 +101,14 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // 3. Check for Update
+    // 3. Check for Update (Wait up to 25 seconds for slow connections)
+    final String currentFullVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
     try {
-      await _performVersionCheck(packageInfo.version).timeout(const Duration(seconds: 10));
+      await _performVersionCheck(currentFullVersion).timeout(const Duration(seconds: 25));
     } catch (e) {
       print('Splash: Update check timed out or failed: $e');
+      // If it fails but we still want to show something, _isCheckingUpdate being false 
+      // will trigger the column to finish in build()
     }
     
     // 4. Register and request permissions (Safely)
@@ -177,10 +180,14 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   bool _isVersionNewer(String current, String latest) {
+    print('Splash: Comparing Current($current) vs Latest($latest)');
     try {
-      // Trim and ignore build numbers (+)
-      List<int> currentParts = current.trim().split('+')[0].split('.').map(int.parse).toList();
-      List<int> latestParts = latest.trim().split('+')[0].split('.').map(int.parse).toList();
+      // 1. Compare main version (X.Y.Z)
+      String currentVer = current.split('+')[0].trim();
+      String latestVer = latest.split('+')[0].trim();
+      
+      List<int> currentParts = currentVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> latestParts = latestVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
       for (int i = 0; i < 3; i++) {
         int c = i < currentParts.length ? currentParts[i] : 0;
@@ -189,24 +196,24 @@ class _SplashScreenState extends State<SplashScreen> {
         if (l < c) return false;
       }
 
-      // COMPARE BUILD NUMBERS (after the +)
+      // 2. Compare build numbers (after the +)
       int currentBuild = 0;
       int latestBuild = 0;
       
-      try {
-        if (current.contains('+')) {
-          currentBuild = int.parse(current.split('+')[1]);
-        }
-        if (latest.contains('+')) {
-          latestBuild = int.parse(latest.split('+')[1]);
-        }
-      } catch (e) {
-        print('Splash: Build number parsing error: $e');
+      if (current.contains('+')) {
+        String b = current.split('+')[1].trim();
+        currentBuild = int.tryParse(b) ?? 0;
+      }
+      if (latest.contains('+')) {
+        String b = latest.split('+')[1].trim();
+        latestBuild = int.tryParse(b) ?? 0;
       }
 
+      print('Splash: Build Comparison - Current: $currentBuild, Latest: $latestBuild');
       if (latestBuild > currentBuild) return true;
+      
     } catch (e) {
-      print('Version Comparison Error: $e');
+      print('Splash: Version Comparison Error: $e');
     }
     return false;
   }

@@ -107,9 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     if (mounted) {
       setState(() {
-        _appVersion = packageInfo.version;
+        _appVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
       });
     }
+    
+    // Check for updates in background to ensure users don't miss them
+    _checkUpdateInBackground(_appVersion);
   }
 
   Future<void> _loadCachedAlerts() async {
@@ -233,6 +236,90 @@ class _HomeScreenState extends State<HomeScreen> {
 
       return true;
     }).toList();
+  }
+
+  Future<void> _checkUpdateInBackground(String current) async {
+    print('HomeScreen: Background update check... Current: $current');
+    try {
+      final updateInfo = await _apiService.getLatestAppVersion();
+      if (updateInfo != null) {
+        final String latest = updateInfo['latest_version'] ?? '';
+        if (_isVersionNewer(current, latest)) {
+          print('HomeScreen: New version detected in background: $latest');
+          if (mounted) {
+            _showUpdateDialog(updateInfo);
+          }
+        }
+      }
+    } catch (e) {
+      print('HomeScreen: Background update check error: $e');
+    }
+  }
+
+  bool _isVersionNewer(String current, String latest) {
+    try {
+      String currentVer = current.split('+')[0].trim();
+      String latestVer = latest.split('+')[0].trim();
+      List<int> currentParts = currentVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> latestParts = latestVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      for (int i = 0; i < 3; i++) {
+        int c = i < currentParts.length ? currentParts[i] : 0;
+        int l = i < latestParts.length ? latestParts[i] : 0;
+        if (l > c) return true;
+        if (l < c) return false;
+      }
+      int currentBuild = 0;
+      int latestBuild = 0;
+      if (current.contains('+')) currentBuild = int.tryParse(current.split('+')[1].trim()) ?? 0;
+      if (latest.contains('+')) latestBuild = int.tryParse(latest.split('+')[1].trim()) ?? 0;
+      if (latestBuild > currentBuild) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  void _showUpdateDialog(Map<String, dynamic> updateInfo) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.spaceDark,
+        title: const Text('New Update Available', style: TextStyle(color: Colors.white)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Version: ${updateInfo['latest_version']}', 
+                   style: const TextStyle(color: AppTheme.glassBlue, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text(updateInfo['release_notes'] ?? 'New features and improvements.', 
+                   style: const TextStyle(color: Colors.white70)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Later', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.glassBlue),
+            onPressed: () {
+              Navigator.pop(context);
+              _launchUpdate(updateInfo['download_url']);
+            },
+            child: const Text('Update Now', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _launchUpdate(String? url) async {
+    if (url == null) return;
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    }
   }
 
   void _checkAndNotifyNewAlerts(List<EventAlert> currentAlerts) {
