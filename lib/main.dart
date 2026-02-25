@@ -11,6 +11,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:market_impact_alerts/widgets/update_dialog.dart';
 import 'dart:io';
 
 void main() async {
@@ -121,7 +122,12 @@ class _SplashScreenState extends State<SplashScreen> {
     
     // 4. If no update, proceed to home after at least 3 seconds of splash total
     if (!_showUpdateUI) {
-      _navigateToHome();
+      // ONLY navigate to home if we are NOT in an error state and NOT showing update UI
+      if (!_showRetryButton) {
+        _navigateToHome();
+      } else {
+         print('Splash: Update check failed. Waiting for user to RETRY.');
+      }
     }
   }
 
@@ -397,13 +403,12 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: () => _navigateToHome(),
-            child: Text(
-              'LATER',
-              style: TextStyle(color: AppTheme.silver.withOpacity(0.7), letterSpacing: 1),
-            ),
+           const SizedBox(height: 16),
+          // REMOVED 'LATER' BUTTON AS PER USER INSTRUCTION FOR MANDATORY UPDATES
+          Text(
+            'This update is mandatory for security and performance.',
+            style: TextStyle(color: AppTheme.silver.withOpacity(0.4), fontSize: 11),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -414,171 +419,10 @@ class _SplashScreenState extends State<SplashScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _UpdateProgressDialog(url: url, version: version),
+      builder: (context) => UpdateProgressDialog(url: url, version: version),
     );
   }
 }
 
-class _UpdateProgressDialog extends StatefulWidget {
-  final String url;
-  final String version;
-
-  const _UpdateProgressDialog({required this.url, required this.version});
-
-  @override
-  State<_UpdateProgressDialog> createState() => _UpdateProgressDialogState();
-}
-
-class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
-  String _status = 'Initializing...';
-  double _progress = 0;
-  String _mbDownloaded = '0';
-  String _totalMb = '...';
-  bool _isDone = false;
-  bool _isError = false;
-  CancelToken _cancelToken = CancelToken();
-
-  @override
-  void initState() {
-    super.initState();
-    _executeUpgrade();
-  }
-
-  @override
-  void dispose() {
-    _cancelToken.cancel();
-    super.dispose();
-  }
-
-  Future<void> _executeUpgrade() async {
-    try {
-      final Directory docsDir = await getApplicationDocumentsDirectory();
-      final String savePath = "${docsDir.path}/market_impact_${widget.version}.apk";
-
-      final dio = Dio();
-      await dio.download(
-        widget.url,
-        savePath,
-        cancelToken: _cancelToken,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            if (mounted) {
-              setState(() {
-                _status = 'Downloading update...';
-                _progress = (received / total * 100);
-                _totalMb = (total / (1024 * 1024)).toStringAsFixed(1);
-                _mbDownloaded = (received / (1024 * 1024)).toStringAsFixed(1);
-              });
-            }
-          }
-        },
-      );
-
-      if (mounted) {
-        setState(() {
-          _status = 'Download complete! Checking permissions...';
-        });
-      }
-
-      if (Platform.isAndroid) {
-        var status = await Permission.requestInstallPackages.status;
-        if (status.isDenied || status.isPermanentlyDenied) {
-          status = await Permission.requestInstallPackages.request();
-        }
-
-        if (!status.isGranted) {
-          if (mounted) {
-            setState(() {
-              _status = "Install permission required.";
-              _isError = true;
-            });
-          }
-          return;
-        }
-      }
-
-      final result = await OpenFile.open(savePath);
-      if (result.type != ResultType.done) {
-        if (mounted) {
-          setState(() {
-            _status = "Error opening APK";
-            _isError = true;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _status = 'Installer launched!';
-            _isDone = true;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _status = 'Update failed.';
-          _isError = true;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppTheme.cardDark,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Row(
-        children: [
-          const Icon(Icons.cloud_download_rounded, color: AppTheme.glassBlue),
-          const SizedBox(width: 12),
-          Text('Downloading Update', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18)),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(_status, style: const TextStyle(color: Colors.white, fontSize: 14)),
-          const SizedBox(height: 24),
-          if (!_isError && !_isDone) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _progress / 100,
-                backgroundColor: Colors.white.withOpacity(0.05),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
-                minHeight: 10,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${_mbDownloaded}MB / ${_totalMb}MB', style: const TextStyle(color: AppTheme.silver, fontSize: 12)),
-                Text('${_progress.toInt()}%', style: const TextStyle(color: AppTheme.glassBlue, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ],
-          if (_isError) ...[
-            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('CLOSE', style: TextStyle(color: AppTheme.silver)),
-            ),
-          ],
-          if (_isDone) ...[
-            const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent, size: 48),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.glassBlue),
-              child: const Text('OK', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
+// End of SplashScreen
 

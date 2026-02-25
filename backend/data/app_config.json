@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.8+14",
+    "latest_version": "1.2.9+15",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "⚠️ CRITICAL PERFORMANCE UPDATE v1.2.8+14:\n• Angel One Live Prices: 100% accurate Indian stock data is now integrated.\n• Critical Bug Fixes: Resolved dashboard sync issues and price display errors.\n• Improved Stability: Faster connection and resilient app updates.\n• Tap 'Update Now' to ensure your alerts show accurate prices!"
+    "release_notes": "⚠️ MANDATORY PERFORMANCE UPDATE v1.2.9+15:\n• Fixed: Real-time stock prices reliability.\n• Fixed: In-app update flow clashing.\n• New: Resilient update handler for all devices.\n• Note: This update is REQUIRED for continued service."
 }

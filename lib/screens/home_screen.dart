@@ -20,6 +20,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:market_impact_alerts/widgets/update_dialog.dart';
 import 'dart:io';
 
 class HomeScreen extends StatefulWidget {
@@ -298,29 +299,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Later', style: TextStyle(color: Colors.white54)),
-          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.glassBlue),
             onPressed: () {
               Navigator.pop(context);
-              _launchUpdate(updateInfo['download_url']);
+              // Show the shared mandatory update dialog instead of launching URL
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => UpdateProgressDialog(
+                  url: updateInfo['download_url'] ?? '',
+                  version: updateInfo['latest_version'] ?? 'Latest',
+                ),
+              );
             },
-            child: const Text('Update Now', style: TextStyle(color: Colors.white)),
+            child: const Text('UPDATE NOW', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  void _launchUpdate(String? url) async {
-    if (url == null) return;
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    }
-  }
+  // Helper removed as we now use UpdateProgressDialog
+  /* 
+  void _launchUpdate(String? url) async { ... }
+  */
 
   void _checkAndNotifyNewAlerts(List<EventAlert> currentAlerts) {
     for (var alert in currentAlerts) {

@@ -17,11 +17,15 @@ class NotificationService {
     OneSignal.initialize("7087a2bc-e285-49a9-a404-15be244a893f");
     
     // Setup listener for notification clicks (Dailyhunt-style)
-    OneSignal.Notifications.addClickListener((event) {
+     OneSignal.Notifications.addClickListener((event) {
       final data = event.notification.additionalData;
-      if (data != null && data.containsKey('alert_id')) {
-        final alertId = data['alert_id'] as String;
-        _navigateToAlert(alertId);
+      if (data != null) {
+        if (data.containsKey('alert_id')) {
+          final alertId = data['alert_id'] as String;
+          _navigateToAlert(alertId);
+        } else if (data['type'] == 'update') {
+          _triggerAppUpdateManual();
+        }
       }
     });
     
@@ -64,6 +68,27 @@ class NotificationService {
       context,
       MaterialPageRoute(builder: (context) => AlertDetailsScreen(alert: alert)),
     );
+  }
+
+  static Future<void> _triggerAppUpdateManual() async {
+    final context = MarketImpactApp.navigatorKey.currentContext;
+    if (context == null) return;
+    
+    // Check for update immediately
+    final apiService = ApiService();
+    final updateInfo = await apiService.getLatestAppVersion();
+    
+    if (updateInfo != null) {
+      // Show mandatory update dialog immediately
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => UpdateProgressDialog(
+          url: updateInfo['download_url'] ?? '',
+          version: updateInfo['latest_version'] ?? 'Latest',
+        ),
+      );
+    }
   }
 
   static Future<void> requestPermissions() async {
