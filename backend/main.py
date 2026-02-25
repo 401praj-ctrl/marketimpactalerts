@@ -410,9 +410,9 @@ async def run_analysis(source="AUTOMATED"):
                     tracker.save_prediction(analysis)
                     final_alerts.append(analysis)
                     
-                    # STREAMING LOGIC: If prob >= 70, NOTIFY IMMEDIATELY
-                    if analysis.get('probability', 0) >= 70:
-                        print(f"      >>> [STREAMING] High confidence alert ({analysis['probability']}%). Notifying users NOW!")
+                    # STREAMING LOGIC: If prob >= 50, NOTIFY IMMEDIATELY
+                    if analysis.get('probability', 0) >= 50:
+                        print(f"      >>> [STREAMING] New alert detected ({analysis['probability']}%). Notifying users NOW!")
                         
                         # Add to global cache immediately so it's visible on next /alerts call
                         combined = [analysis] + cached_alerts
