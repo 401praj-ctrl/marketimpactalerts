@@ -352,91 +352,100 @@ class _SplashScreenState extends State<SplashScreen> {
     final notes = _updateInfo?['release_notes'] ?? 'Improvements and bug fixes.';
     final url = _updateInfo?['download_url'] ?? '';
 
-    return Padding(
+    return Container(
       key: const ValueKey('update'),
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      width: double.infinity,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppTheme.glassBlue.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.system_update_rounded, color: AppTheme.glassBlue, size: 48),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'NEW ENGINE READY',
-            style: GoogleFonts.outfit(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Version $version is available',
-            style: TextStyle(color: AppTheme.glassBlue, fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Current App: $_appVersion',
-            style: TextStyle(color: AppTheme.silver.withOpacity(0.5), fontSize: 12),
-          ),
-          const SizedBox(height: 40),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.cardDark.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppTheme.white05),
-            ),
+          const Spacer(flex: 2),
+          // Unify with Splash
+          const AppLogo(size: 100, showText: false),
+          const SizedBox(height: 24),
+          const AppLogo(size: 24, showText: true, isLarge: true),
+          const Spacer(flex: 1),
+          
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'RELEASE NOTES',
-                  style: GoogleFonts.inter(
-                    color: AppTheme.glassBlue,
-                    fontSize: 10,
+                  'ENGINE UPGRADE READY',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
+                    letterSpacing: 1,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
-                  notes,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5),
+                  'v$version is now available',
+                  style: const TextStyle(color: AppTheme.glassBlue, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 32),
+                
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardDark.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.white05),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.auto_awesome, color: AppTheme.glassBlue, size: 14),
+                          const SizedBox(width: 8),
+                          Text(
+                            'WHAT\'S NEW',
+                            style: GoogleFonts.inter(
+                              color: AppTheme.glassBlue,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        notes,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.6),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 48),
+                
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: () => _startInAppUpdate(url, version),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.glassBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text(
+                      'ACTIVATE UPGRADE',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'MANDATORY FOR PERFORMANCE',
+                  style: TextStyle(color: Colors.white24, fontSize: 9, letterSpacing: 1),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 60),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () => _startInAppUpdate(url, version),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.glassBlue,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: const Text(
-                'UPDATE NOW',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ),
-           const SizedBox(height: 16),
-          // REMOVED 'LATER' BUTTON AS PER USER INSTRUCTION FOR MANDATORY UPDATES
-          Text(
-            'This update is mandatory for security and performance.',
-            style: TextStyle(color: AppTheme.silver.withOpacity(0.4), fontSize: 11),
-            textAlign: TextAlign.center,
-          ),
+          const Spacer(flex: 2),
         ],
       ),
     );

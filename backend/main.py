@@ -614,9 +614,9 @@ async def trigger_update_broadcast():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "✨ Brand New Look v1.2.14+19"},
-        "contents": {"en": "We've overhauled the launching speed and UI! Tap to experience the new Alpha Impact."},
-        "data": {"type": "update", "version": "1.2.14+19"}
+        "headings": {"en": "💎 Premium Upgrade Ready"},
+        "contents": {"en": "Experience the all-new Alpha Impact with real-time speed and premium UI. Tap to update!"},
+        "data": {"type": "update", "version": "1.2.14+20"}
     }
     
     try:
@@ -677,12 +677,29 @@ async def refresh_cached_prices():
                 # Always update currency when price is refreshed
                 alert['currency'] = price_service.get_currency_for_symbol(symbol)
                 
-                # Re-calculate upside if predicted_price exists
+                # Re-calculate upside OR calculate fallback predicted_price if missing
                 if alert.get('predicted_price'):
                     try:
                         pred = float(alert['predicted_price'])
                         upside = ((pred / new_p) - 1) * 100
                         alert['upside_pct'] = f"{upside:+.2f}%"
+                    except: pass
+                else:
+                    # FALLBACK Logic: If no predicted price, calculate one based on probability
+                    try:
+                        lp = float(new_p)
+                        prob = float(alert.get('probability', 60))
+                        direction = alert.get('impact_direction', 'NEUTRAL').lower()
+                        move_factor = (prob / 1000.0)
+                        if direction == 'up':
+                            alert['predicted_price'] = round(lp * (1 + move_factor), 2)
+                        elif direction == 'down':
+                            alert['predicted_price'] = round(lp * (1 - move_factor), 2)
+                        
+                        if alert.get('predicted_price'):
+                            pred = float(alert['predicted_price'])
+                            upside = ((pred / new_p) - 1) * 100
+                            alert['upside_pct'] = f"{upside:+.2f}%"
                     except: pass
                 updated_any = True
             
