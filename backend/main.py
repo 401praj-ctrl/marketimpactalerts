@@ -187,11 +187,16 @@ def parse_published_date(date_str):
         # Use dateutil.parser for maximum robustness (handles "Tue, 21 Feb 2026 ...")
         from dateutil import parser as d_parser
         dt = d_parser.parse(date_str)
+        
+        # ENSURE NAIVE: Strip timezone before any comparison or return
+        if dt.tzinfo:
+            dt = dt.replace(tzinfo=None)
+            
         # If the date is surprisingly in the future (some feeds have bad clocks), cap it at now
         now = datetime.datetime.now()
         if dt > now + datetime.timedelta(hours=24):
             return now
-        return dt.replace(tzinfo=None)
+        return dt
     except Exception as e:
         print(f"DEBUG: Failed to parse date '{date_str}': {e}")
         return None
