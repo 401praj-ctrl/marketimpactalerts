@@ -659,7 +659,7 @@ async def trigger_update_broadcast():
         "included_segments": ["Total Subscriptions"],
         "headings": {"en": "💎 Premium Upgrade Ready"},
         "contents": {"en": "Experience the all-new Alpha Impact with real-time speed and premium UI. Tap to update!"},
-        "data": {"type": "update", "version": "1.2.14+23"}
+        "data": {"type": "update", "version": "1.2.14+25"}
     }
     
     try:
