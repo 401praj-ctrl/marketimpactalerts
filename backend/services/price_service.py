@@ -214,6 +214,11 @@ class PriceService:
             if "NSE:" in symbol and not clean.endswith(".NS"): clean += ".NS"
             if "BSE:" in symbol and not clean.endswith(".BO"): clean += ".BO"
             
+            # Apply corrections even for fallbacks
+            ticker_stem = clean.replace(".NS", "").replace(".BO", "")
+            if ticker_stem in TICKER_CORRECTIONS:
+                clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem])
+            
             print(f"DEBUG: YFinance fallback for {clean}...")
             ticker = yf.Ticker(clean)
             price = ticker.fast_info.get('lastPrice')

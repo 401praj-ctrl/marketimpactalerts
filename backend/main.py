@@ -381,6 +381,25 @@ async def run_analysis(source="AUTOMATED"):
                     else:
                         event['currency'] = "USD" # Default
                 
+                # Logic: Ensure predicted_price exists even if deep dive analysis failed
+                if event.get('live_price') and not event.get('predicted_price'):
+                    try:
+                        lp = float(event['live_price'])
+                        prob = float(event.get('probability', 60))
+                        direction = event.get('impact_direction', 'NEUTRAL').lower()
+                        
+                        # Calculation: Move = 10% of probability (e.g. 70 prob = 7% move)
+                        move_factor = (prob / 1000.0) 
+                        if direction == 'up':
+                            event['predicted_price'] = round(lp * (1 + move_factor), 2)
+                        elif direction == 'down':
+                            event['predicted_price'] = round(lp * (1 - move_factor), 2)
+                        
+                        if event.get('predicted_price'):
+                            print(f"  [FALLBACK] Calculated predicted_price: {event['predicted_price']} based on {direction} direction.")
+                    except:
+                        pass
+                
                 # Standardize timestamp format
                 raw_time = event.get('published', get_ist_now().isoformat())
                 parsed_dt = parse_published_date(raw_time)
