@@ -174,8 +174,9 @@ def start_new_cycle():
     cycle_failed_keys.clear()
 
 async def analyze_headline(headline_text, regime="NORMAL"):
-    # Current date for context
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Enforce IST (UTC +5:30) for accurate Indian context mapping
+    ist_now = datetime.datetime.utcnow() + datetime.timedelta(hours=5, minutes=30)
+    current_date = ist_now.strftime("%Y-%m-%d")
     
     # RAG-lite: Fetch relevant training examples
     relevant_examples = get_relevant_examples(headline_text, limit=3, regime=regime)

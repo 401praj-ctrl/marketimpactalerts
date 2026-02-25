@@ -171,12 +171,14 @@ def save_last_run_time(iso_time):
     except Exception as e:
         print(f"ERROR saving last run time: {e}")
 
+def get_ist_now():
+    """Returns the current naive datetime in IST (UTC+5:30)."""
+    return datetime.datetime.utcnow() + datetime.timedelta(hours=5, minutes=30)
+
 def parse_published_date(date_str):
-    """Normalize various date formats from news providers."""
-    if not date_str:
-        return None
+    if not date_str: return None
     try:
-        # If it's already an ISO string with T, return parsed
+        # First attempt basic ISO parsing if it's strictly formatted
         if "T" in date_str:
             try:
                 # Handle cases like 2026-02-21T12:34:56.123Z
@@ -193,7 +195,7 @@ def parse_published_date(date_str):
             dt = dt.replace(tzinfo=None)
             
         # If the date is surprisingly in the future (some feeds have bad clocks), cap it at now
-        now = datetime.datetime.now()
+        now = get_ist_now()
         if dt > now + datetime.timedelta(hours=24):
             return now
         return dt
@@ -218,7 +220,7 @@ def migrate_legacy_alerts():
                 changed = True
             else:
                 # Fallback to now if unparseable
-                alert['timestamp'] = datetime.datetime.now().isoformat()
+                alert['timestamp'] = get_ist_now().isoformat()
                 changed = True
     
     if changed:
@@ -380,12 +382,12 @@ async def run_analysis(source="AUTOMATED"):
                         event['currency'] = "USD" # Default
                 
                 # Standardize timestamp format
-                raw_time = event.get('published', datetime.datetime.now().isoformat())
+                raw_time = event.get('published', get_ist_now().isoformat())
                 parsed_dt = parse_published_date(raw_time)
                 if parsed_dt:
                     event['timestamp'] = parsed_dt.isoformat()
                 else:
-                    event['timestamp'] = datetime.datetime.now().isoformat()
+                    event['timestamp'] = get_ist_now().isoformat()
                 
                 event['article_summary'] = event.get('article_summary', event.get('reason', ''))
                 
