@@ -131,7 +131,8 @@ class _SplashScreenState extends State<SplashScreen> {
         
         bool isNewer = _isVersionNewer(currentVersion, latestVersion);
         if (isNewer) {
-          // Check for suppression (loop prevention)
+          /* 
+          // REMOVED SUPPRESSION LOGIC TO ENSURE IMMEDIATE PROMPT
           final prefs = await SharedPreferences.getInstance();
           final String? lastPromptedVersion = prefs.getString('last_prompted_version');
           final int? lastPromptedTime = prefs.getInt('last_prompted_time');
@@ -143,6 +144,7 @@ class _SplashScreenState extends State<SplashScreen> {
               return;
             }
           }
+          */
 
           print('Splash: New version available. Showing update UI.');
           if (mounted) {
@@ -152,6 +154,7 @@ class _SplashScreenState extends State<SplashScreen> {
               _isCheckingUpdate = false;
             });
             // Mark as prompted
+            final prefs = await SharedPreferences.getInstance();
             await prefs.setString('last_prompted_version', latestVersion);
             await prefs.setInt('last_prompted_time', DateTime.now().millisecondsSinceEpoch);
           }
@@ -185,6 +188,23 @@ class _SplashScreenState extends State<SplashScreen> {
         if (l > c) return true;
         if (l < c) return false;
       }
+
+      // COMPARE BUILD NUMBERS (after the +)
+      int currentBuild = 0;
+      int latestBuild = 0;
+      
+      try {
+        if (current.contains('+')) {
+          currentBuild = int.parse(current.split('+')[1]);
+        }
+        if (latest.contains('+')) {
+          latestBuild = int.parse(latest.split('+')[1]);
+        }
+      } catch (e) {
+        print('Splash: Build number parsing error: $e');
+      }
+
+      if (latestBuild > currentBuild) return true;
     } catch (e) {
       print('Version Comparison Error: $e');
     }
