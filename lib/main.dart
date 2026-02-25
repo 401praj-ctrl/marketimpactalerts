@@ -82,6 +82,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final ApiService _apiService = ApiService();
+  String _appVersion = '1.0.0';
+  bool _showUpdateUI = false;
   Map<String, dynamic>? _updateInfo;
   bool _isCheckingUpdate = true;
   String _statusMessage = 'Initializing...';
@@ -305,11 +307,26 @@ class _SplashScreenState extends State<SplashScreen> {
             _statusMessage,
             style: const TextStyle(color: Colors.white54, fontSize: 13),
           ),
-          if (_showRetryButton)
-            TextButton(
-              onPressed: () => _initializeApp(),
-              child: const Text('RETRY CHECK', style: TextStyle(color: AppTheme.glassBlue)),
-            ),
+        ] else if (_showRetryButton) ...[
+          Text(
+            _statusMessage,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => _initializeApp(),
+                child: const Text('RETRY', style: TextStyle(color: AppTheme.glassBlue)),
+              ),
+              const SizedBox(width: 20),
+              TextButton(
+                onPressed: () => _navigateToHome(),
+                child: const Text('BYPASS', style: TextStyle(color: Colors.white30)),
+              ),
+            ],
+          ),
         ],
         const Spacer(),
         Text(
