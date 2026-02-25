@@ -1,8 +1,9 @@
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'api_service.dart';
-import '../main.dart';
+import 'package:market_impact_alerts/services/api_service.dart';
+import 'package:market_impact_alerts/widgets/update_dialog.dart';
+import 'package:market_impact_alerts/main.dart'; // To access MarketImpactApp.navigatorKey
 import '../screens/alert_details_screen.dart';
 import '../models/event_alert.dart';
 

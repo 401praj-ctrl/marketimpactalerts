@@ -165,7 +165,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             Text('LIVE PRICE', style: GoogleFonts.inter(color: AppTheme.silver, fontSize: 10, letterSpacing: 1)),
                             const SizedBox(height: 4),
                             Text(
-                              alert.livePrice != null ? '${alert.currency == "USD" ? "\$" : "₹"}${alert.livePrice}' : '---', 
+                              _formatPrice(alert.livePrice, alert.currency, alert.stocks), 
                               style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)
                             ),
                           ],
@@ -178,8 +178,8 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Text(
-                                  alert.predictedPrice != null ? '${alert.currency == "USD" ? "\$" : "₹"}${alert.predictedPrice}' : '---', 
+                                 Text(
+                                  _formatPrice(alert.predictedPrice, alert.currency, alert.stocks), 
                                   style: GoogleFonts.outfit(
                                     color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : 
                                            alert.impactDirection.toLowerCase() == 'down' ? AppTheme.getImpactColor('down') : 
@@ -406,5 +406,19 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
         ],
       ),
     );
+  }
+
+  String _formatPrice(double? price, String? currency, [List<String>? stocks]) {
+    if (price == null) return '---';
+    String finalCurrency = currency ?? 'INR';
+    
+    if (stocks != null && stocks.isNotEmpty) {
+      final s = stocks[0].toUpperCase();
+      final isIndian = s.contains('.NS') || s.contains('.BO') || s.contains('NSE:') || s.contains('BSE:');
+      if (!isIndian) finalCurrency = 'USD';
+    }
+    
+    final symbol = finalCurrency == "USD" ? "\$" : "₹";
+    return "$symbol${price.toStringAsFixed(2)}";
   }
 }

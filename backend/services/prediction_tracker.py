@@ -63,6 +63,7 @@ class PredictionTracker:
             "impact_score": alert_data.get("impact_score", 50),
             "live_price": alert_data.get("live_price"),
             "predicted_price": alert_data.get("predicted_price"),
+            "currency": alert_data.get("currency"),
             "impact_date_est": alert_data.get("impact_date_est"),
             "verified": False,
             "actual_move": None,

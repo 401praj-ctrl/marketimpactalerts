@@ -378,12 +378,16 @@ async def run_analysis(source="AUTOMATED"):
                     if deep_report:
                         analysis.update(deep_report)
                     
-                    # Ensure live price / currency is set
+                    # Ensure currency is set based on the first stock symbol
+                    if not analysis.get('currency') and analysis.get('stocks'):
+                        first_symbol = analysis['stocks'][0]
+                        analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
+
+                    # Ensure live price is set if missing
                     if not analysis.get('live_price') and current_prices:
                         first_symbol = analysis.get('stocks', [None])[0]
                         if first_symbol and first_symbol in current_prices:
                             analysis['live_price'] = current_prices[first_symbol]
-                            analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
                     
                     # Logic: Robust price fallback for missed stock or impact prices
                     if analysis.get('live_price') and not analysis.get('predicted_price'):

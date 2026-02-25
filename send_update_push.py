@@ -23,8 +23,8 @@ def send_update_notification():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 New Update Available: v1.2.5"},
-        "contents": {"en": "Fixes: Dashboard stats now sync properly, Indian stock prices are strictly accurate, and alert timing is fixed. Download the update now!"},
+        "headings": {"en": "🚀 New Update Available: v1.2.8"},
+        "contents": {"en": "Multi-Currency support is here! See prices in ₹ and $ accurately with real-time Finnhub data. Download the update now!"},
         "buttons": [
             {"id": "download", "text": "Download Now", "icon": "ic_menu_download"}
         ]

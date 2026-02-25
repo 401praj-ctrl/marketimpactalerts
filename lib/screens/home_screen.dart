@@ -822,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _formatPrice(alert.livePrice, alert.currency),
+                    _formatPrice(alert.livePrice, alert.currency, alert.stocks),
                     style: TextStyle(color: AppTheme.silver, fontSize: 11, fontWeight: FontWeight.w500),
                   ),
                   if (alert.predictedPrice != null) ...[
@@ -830,7 +830,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white24),
                     const SizedBox(width: 4),
                     Text(
-                      _formatPrice(alert.predictedPrice, alert.currency),
+                      _formatPrice(alert.predictedPrice, alert.currency, alert.stocks),
                       style: GoogleFonts.inter(
                         color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : AppTheme.getImpactColor('down'),
                         fontSize: 11,
@@ -1115,9 +1115,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return months[month - 1];
   }
 
-  String _formatPrice(double? price, String? currency) {
+  String _formatPrice(double? price, String? currency, [List<String>? stocks]) {
     if (price == null) return '...';
-    final symbol = currency == "USD" ? "\$" : "₹";
+    
+    String finalCurrency = currency ?? 'INR';
+    
+    // Inference fallback: If currency is missing or INR but stocks look international
+    if (stocks != null && stocks.isNotEmpty) {
+      final s = stocks[0].toUpperCase();
+      final isIndian = s.contains('.NS') || s.contains('.BO') || s.contains('NSE:') || s.contains('BSE:');
+      if (!isIndian) finalCurrency = 'USD';
+    }
+    
+    final symbol = finalCurrency == "USD" ? "\$" : "₹";
     return "$symbol${price.toStringAsFixed(2)}";
   }
 }
