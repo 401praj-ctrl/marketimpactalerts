@@ -105,26 +105,26 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // 3. Check for Update (Wait up to 25 seconds for slow connections)
+    // 3. Check for Update (Wait up to 10 seconds for fast experience)
     final String currentFullVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
     try {
-      await _performVersionCheck(currentFullVersion).timeout(const Duration(seconds: 25));
+      await _performVersionCheck(currentFullVersion).timeout(const Duration(seconds: 10));
     } catch (e) {
       print('Splash: Update check timed out or failed: $e');
-      // If it fails but we still want to show something, _isCheckingUpdate being false 
-      // will trigger the column to finish in build()
+      if (mounted) {
+        setState(() {
+           _isCheckingUpdate = false;
+        });
+      }
     }
     
-    // 4. Register and request permissions (Safely)
-    try {
-      await NotificationService.requestPermissions();
-    } catch (e) {
+    // 4. Register and request permissions (DON'T AWAIT - avoids blocking the app start)
+    NotificationService.requestPermissions().catchError((e) {
       print('Splash: Permission request failed: $e');
-    }
+    });
     
-    // 4. If no update, proceed to home after at least 3 seconds of splash total
+    // 5. If no update, proceed to home
     if (!_showUpdateUI) {
-      // ONLY navigate to home if we are NOT in an error state and NOT showing update UI
       if (!_showRetryButton) {
         _navigateToHome();
       } else {
@@ -291,6 +291,12 @@ class _SplashScreenState extends State<SplashScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(AppTheme.glassBlue),
                     minHeight: 2,
                   ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _statusMessage,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white30, fontSize: 13),
                 ),
               ] else if (_showRetryButton) ...[
                 Text(

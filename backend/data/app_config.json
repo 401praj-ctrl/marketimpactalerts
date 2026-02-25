@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+20",
+    "latest_version": "1.2.14+21",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 ALPHA ENGINE v1.2.14+20:\n• Full UI Overhaul: Premium new launching experience.\n• Live Prices Fixed: Robust price arrows for all stock alerts.\n• Real-Time: High-probability news is now broadcasted instantly."
+    "release_notes": "🚀 CRITICAL HOTFIX v1.2.14+21:\n• Launch Fix: Resolved the 'loading' hang on the splash screen.\n• Network Resilience: Improved reliability on slow connections.\n• Premium UI: Fully active premium dual-logo launch experience."
 }
