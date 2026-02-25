@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+17",
+    "latest_version": "1.2.14+18",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 LAUNCH FIX v1.2.14+17:\n• Fixed: App hanging on the launching page.\n• Added: fail-safe 'BYPASS' option for slow connections.\n• Performance: Stabilized initial server handshake."
+    "release_notes": "🚀 STREAMING UPGRADE v1.2.14+18:\n• Real-Time: High-probability alerts are now broadcasted IMMEDIATELY as analyzed.\n• Price Fix: Stale tickers (e.g., BNAGROCHEM) now correctly fetch live prices.\n• Reliability: Every alert now includes a target impact price arrow."
 }

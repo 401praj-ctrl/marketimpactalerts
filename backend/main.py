@@ -333,112 +333,119 @@ async def run_analysis(source="AUTOMATED"):
                 processed_links.add(h['link'])
             save_processed(processed_links)
 
-            # Identify high impact events (Pass 1)
-            high_impact_events = await identify_high_impact_events(new_headlines, regime=current_regime)
-            
-            # Filter by probability: Only keep >= 50%
-            filtered_high_impact = [e for e in high_impact_events if e.get("probability", 0) >= 50]
-            print(f"Probability Filter: Kept {len(filtered_high_impact)} / {len(high_impact_events)} alerts (>= 50%)")
-            
+            # PHASE 1: INDIVIDUAL STREAMING FOR HIGH-IMPACT ALERTS
+            # To reduce latency, we process each headline and notify IMMEDIATELY if high confidence
+            print(f"DEBUG: Starting real-time analysis loop for {len(new_headlines)} items.")
             
             final_alerts = []
             
-            # Only process the top 20 filtered high-impact events for deep dive
-            for event in filtered_high_impact:
-                # The AI already confirmed in Pass 1 this impacts stocks. We now do a full article Deep Dive on ALL of them.
-                print(f"  --> DEEP DIVE: {event['event']}")
-                
-                # Fetch live prices for context
-                current_prices = {}
-                for symbol in event.get('stocks', []):
-                    price = await price_service.get_live_price(symbol)
-                    if price:
-                        current_prices[symbol] = price
-                
-                full_text = await fetch_article_content(event['link'])
-                deep_report = await perform_deep_analysis(full_text, event['event'], regime=current_regime, current_prices=current_prices)
-                
-                if deep_report:
-                    event.update(deep_report)
-                
-                # Ensure at least one live_price is set from our fetched data if AI didn't return it
-                if not event.get('live_price') and current_prices:
-                    # Use the first available price from our fetched list
-                    first_symbol = event.get('stocks', [None])[0]
-                    if first_symbol and first_symbol in current_prices:
-                        event['live_price'] = current_prices[first_symbol]
-                        event['currency'] = price_service.get_currency_for_symbol(first_symbol)
-                    elif current_prices:
-                        # Fallback to any price in the map
-                        fallback_symbol = list(current_prices.keys())[0]
-                        event['live_price'] = current_prices[fallback_symbol]
-                        event['currency'] = price_service.get_currency_for_symbol(fallback_symbol)
-                elif event.get('live_price'):
-                    # If AI returned a price, still try to detect currency from symbols
-                    stocks = event.get('stocks', [])
-                    if stocks:
-                        event['currency'] = price_service.get_currency_for_symbol(stocks[0])
-                    else:
-                        event['currency'] = "USD" # Default
-                
-                # Logic: Ensure predicted_price exists even if deep dive analysis failed
-                if event.get('live_price') and not event.get('predicted_price'):
-                    try:
-                        lp = float(event['live_price'])
-                        prob = float(event.get('probability', 60))
-                        direction = event.get('impact_direction', 'NEUTRAL').lower()
-                        
-                        # Calculation: Move = 10% of probability (e.g. 70 prob = 7% move)
-                        move_factor = (prob / 1000.0) 
-                        if direction == 'up':
-                            event['predicted_price'] = round(lp * (1 + move_factor), 2)
-                        elif direction == 'down':
-                            event['predicted_price'] = round(lp * (1 - move_factor), 2)
-                        
-                        if event.get('predicted_price'):
-                            print(f"  [FALLBACK] Calculated predicted_price: {event['predicted_price']} based on {direction} direction.")
-                    except:
-                        pass
-                
-                # Standardize timestamp format
-                raw_time = event.get('published', get_ist_now().isoformat())
-                parsed_dt = parse_published_date(raw_time)
-                if parsed_dt:
-                    event['timestamp'] = parsed_dt.isoformat()
-                else:
-                    event['timestamp'] = get_ist_now().isoformat()
-                
-                event['article_summary'] = event.get('article_summary', event.get('reason', ''))
-                
-                # Double check probability after deep dive
-                if event.get("probability", 0) >= 50:
-                    # Pass 2: Simplified Sector Check (Optional)
-                    sector = event.get('sector')
-                    if sector:
-                        print(f"  [VALIDATION] Sector confirmed: {sector}")
+            for i, h in enumerate(new_headlines):
+                try:
+                    print(f"  [{i+1}/{len(new_headlines)}] Analyzing: {h['title'][:60]}...")
                     
-                    # Log prediction for tracking
-                    tracker.save_prediction(event)
-                    final_alerts.append(event)
+                    # Pass 1: Quick AI check
+                    analysis = await analyze_headline(h['title'], regime=current_regime)
+                    if analysis.get('impact', '').lower() == "no impact":
+                        continue
+                    
+                    # Tag metadata
+                    analysis['id'] = h['link']
+                    analysis['link'] = h['link']
+                    analysis['published'] = h['published']
+                    
+                    # Ensure event title exists
+                    if not analysis.get('event') or analysis.get('event') == "None":
+                        analysis['event'] = analysis.get('article_summary', h['title'][:60])
+                    
+                    # Probability >= 50% threshold for deep dive
+                    prob = analysis.get("probability", 0)
+                    if prob < 50:
+                        continue
+                        
+                    print(f"    --> Candidate found (Prob: {prob}%). Performing DEEP DIVE...")
+                    
+                    # Pass 2: Deep Dive with Live Prices
+                    current_prices = {}
+                    for symbol in analysis.get('stocks', []):
+                        price = await price_service.get_live_price(symbol)
+                        if price:
+                            current_prices[symbol] = price
+                    
+                    full_text = await fetch_article_content(h['link'])
+                    deep_report = await perform_deep_analysis(full_text, analysis['event'], regime=current_regime, current_prices=current_prices)
+                    
+                    if deep_report:
+                        analysis.update(deep_report)
+                    
+                    # Ensure live price / currency is set
+                    if not analysis.get('live_price') and current_prices:
+                        first_symbol = analysis.get('stocks', [None])[0]
+                        if first_symbol and first_symbol in current_prices:
+                            analysis['live_price'] = current_prices[first_symbol]
+                            analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
+                    
+                    # Logic: Robust price fallback for missed stock or impact prices
+                    if analysis.get('live_price') and not analysis.get('predicted_price'):
+                        try:
+                            lp = float(analysis['live_price'])
+                            p = float(analysis.get('probability', 60))
+                            direction = analysis.get('impact_direction', 'NEUTRAL').lower()
+                            move_factor = (p / 1000.0) 
+                            if direction == 'up':
+                                analysis['predicted_price'] = round(lp * (1 + move_factor), 2)
+                            elif direction == 'down':
+                                analysis['predicted_price'] = round(lp * (1 - move_factor), 2)
+                            if analysis.get('predicted_price'):
+                                print(f"      [FALLBACK] Predicted Price: {analysis['predicted_price']}")
+                        except: pass
 
-            # Update Processed Links - Moved to start of function to prevent race conditions
-            # for h in new_headlines:
-            #     processed_links.add(h['link'])
-            # save_processed(processed_links)
+                    # Standardize timestamp
+                    raw_time = analysis.get('published', get_ist_now().isoformat())
+                    parsed_dt = parse_published_date(raw_time)
+                    analysis['timestamp'] = parsed_dt.isoformat() if parsed_dt else get_ist_now().isoformat()
+                    analysis['article_summary'] = analysis.get('article_summary', analysis.get('reason', ''))
+                    
+                    # LOGGING & SAVING
+                    tracker.save_prediction(analysis)
+                    final_alerts.append(analysis)
+                    
+                    # STREAMING LOGIC: If prob >= 70, NOTIFY IMMEDIATELY
+                    if analysis.get('probability', 0) >= 70:
+                        print(f"      >>> [STREAMING] High confidence alert ({analysis['probability']}%). Notifying users NOW!")
+                        
+                        # Add to global cache immediately so it's visible on next /alerts call
+                        combined = [analysis] + cached_alerts
+                        cached_alerts = [a for a in combined if a.get("probability", 0) >= 50]
+                        cached_alerts = cached_alerts[:100]
+                        save_alerts(cached_alerts)
+                        
+                        # Trigger OneSignal for this single alert
+                        send_onesignal_notification([analysis], registered_devices)
+                        
+                except Exception as e:
+                    print(f"  ERROR processing '{h.get('title')[:30]}': {e}")
+                    continue
 
+            # FINAL BATCH UPDATE (For lower priority items or cleanup)
             if final_alerts:
-                # Sort by probability DESC so the top_alert is truly the most important
                 final_alerts.sort(key=lambda x: x.get("probability", 0), reverse=True)
-                
-                # Combine and filter existing cache for 50% threshold globally
                 combined = final_alerts + cached_alerts
-                cached_alerts = [a for a in combined if a.get("probability", 0) >= 50]
-                cached_alerts = cached_alerts[:100]
+                # Remove duplicates by ID (link)
+                seen_ids = set()
+                deduped = []
+                for a in combined:
+                    if a.get('id') not in seen_ids:
+                        deduped.append(a)
+                        seen_ids.add(a.get('id'))
                 
+                cached_alerts = [a for a in deduped if a.get("probability", 0) >= 50]
+                cached_alerts = cached_alerts[:100]
                 save_alerts(cached_alerts)
-                send_onesignal_notification(final_alerts, registered_devices)
+                
+                # If we had a cluster of 50-69% alerts and no 70+ was sent, optionally notify here
+                # (Optional: Only notify batch if no streamed notification was sent to avoid spam)
             else:
-                print("DEBUG: No impact detected.")
+                print("DEBUG: Cycle complete. No new alerts detected.")
             
             save_last_run_time(last_search_end)
                 
