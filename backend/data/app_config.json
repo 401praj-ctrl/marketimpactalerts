@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.8",
+    "latest_version": "1.2.8+13",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 Dash Upgrade v1.2.8:\n• Interactive Dashboard: New 'Start Manual Analysis' button for on-demand verification\n• Live Status Feed: Dashboard now shows exactly when auto-analysis was completed\n• Scheduled Scans: View the countdown to your next automated market verification\n• Engine Stability: Resolved dependency conflicts for smoother performance"
+    "release_notes": "🚀 Market Core Update v1.2.8:\n• Multi-Currency Support: Live prices now correctly show Rupees (₹) for Indian stocks and Dollars ($) for US stocks.\n• 100% Price Accuracy: Real-time Finnhub data is now fetched instantly for every new alert.\n• Smart Tickers: Improved stock symbol mapping for higher reliability.\n• Refresh All: Manual refresh now updates the prices of your entire alert history."
 }
