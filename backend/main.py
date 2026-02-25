@@ -359,6 +359,26 @@ async def run_analysis(source="AUTOMATED"):
                 if deep_report:
                     event.update(deep_report)
                 
+                # Ensure at least one live_price is set from our fetched data if AI didn't return it
+                if not event.get('live_price') and current_prices:
+                    # Use the first available price from our fetched list
+                    first_symbol = event.get('stocks', [None])[0]
+                    if first_symbol and first_symbol in current_prices:
+                        event['live_price'] = current_prices[first_symbol]
+                        event['currency'] = price_service.get_currency_for_symbol(first_symbol)
+                    elif current_prices:
+                        # Fallback to any price in the map
+                        fallback_symbol = list(current_prices.keys())[0]
+                        event['live_price'] = current_prices[fallback_symbol]
+                        event['currency'] = price_service.get_currency_for_symbol(fallback_symbol)
+                elif event.get('live_price'):
+                    # If AI returned a price, still try to detect currency from symbols
+                    stocks = event.get('stocks', [])
+                    if stocks:
+                        event['currency'] = price_service.get_currency_for_symbol(stocks[0])
+                    else:
+                        event['currency'] = "USD" # Default
+                
                 # Standardize timestamp format
                 raw_time = event.get('published', datetime.datetime.now().isoformat())
                 parsed_dt = parse_published_date(raw_time)
@@ -414,6 +434,8 @@ async def background_scheduler():
         try:
             print(f"DEBUG: background_scheduler triggering AUTOMATED analysis at {datetime.datetime.now()}")
             await run_analysis(source="AUTOMATED")
+            # Also refresh prices for existing alerts periodicly
+            await refresh_cached_prices()
         except Exception as e:
             print(f"ERROR: background_scheduler caught exception: {e}")
         print("DEBUG: background_scheduler sleeping for 120 minutes...")
@@ -451,6 +473,9 @@ async def startup_event():
     # This helps recover the dashboard if the stats file was lost but cache exists.
     for alert in cached_alerts:
         tracker.save_prediction(alert, silent=True) # Add silent mode to skip extra saves
+
+    # 3. Trigger an initial price refresh for existing alerts
+    asyncio.create_task(refresh_cached_prices())
 
     task1 = asyncio.create_task(background_scheduler())
     background_tasks_set.add(task1)
@@ -555,7 +580,56 @@ async def refresh_alerts(background_tasks: BackgroundTasks):
         return {"status": "Analysis already running."}
         
     background_tasks.add_task(run_analysis, source="USER REQUESTED")
-    return {"status": "Analysis started. Checking for new events only."}
+    # Also refresh existing alert prices immediately for the user
+    background_tasks.add_task(refresh_cached_prices)
+    return {"status": "Analysis started. Checking for new events and refreshing old prices."}
+
+async def refresh_cached_prices():
+    """
+    Iterates through cached_alerts and fetches the latest Finnhub price for each.
+    Tries multiple symbols if the first one fails.
+    """
+    print(f"DEBUG: Refreshing prices for {len(cached_alerts)} cached alerts...")
+    updated_any = False
+    # Refresh all cached alerts to be thorough
+    for alert in cached_alerts:
+        symbols = alert.get('stocks', [])
+        if not symbols: continue
+        
+        current_p = alert.get('live_price')
+        new_p = None
+        
+        # Try each symbol until one works
+        for symbol in symbols:
+            try:
+                price = await price_service.get_live_price(symbol)
+                if price:
+                    new_p = price
+                    break
+            except:
+                continue
+        
+        if new_p:
+            # Update if it was missing or has changed
+            if current_p is None or abs(new_p - float(current_p)) > 0.001:
+                alert['live_price'] = new_p
+                # Always update currency when price is refreshed
+                alert['currency'] = price_service.get_currency_for_symbol(symbol)
+                
+                # Re-calculate upside if predicted_price exists
+                if alert.get('predicted_price'):
+                    try:
+                        pred = float(alert['predicted_price'])
+                        upside = ((pred / new_p) - 1) * 100
+                        alert['upside_pct'] = f"{upside:+.2f}%"
+                    except: pass
+                updated_any = True
+            
+    if updated_any:
+        save_alerts(cached_alerts)
+        print("DEBUG: Cached alert prices updated and saved.")
+    else:
+        print("DEBUG: No price updates needed or all fetches failed.")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

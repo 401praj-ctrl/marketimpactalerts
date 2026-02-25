@@ -16,6 +16,7 @@ class EventAlert {
   final double? predictedPrice;
   final String? upsidePct;
   final String impactType; // 'Direct' or 'Indirect'
+  final String? currency;
 
   EventAlert({
     required this.id,
@@ -35,6 +36,7 @@ class EventAlert {
     this.predictedPrice,
     this.upsidePct,
     this.impactType = 'Direct',
+    this.currency,
   });
 
   factory EventAlert.fromJson(Map<String, dynamic> json) {
@@ -56,6 +58,7 @@ class EventAlert {
       predictedPrice: _toDouble(json['predicted_price']),
       upsidePct: json['upside_pct']?.toString(),
       impactType: json['impact_type'] ?? 'Direct',
+      currency: json['currency'],
     );
   }
 
@@ -85,6 +88,7 @@ class EventAlert {
       'predicted_price': predictedPrice,
       'upside_pct': upsidePct,
       'impact_type': impactType,
+      'currency': currency,
     };
   }
 }

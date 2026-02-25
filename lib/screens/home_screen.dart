@@ -722,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '₹${alert.livePrice}',
+                    '${alert.currency == "USD" ? "$" : "₹"}${alert.livePrice}',
                     style: TextStyle(color: AppTheme.silver, fontSize: 11, fontWeight: FontWeight.w500),
                   ),
                   if (alert.predictedPrice != null) ...[
@@ -730,7 +730,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white24),
                     const SizedBox(width: 4),
                     Text(
-                      '₹${alert.predictedPrice}',
+                      '${alert.currency == "USD" ? "$" : "₹"}${alert.predictedPrice}',
                       style: GoogleFonts.inter(
                         color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : AppTheme.getImpactColor('down'),
                         fontSize: 11,

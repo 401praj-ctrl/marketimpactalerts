@@ -103,7 +103,7 @@ class PredictionTracker:
             return None
 
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "")
-        if "NSE:" in symbol or ".NS" not in symbol:
+        if "NSE:" in symbol or ":NS" in symbol or not "BSE:" in symbol:
             fh_symbol = f"{clean_symbol}.NS"
         else:
             fh_symbol = f"{clean_symbol}.BO"

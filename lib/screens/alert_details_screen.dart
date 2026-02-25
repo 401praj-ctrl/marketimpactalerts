@@ -165,7 +165,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             Text('LIVE PRICE', style: GoogleFonts.inter(color: AppTheme.silver, fontSize: 10, letterSpacing: 1)),
                             const SizedBox(height: 4),
                             Text(
-                              alert.livePrice != null ? '₹${alert.livePrice}' : '---', 
+                              alert.livePrice != null ? '${alert.currency == "USD" ? "\$" : "₹"}${alert.livePrice}' : '---', 
                               style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)
                             ),
                           ],
@@ -179,7 +179,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             Row(
                               children: [
                                 Text(
-                                  alert.predictedPrice != null ? '₹${alert.predictedPrice}' : '---', 
+                                  alert.predictedPrice != null ? '${alert.currency == "USD" ? "\$" : "₹"}${alert.predictedPrice}' : '---', 
                                   style: GoogleFonts.outfit(
                                     color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : 
                                            alert.impactDirection.toLowerCase() == 'down' ? AppTheme.getImpactColor('down') : 

@@ -8,6 +8,24 @@ import math
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "data", "price_cache.json")
 
+TICKER_CORRECTIONS = {
+    "BAJAJAUTO": "BAJAJ-AUTO",
+    "HDFCCBANK": "HDFCBANK",
+    "M&M": "M&M",
+    "APL Apollo": "APLAPOLLO",
+    "ICICIBC": "ICICIBANK",
+    "ADANI": "ADANIENT",
+    "RELIANCEIND": "RELIANCE",
+    "MARUTISUZUKI": "MARUTI",
+    "TATA-STEEL": "TATASTEEL",
+    "GODREJ AGROVET": "GODREJAGRO",
+    "VENKEYS": "VENKYS",
+    "RELIG": "RELIGARE",
+    "SBI-LIFE": "SBILIFE",
+    "HDFC": "HDFCBANK",
+    "ICICI": "ICICIBANK"
+}
+
 class PriceService:
     def __init__(self):
         self.api_key = os.environ.get("FINNHUB_API_KEY")
@@ -15,6 +33,16 @@ class PriceService:
             print("WARNING: FINNHUB_API_KEY not set in environment.")
         self.finnhub_client = finnhub.Client(api_key=self.api_key)
         self.cache = self.load_cache()
+
+    def get_currency_for_symbol(self, symbol):
+        """
+        Detects currency based on symbol.
+        .NS or .BO -> INR
+        Otherwise -> USD
+        """
+        if ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol:
+            return "INR"
+        return "USD"
 
     def load_cache(self):
         if os.path.exists(CACHE_FILE):
@@ -46,7 +74,12 @@ class PriceService:
         # similar to Yahoo Finance, but verify against their documentation if needed.
         # For Indian stocks, Finnhub might require specific exchanges or symbols.
         # Standard format: RELIANCE.NS
-        clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "")
+        clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").strip()
+        
+        # Apply corrections
+        if clean_symbol in TICKER_CORRECTIONS:
+            clean_symbol = TICKER_CORRECTIONS[clean_symbol]
+
         if "NSE:" in symbol or ":NS" in symbol or not "BSE:" in symbol:
             fh_symbol = f"{clean_symbol}.NS"
         else:
