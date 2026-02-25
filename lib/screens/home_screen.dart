@@ -225,7 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
       // 2. Filter out alerts older than 7 days if auto-delete is enabled
       if (_isAutoDeleteEnabled) {
         final now = DateTime.now();
-        final difference = now.difference(alert.timestamp);
+        final alertDate = DateTime.tryParse(alert.timestamp) ?? now; // safely parse
+        final difference = now.difference(alertDate);
         if (difference.inDays >= 7) return false;
       }
 
@@ -411,22 +412,24 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: _buildDrawer(),
       body: _isLoading && _allAlerts.isEmpty
           ? const Center(child: CircularProgressIndicator(color: AppTheme.glassBlue))
-          : _errorMessage != null && _allAlerts.isEmpty
-              ? _buildErrorPlaceholder()
-              : Column(
-                  children: [
-                    _buildMarketPulseDashboard(),
-                    _buildSectorFilter(),
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: _handleManualRefresh,
-                        color: AppTheme.glassBlue,
-                        backgroundColor: AppTheme.cardDark,
-                        child: _buildGroupedList(groupedAlerts),
-                      ),
+          : Column(
+              children: [
+                if (_errorMessage != null && _allAlerts.isEmpty)
+                  Expanded(child: Center(child: _buildErrorPlaceholder()))
+                else ...[
+                  _buildMarketPulseDashboard(),
+                  _buildSectorFilter(),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _handleManualRefresh,
+                      color: AppTheme.glassBlue,
+                      backgroundColor: AppTheme.cardDark,
+                      child: _buildGroupedList(groupedAlerts),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 
