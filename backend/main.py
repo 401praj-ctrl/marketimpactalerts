@@ -30,7 +30,7 @@ from services.news_api_service import fetch_news_api_headlines
 from services.news_data_service import fetch_news_data_headlines
 from services.hacker_news_service import fetch_hacker_news_headlines
 from services.social_media_service import fetch_social_media_headlines
-from services.ai_service import identify_high_impact_events, perform_deep_analysis, start_new_cycle
+from services.ai_service import identify_high_impact_events, perform_deep_analysis, start_new_cycle, analyze_headline
 from services.scraper_service import fetch_article_content
 from services.prediction_tracker import tracker
 from services.regime_service import regime_service
