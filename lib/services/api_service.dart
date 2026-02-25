@@ -42,6 +42,16 @@ class ApiService {
     }
   }
 
+  Future<void> triggerManualVerification() async {
+    print('ApiService: Triggering manual verification at $baseUrl/verify...');
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/verify'));
+      print('ApiService: Verification response status: ${response.statusCode}');
+    } catch (e) {
+      print('ApiService: Verification exception: $e');
+    }
+  }
+
   Future<bool> checkAnalysisStatus() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/status')).timeout(const Duration(seconds: 10));

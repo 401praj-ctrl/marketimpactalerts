@@ -33,7 +33,9 @@ class PredictionTracker:
             "profit_simulation_pct": 0.0,
             "brier_score": 1.0,
             "tier_accuracy": {"Tier-1": 0, "Tier-2": 0, "Tier-3": 0},
-            "recent_performance": []
+            "recent_performance": [],
+            "last_auto_verification": None,
+            "last_manual_verification": None
         }
         if os.path.exists(STATS_FILE):
             try:
@@ -147,15 +149,21 @@ class PredictionTracker:
         with open(STATS_FILE, "w") as f:
             json.dump(self.stats, f, indent=2)
 
-    async def run_cleanup_and_verification(self):
+    async def run_cleanup_and_verification(self, source="auto"):
         """
         Scans predictions_log.jsonl for highlights where impact_date_est has passed.
         Verifies against actual market data and updates stats.
         """
+        now_ts = datetime.now().isoformat()
+        if source == "manual":
+            self.stats["last_manual_verification"] = now_ts
+        else:
+            self.stats["last_auto_verification"] = now_ts
+            
         if not os.path.exists(PREDICTIONS_FILE):
             return
 
-        print(f"DEBUG: Starting automated verification of past predictions...")
+        print(f"DEBUG: Starting {source} verification of past predictions...")
         updated_predictions = []
         changes_made = False
         

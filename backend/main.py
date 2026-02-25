@@ -524,6 +524,18 @@ async def register_device(req: DeviceRequest):
         print(f"DEBUG: Registered new device. Total devices: {len(registered_devices)}")
     return {"status": "ok"}
 
+@app.post("/verify")
+async def trigger_verification(background_tasks: BackgroundTasks):
+    print("\nRECEIVED MANUAL VERIFICATION REQUEST")
+    
+    # Check if analysis is already running
+    if analysis_lock.locked():
+        print("DEBUG: Analysis already running in background.")
+        return {"status": "Analysis already running. Please wait."}
+        
+    background_tasks.add_task(tracker.run_cleanup_and_verification, source="manual")
+    return {"status": "Manual verification analysis started."}
+
 @app.post("/refresh")
 async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\nRECEIVED REFRESH REQUEST")

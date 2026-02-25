@@ -32,6 +32,29 @@ class _PredictionScreenState extends State<PredictionScreen> {
     }
   }
 
+  Future<void> _triggerManualAnalysis() async {
+    setState(() => _isLoading = true);
+    await _apiService.triggerManualVerification();
+    // Wait a bit for the backend to process
+    await Future.delayed(const Duration(seconds: 3));
+    await _fetchStats();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Manual analysis triggered. Results updated.')),
+      );
+    }
+  }
+
+  String _formatDateTime(String? isoString) {
+    if (isoString == null || isoString.isEmpty) return 'Never';
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      return '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,24 +62,115 @@ class _PredictionScreenState extends State<PredictionScreen> {
         title: const Text('Alpha Accuracy Dashboard'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _fetchStats();
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _stats == null
               ? const Center(child: Text('No performance data available yet.'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSummaryGrid(),
-                      const SizedBox(height: 30),
-                      _buildTierAccuracySection(),
-                      const SizedBox(height: 30),
-                      _buildPerformanceNote(),
-                    ],
+              : RefreshIndicator(
+                  onRefresh: _fetchStats,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildManualAnalysisButton(),
+                        const SizedBox(height: 10),
+                        _buildAnalysisStatusInfo(),
+                        const SizedBox(height: 25),
+                        _buildSummaryGrid(),
+                        const SizedBox(height: 30),
+                        _buildTierAccuracySection(),
+                        const SizedBox(height: 30),
+                        _buildPerformanceNote(),
+                      ],
+                    ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildManualAnalysisButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _triggerManualAnalysis,
+        icon: const Icon(Icons.bolt_rounded),
+        label: const Text('START MANUAL ANALYSIS'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.glassBlue,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalysisStatusInfo() {
+    final lastAuto = _stats?['last_auto_verification'];
+    final lastManual = _stats?['last_manual_verification'];
+    
+    DateTime? nextAuto;
+    if (lastAuto != null) {
+      nextAuto = DateTime.parse(lastAuto).add(const Duration(hours: 6));
+    }
+
+    bool recentlyDone = false;
+    if (lastAuto != null) {
+      final lastAutoDate = DateTime.parse(lastAuto);
+      recentlyDone = DateTime.now().difference(lastAutoDate).inMinutes < 60;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (recentlyDone) ...[
+            const Row(
+              children: [
+                Icon(Icons.verified_rounded, color: Colors.greenAccent, size: 16),
+                SizedBox(width: 8),
+                Text('AUTO ANALYSIS IS DONE', 
+                  style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+              ],
+            ),
+            const SizedBox(height: 6),
+          ],
+          Text('Last Auto Analysis: ${_formatDateTime(lastAuto)}', 
+            style: TextStyle(color: AppTheme.silver, fontSize: 12)),
+          if (nextAuto != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('Next Scheduled Auto Analysis: ${_formatDateTime(nextAuto.toIsoFormat())}', 
+                style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.w500)),
+            ),
+          if (lastManual != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('Last Manual Analysis: ${_formatDateTime(lastManual)}', 
+                style: TextStyle(color: AppTheme.silver, fontSize: 12)),
+            ),
+        ],
+      ),
     );
   }
 
