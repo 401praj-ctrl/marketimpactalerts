@@ -222,7 +222,14 @@ class _HomeScreenState extends State<HomeScreen> {
       // 1. Filter out manually hidden alerts
       if (_hiddenAlertIds.contains(alert.id)) return false;
 
-      // 2. Filter by selected sector
+      // 2. Filter out alerts older than 7 days if auto-delete is enabled
+      if (_isAutoDeleteEnabled) {
+        final now = DateTime.now();
+        final difference = now.difference(alert.timestamp);
+        if (difference.inDays >= 7) return false;
+      }
+
+      // 3. Filter by selected sector
       if (_selectedSector != 'All' && alert.sector != _selectedSector) return false;
 
       // 3. Filter by search query (Stock Names or Event content)
@@ -812,7 +819,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${alert.currency == "USD" ? "$" : "₹"}${alert.livePrice}',
+                    _formatPrice(alert.livePrice, alert.currency),
                     style: TextStyle(color: AppTheme.silver, fontSize: 11, fontWeight: FontWeight.w500),
                   ),
                   if (alert.predictedPrice != null) ...[
@@ -820,7 +827,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white24),
                     const SizedBox(width: 4),
                     Text(
-                      '${alert.currency == "USD" ? "$" : "₹"}${alert.predictedPrice}',
+                      _formatPrice(alert.predictedPrice, alert.currency),
                       style: GoogleFonts.inter(
                         color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : AppTheme.getImpactColor('down'),
                         fontSize: 11,
@@ -1103,5 +1110,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getMonth(int month) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[month - 1];
+  }
+
+  String _formatPrice(double? price, String? currency) {
+    if (price == null) return '...';
+    final symbol = currency == "USD" ? "\$" : "₹";
+    return "$symbol${price.toStringAsFixed(2)}";
   }
 }
