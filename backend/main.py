@@ -337,6 +337,7 @@ async def run_analysis(source="AUTOMATED"):
             # To reduce latency, we process each headline and notify IMMEDIATELY if high confidence
             print(f"DEBUG: Starting real-time analysis loop for {len(new_headlines)} items.")
             
+            registered_devices = load_devices()
             final_alerts = []
             
             for i, h in enumerate(new_headlines):
