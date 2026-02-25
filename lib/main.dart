@@ -105,10 +105,21 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // 3. Check for Update (Wait up to 10 seconds for fast experience)
+    // 3. Check for Update (Wait up to 30 seconds for cold starts)
     final String currentFullVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
     try {
-      await _performVersionCheck(currentFullVersion).timeout(const Duration(seconds: 10));
+      if (mounted) {
+        setState(() => _statusMessage = 'Initializing secure connection...');
+      }
+      
+      // Delay slightly to let the UI breathe
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        setState(() => _statusMessage = 'Optimizing for peak performance...');
+      }
+
+      await _performVersionCheck(currentFullVersion).timeout(const Duration(seconds: 30));
     } catch (e) {
       print('Splash: Update check timed out or failed: $e');
       if (mounted) {
