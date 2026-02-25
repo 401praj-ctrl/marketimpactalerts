@@ -566,6 +566,39 @@ async def trigger_verification(background_tasks: BackgroundTasks):
     background_tasks.add_task(tracker.run_cleanup_and_verification, source="manual")
     return {"status": "Manual verification analysis started."}
 
+@app.post("/broadcast_update")
+async def trigger_update_broadcast():
+    """
+    Manually triggers a OneSignal notification to all users about the new app update.
+    Uses the server's ONESIGNAL_REST_API_KEY.
+    """
+    app_id = "7087a2bc-e285-49a9-a404-15be244a893f"
+    api_key = os.environ.get("ONESIGNAL_REST_API_KEY", "").strip()
+    if not api_key:
+        print("ERROR: ONESIGNAL_REST_API_KEY not set on server")
+        return {"error": "ONESIGNAL_REST_API_KEY not set on server"}
+        
+    headers = {
+        "Authorization": f"Basic {api_key}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    
+    payload = {
+        "app_id": app_id,
+        "included_segments": ["Total Subscriptions"],
+        "headings": {"en": "🚀 Market Core Update v1.2.8"},
+        "contents": {"en": "Multi-Currency support is here! See prices in ₹ and $ accurately with real-time Finnhub data. Tap to update now!"},
+        "data": {"type": "update", "version": "1.2.8+13"}
+    }
+    
+    try:
+        response = requests.post("https://onesignal.com/api/v1/notifications", headers=headers, json=payload, timeout=10)
+        print(f"DEBUG: Broadcast update response: {response.status_code} - {response.text}")
+        return {"status": "broadcast notification sent", "onesignal_status": response.status_code}
+    except Exception as e:
+        print(f"ERROR: Failed to broadcast update: {e}")
+        return {"error": str(e)}
+
 @app.post("/refresh")
 async def refresh_alerts(background_tasks: BackgroundTasks):
     print("\nRECEIVED REFRESH REQUEST")
