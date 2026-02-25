@@ -23,7 +23,10 @@ TICKER_CORRECTIONS = {
     "RELIG": "RELIGARE",
     "SBI-LIFE": "SBILIFE",
     "HDFC": "HDFCBANK",
-    "ICICI": "ICICIBANK"
+    "ICICI": "ICICIBANK",
+    "ANGLONE": "ANGELONE",
+    "BNAGROCHEM": "BHARATAGRI",
+    "KALYANKJ": "KALYANKJIL"
 }
 
 class PriceService:
@@ -61,22 +64,13 @@ class PriceService:
 
     async def get_live_price(self, symbol):
         """
-        Fetches live stock price from Finnhub.
+        Fetches live stock price from Finnhub, with yfinance as fallback for restricted symbols.
         Handles caching to avoid excessive network calls.
         """
         if not symbol: return None
-        if not self.api_key:
-            print("ERROR: FINNHUB_API_KEY not set. Cannot fetch price.")
-            return None
         
-        # Normalize symbol for Finnhub
-        # Finnhub uses ticker.NS for NSE and ticker.BO for BSE typically, 
-        # similar to Yahoo Finance, but verify against their documentation if needed.
-        # For Indian stocks, Finnhub might require specific exchanges or symbols.
-        # Standard format: RELIANCE.NS
+        # Normalize symbol
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").strip()
-        
-        # Apply corrections
         if clean_symbol in TICKER_CORRECTIONS:
             clean_symbol = TICKER_CORRECTIONS[clean_symbol]
 
@@ -91,34 +85,62 @@ class PriceService:
             cached_data = self.cache[fh_symbol]
             cache_time = datetime.fromisoformat(cached_data['timestamp'])
             if now - cache_time < timedelta(minutes=15):
-                print(f"DEBUG: Price for {fh_symbol} fetched from cache.")
                 return cached_data['price']
 
-        print(f"DEBUG: Fetching live price for {fh_symbol} from Finnhub...")
-        
-        try:
-            # Finnhub client is typically synchronous
-            loop = asyncio.get_event_loop()
-            quote = await loop.run_in_executor(None, lambda: self.finnhub_client.quote(fh_symbol))
-            
-            # Finnhub quote response: {'c': 261.2, 'd': 0.5, 'dp': 0.19, 'h': 261.6, 'l': 260.3, 'o': 261.2, 'pc': 260.7, 't': 1582660200}
-            # 'c' is the current price
-            price = quote.get('c')
+        # 1. Try Finnhub (Preferred for US and supported International)
+        if self.api_key:
+            try:
+                print(f"DEBUG: Fetching live price for {fh_symbol} from Finnhub...")
+                loop = asyncio.get_event_loop()
+                quote = await loop.run_in_executor(None, lambda: self.finnhub_client.quote(fh_symbol))
+                price = quote.get('c')
 
-            if price is not None and price > 0:
+                if price and price > 0:
+                    price_val = round(float(price), 2)
+                    self._update_cache(fh_symbol, price_val, now)
+                    print(f"DEBUG: Successfully fetched Finnhub price for {fh_symbol}: {price_val}")
+                    return price_val
+                else:
+                    print(f"DEBUG: Finnhub returned no price for {fh_symbol}")
+            except Exception as e:
+                # Catch 403 or other Finnhub-specific errors
+                error_msg = str(e)
+                if "403" in error_msg:
+                    print(f"DEBUG: Finnhub access restricted for {fh_symbol} (403). Trying fallback...")
+                else:
+                    print(f"DEBUG: Finnhub error for {fh_symbol}: {e}")
+
+        # 2. Fallback to yfinance (Reliable for Indian stocks even on free tier)
+        try:
+            import yfinance as yf
+            print(f"DEBUG: Attempting yfinance fallback for {fh_symbol}...")
+            ticker = yf.Ticker(fh_symbol)
+            
+            # fast_info is often quicker and avoids some overhead
+            info = ticker.fast_info
+            price = info.get('lastPrice')
+            
+            # Fallback to history if fast_info fails
+            if not price:
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    price = hist['Close'].iloc[-1]
+
+            if price and price > 0 and not math.isnan(price):
                 price_val = round(float(price), 2)
-                self.cache[fh_symbol] = {
-                    "price": price_val,
-                    "timestamp": now.isoformat()
-                }
-                self.save_cache()
-                print(f"DEBUG: Successfully fetched price for {fh_symbol}: {price_val}")
+                self._update_cache(fh_symbol, price_val, now)
+                print(f"DEBUG: Successfully fetched fallback price for {fh_symbol}: {price_val}")
                 return price_val
-            else:
-                print(f"WARNING: Fetch failed for {fh_symbol} - No valid price data found in Finnhub response.")
-        except Exception as e:
-            print(f"ERROR: Finnhub Price Fetch Exception for {fh_symbol}: {e}")
-        
+        except Exception as ey:
+            print(f"DEBUG: Fallback yfinance failed for {fh_symbol}: {ey}")
+
         return None
+
+    def _update_cache(self, symbol, price, timestamp):
+        self.cache[symbol] = {
+            "price": price,
+            "timestamp": timestamp.isoformat()
+        }
+        self.save_cache()
 
 price_service = PriceService()
