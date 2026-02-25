@@ -586,8 +586,8 @@ async def trigger_update_broadcast():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 Market Core Update v1.2.8"},
-        "contents": {"en": "Multi-Currency support is here! See prices in ₹ and $ accurately with real-time Finnhub data. Tap to update now!"},
+        "headings": {"en": "🚀 Real-Time Update v1.2.8"},
+        "contents": {"en": "Angel One SmartAPI is live! Get 100% accurate real-time Indian stock prices and multi-currency support now. Tap to update!"},
         "data": {"type": "update", "version": "1.2.8+13"}
     }
     

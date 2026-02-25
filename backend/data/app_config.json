@@ -1,5 +1,5 @@
 {
     "latest_version": "1.2.8+13",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 Market Core Update v1.2.8:\n• Multi-Currency Support: Live prices now correctly show Rupees (₹) for Indian stocks and Dollars ($) for US stocks.\n• 100% Price Accuracy: Real-time Finnhub data is now fetched instantly for every new alert.\n• Smart Tickers: Improved stock symbol mapping for higher reliability.\n• Refresh All: Manual refresh now updates the prices of your entire alert history."
+    "release_notes": "🚀 Real-Time Update v1.2.8:\n• Angel One Integration: Professional-grade real-time Indian stock prices are now live via SmartAPI.\n• Multi-Currency Support: Prices now correctly show Rupees (₹) for Indian stocks and Dollars ($) for US stocks.\n• 100% Reliability: Automated TOTP-based price fetching for every alert.\n• Smart Tickers: Improved symbol mapping for Angel One (NSE/BSE)."
 }
