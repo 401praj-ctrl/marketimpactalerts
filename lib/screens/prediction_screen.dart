@@ -124,7 +124,8 @@ class _PredictionScreenState extends State<PredictionScreen> {
     
     DateTime? nextAuto;
     if (lastAuto != null) {
-      nextAuto = DateTime.parse(lastAuto).add(const Duration(hours: 6));
+      final now = DateTime.now();
+      nextAuto = DateTime(now.year, now.month, now.day + 1, 0, 0);
     }
 
     bool recentlyDone = false;

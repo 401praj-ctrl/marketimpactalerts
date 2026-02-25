@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+24",
+    "latest_version": "1.2.14+25",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 ENGINE STABILITY v1.2.14+24:\n• Accuracy Dashboard Persistence: Stats now auto-sync from the log on startup.\n• Midnight Analysis: Daily verification job optimized for 12:00 AM.\n• Result Notifications: Get notified when your predictions match the market!"
+    "release_notes": "💎 ALPHA STABILIZATION v1.2.14+25:\n• Dashboard Sync: Corrected the 'Next Analysis' time to reflect the midnight schedule.\n• Professional Precision: Verification now uses Angel One Master data for results.\n• Engine Performance: Optimized splash reliability and speed."
 }
