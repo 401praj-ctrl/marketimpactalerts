@@ -551,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark.withValues(alpha: 0.4),
+        color: AppTheme.cardDark.withOpacity(0.4),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isInWatchlist ? AppTheme.glassBlue.withOpacity(0.3) : AppTheme.white05, 
@@ -559,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: isInWatchlist ? AppTheme.glassBlue.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2),
+            color: isInWatchlist ? AppTheme.glassBlue.withOpacity(0.1) : Colors.black.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )

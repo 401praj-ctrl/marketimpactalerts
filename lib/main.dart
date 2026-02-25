@@ -101,17 +101,18 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // 2. Always request/verify permissions and register with OneSignal on startup
-    await NotificationService.requestPermissions();
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('is_first_launch', false);
-
     // 3. Check for Update
     try {
-      await _performVersionCheck(packageInfo.version).timeout(const Duration(seconds: 15));
+      await _performVersionCheck(packageInfo.version).timeout(const Duration(seconds: 10));
     } catch (e) {
       print('Splash: Update check timed out or failed: $e');
+    }
+    
+    // 4. Register and request permissions (Safely)
+    try {
+      await NotificationService.requestPermissions();
+    } catch (e) {
+      print('Splash: Permission request failed: $e');
     }
     
     // 4. If no update, proceed to home after at least 3 seconds of splash total
