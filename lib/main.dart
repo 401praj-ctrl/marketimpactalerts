@@ -131,6 +131,19 @@ class _SplashScreenState extends State<SplashScreen> {
         
         bool isNewer = _isVersionNewer(currentVersion, latestVersion);
         if (isNewer) {
+          // Check for suppression (loop prevention)
+          final prefs = await SharedPreferences.getInstance();
+          final String? lastPromptedVersion = prefs.getString('last_prompted_version');
+          final int? lastPromptedTime = prefs.getInt('last_prompted_time');
+          
+          if (lastPromptedVersion == latestVersion && lastPromptedTime != null) {
+            final lastTime = DateTime.fromMillisecondsSinceEpoch(lastPromptedTime);
+            if (DateTime.now().difference(lastTime).inHours < 2) {
+              print('Splash: Update suppressed for $latestVersion (Last prompt: $lastTime)');
+              return;
+            }
+          }
+
           print('Splash: New version available. Showing update UI.');
           if (mounted) {
             setState(() {
@@ -138,6 +151,9 @@ class _SplashScreenState extends State<SplashScreen> {
               _showUpdateUI = true;
               _isCheckingUpdate = false;
             });
+            // Mark as prompted
+            await prefs.setString('last_prompted_version', latestVersion);
+            await prefs.setInt('last_prompted_time', DateTime.now().millisecondsSinceEpoch);
           }
           return;
         } else {
