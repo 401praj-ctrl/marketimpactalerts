@@ -74,7 +74,7 @@ class PriceService:
 
         print("DEBUG: Downloading fresh Angel One instrument list...")
         try:
-            url = "https://margincalculator.angelbroking.com/OpenAPI_Standard/v1/InstrumentJSON"
+            url = "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json"
             response = requests.get(url, timeout=30)
             if response.status_code == 200:
                 full_list = response.json()
@@ -226,5 +226,84 @@ class PriceService:
         if ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol:
             return "INR"
         return "USD"
+
+    async def get_historical_price(self, symbol, date_str):
+        """
+        Fetches historical daily close price for a specific date.
+        Prioritizes Angel One for Indian stocks, fallbacks to yfinance.
+        """
+        if not symbol or not date_str: return None
+        is_indian = ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol
+        
+        if is_indian:
+            price = await self._get_angel_historical(symbol, date_str)
+            if price: return price
+            
+        return await self._get_international_historical(symbol, date_str)
+
+    async def _get_angel_historical(self, symbol, date_str):
+        clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").strip()
+        if clean_symbol in TICKER_CORRECTIONS:
+            clean_symbol = TICKER_CORRECTIONS[clean_symbol]
+
+        if "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
+            exch = "NSE"
+            angel_symbol = f"{clean_symbol}-EQ"
+        else:
+            exch = "BSE"
+            angel_symbol = f"{clean_symbol}-EQ"
+
+        await self._ensure_token_list()
+        token_info = self.token_map.get(angel_symbol) or self.token_map.get(clean_symbol)
+        
+        if not token_info or not await self.authenticate():
+            return None
+            
+        try:
+            target_dt = datetime.fromisoformat(date_str) if "T" in date_str else datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            try:
+                target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            except:
+                return None
+                
+        start_time_str = target_dt.strftime("%Y-%m-%d 09:00")
+        end_time_str = target_dt.strftime("%Y-%m-%d 15:30")
+        
+        historicParam = {
+            "exchange": token_info['exch'],
+            "symboltoken": token_info['token'],
+            "interval": "ONE_DAY",
+            "fromdate": start_time_str,
+            "todate": end_time_str
+        }
+        
+        try:
+            loop = asyncio.get_event_loop()
+            data = await loop.run_in_executor(None, lambda: self.smart_api.getCandleData(historicParam))
+            if data and data.get('status') and data.get('data'):
+                candles = data['data']
+                if candles and len(candles) > 0:
+                    return float(candles[-1][4]) # Return close price
+        except Exception as e:
+            print(f"DEBUG: Angel History failed for {angel_symbol}: {e}")
+            
+        return None
+
+    async def _get_international_historical(self, symbol, date_str):
+        try:
+            import yfinance as yf
+            clean = symbol.replace("NSE:", "").replace(".NS", ".NS").replace("BSE:", "").replace(".BO", ".BO")
+            if "NSE:" in symbol and not clean.endswith(".NS"): clean += ".NS"
+            if "BSE:" in symbol and not clean.endswith(".BO"): clean += ".BO"
+            
+            ticker = yf.Ticker(clean)
+            target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            # Fetch history for that specific day
+            hist = ticker.history(start=target_dt.strftime("%Y-%m-%d"), end=(target_dt + timedelta(days=1)).strftime("%Y-%m-%d"))
+            if not hist.empty:
+                return float(hist['Close'].iloc[0])
+        except: pass
+        return None
 
 price_service = PriceService()

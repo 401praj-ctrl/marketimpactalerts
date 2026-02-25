@@ -9,15 +9,9 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 PREDICTIONS_FILE = os.path.join(DATA_DIR, "predictions_log.jsonl")
 STATS_FILE = os.path.join(DATA_DIR, "prediction_stats.json")
 
-import finnhub
-
 class PredictionTracker:
     def __init__(self):
         os.makedirs(DATA_DIR, exist_ok=True)
-        self.api_key = os.environ.get("FINNHUB_API_KEY")
-        if not self.api_key:
-            print("WARNING: FINNHUB_API_KEY not set in environment.")
-        self.finnhub_client = finnhub.Client(api_key=self.api_key)
         self.stats = self.load_stats()
         # Ensure the file exists immediately so the frontend can fetch initial zero stats
         if not os.path.exists(STATS_FILE):
@@ -69,6 +63,7 @@ class PredictionTracker:
             "impact_score": alert_data.get("impact_score", 50),
             "live_price": alert_data.get("live_price"),
             "predicted_price": alert_data.get("predicted_price"),
+            "impact_date_est": alert_data.get("impact_date_est"),
             "verified": False,
             "actual_move": None,
             "z_move": None
@@ -94,43 +89,6 @@ class PredictionTracker:
         
         return z_move, is_significant
 
-    async def _get_historical_price(self, symbol, target_date_str):
-        """
-        Fetches historical price for a given date using Finnhub.
-        """
-        if not self.api_key:
-            print("WARNING: FINNHUB_API_KEY not set for verification.")
-            return None
-
-        clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "")
-        if "NSE:" in symbol or ":NS" in symbol or not "BSE:" in symbol:
-            fh_symbol = f"{clean_symbol}.NS"
-        else:
-            fh_symbol = f"{clean_symbol}.BO"
-
-        try:
-            # Convert date to timestamp
-            target_dt = datetime.strptime(target_date_str, "%Y-%m-%d")
-            # Set to end of day to get the daily close
-            start_ts = int(target_dt.replace(hour=0, minute=0, second=0).timestamp())
-            end_ts = int(target_dt.replace(hour=23, minute=59, second=59).timestamp())
-
-            loop = asyncio.get_event_loop()
-            # Finnhub stock_candles: symbol, resolution, from, to
-            # Resolution 'D' for daily
-            res = await loop.run_in_executor(None, lambda: self.finnhub_client.stock_candles(fh_symbol, 'D', start_ts - 86400*3, end_ts))
-            
-            if res.get('s') == 'ok':
-                # 'c' list contains closing prices
-                closes = res.get('c', [])
-                if closes:
-                    return float(closes[-1])
-            
-            print(f"Finnhub: No historical data for {fh_symbol} on {target_date_str}")
-        except Exception as e:
-            print(f"Historical Fetch Error for {fh_symbol}: {e}")
-            
-        return None
 
     def update_calibration(self, predicted_prob, met_outcome):
         """
@@ -198,11 +156,12 @@ class PredictionTracker:
                             # Get price on event date and impact date via Finnhub
                             event_date_str = pred.get("timestamp")[:10]
                             
+                            from services.price_service import price_service
                             start_price = pred.get("live_price")
                             if not start_price:
-                                start_price = await self._get_historical_price(symbol, event_date_str)
+                                start_price = await price_service.get_historical_price(symbol, event_date_str)
                             
-                            end_price = await self._get_historical_price(symbol, impact_date_str)
+                            end_price = await price_service.get_historical_price(symbol, impact_date_str)
                             
                             if start_price and end_price:
                                 try:
