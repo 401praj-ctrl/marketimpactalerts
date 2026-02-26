@@ -100,16 +100,26 @@ MODELS = [
 ]
 
 
-# Load training examples
+# Load training examples from multiple sources
 TRAINING_EXAMPLES = []
 try:
-    examples_path = os.path.join(BASE_DIR, "data", "training_data.jsonl")
-    if os.path.exists(examples_path):
-        with open(examples_path, "r", encoding="utf-8") as f:
+    # Source 1: Large synthetic dataset (5000 entries)
+    jsonl_path = os.path.join(BASE_DIR, "data", "training_data.jsonl")
+    if os.path.exists(jsonl_path):
+        with open(jsonl_path, "r", encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     TRAINING_EXAMPLES.append(json.loads(line))
-        print(f"Loaded {len(TRAINING_EXAMPLES)} training examples.")
+    
+    # Source 2: Real-world curated examples (900+ entries)
+    json_path = os.path.join(BASE_DIR, "data", "training_examples.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            extra_examples = json.load(f)
+            if isinstance(extra_examples, list):
+                TRAINING_EXAMPLES.extend(extra_examples)
+                
+    print(f"Loaded {len(TRAINING_EXAMPLES)} total training examples from multiple sources.")
 except Exception as e:
     print(f"Warning: Could not load training examples: {e}")
 
@@ -438,21 +448,29 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     """
     PASS 2: Performs a deep dive on full article content.
     """
-    # Current date for context
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # Current date and time for context (NSE/BSE specific)
+    now = datetime.datetime.now()
+    current_date = now.strftime("%Y-%m-%d")
+    current_day = now.strftime("%A")
+    current_time = now.strftime("%H:%M")
+    is_weekend = current_day in ["Saturday", "Sunday"]
     
     # RAG-lite: Fetch relevant training examples
-    relevant_examples = get_relevant_examples(headline, limit=3, regime=regime)
+    relevant_examples = get_relevant_examples(headline, limit=10, regime=regime)
     examples_text = ""
     for i, ex in enumerate(relevant_examples):
-        # Dynamically inject current date to prevent AI from copying hardcoded old dates
-        if "event_date" in ex: ex["event_date"] = current_date
-        if "impact_date_est" in ex: ex["impact_date_est"] = current_date
+        # NOT overwriting dates anymore. Let the AI see the real historical patterns.
         examples_text += f"\n    Example {i+1}:\n    News: {ex.get('news')}\n    Output: {json.dumps(ex)}\n"
 
     prompt = f"""
     You are a Senior Financial Analyst focused on the Indian Stock Market (NSE/BSE).
     Analyze the full news content below and provide a DEEP IMPACT REPORT.
+
+    MARKET CONTEXT:
+    - Today is {current_day}, {current_date}. 
+    - Current Time: {current_time} IST.
+    - Market Status: {"CLOSED (Weekend)" if is_weekend else "OPEN/PENDING (Weekday)"}.
+    - NOTE: For T+1/T+2 calculations, if today is Friday or Weekend, T+1 is NEXT MONDAY.
 
     FINANCIAL THEORIES & MARKET LOGIC TO APPLY:
     1. Efficient Market Hypothesis (EMH) [Eugene Fama]: In an efficient market, prices instantly incorporate all available info. News doesn't just affect price; price is the sum of past news. You must determine if this news is genuinely new information or already priced in.
@@ -465,9 +483,9 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     You MUST calculate the impact using this exact professional framework.
     
     1. Impact Strength Tiering:
-    - Tier-1: Direct Earnings Impact (M&A, Govt Tax, Major Contract) ➔ VERY HIGH Impact.
-    - Tier-2: Sector Impact (Industry trends, Sector-wide regulations) ➔ MEDIUM Impact.
-    - Tier-3: Macro Sentiment (Global trends, Geopolitics, General news) ➔ LOW Impact.
+    - Tier-1: Direct Earnings Impact (M&A, Govt Tax, Major Contract, FDA Approval) ➔ VERY HIGH Impact.
+    - Tier-2: Sector Impact (Industry trends, Sector-wide regulations, Peer results) ➔ MEDIUM Impact.
+    - Tier-3: Macro Sentiment (Global trends, Geopolitics, General news, Soft sentiment) ➔ LOW Impact.
 
     2. Weighted Formula:
     ImpactScore = (DirectRevenueLink * 0.4) + (SectorRelevance * 0.25) + (MarketSentiment * 0.2) + (LiquiditySensitivity * 0.15)
@@ -496,21 +514,24 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     2. Focus on specific stock/sector impacts.
     3. "probability" MUST reflect the Tier Calibration rules.
     4. IMPACT DATE ESTIMATION (impact_date_est): Calculate exactly when the stock will reach the "predicted_price".
-       - Based on Efficient Market Hypothesis (EMH), markets react instantly to Tier-1 news. Set impact_date_est to T+1 or T+2 days from today ({current_date}).
+       - Based on Efficient Market Hypothesis (EMH), markets react instantly to Tier-1 news. Set impact_date_est to T+1 or T+2 days from today.
        - Based on Post-Earnings Announcement Drift (PEAD), target gradual moves over T+3 to T+10 days for complex Tier-2 structural news.
        - Based on Macro lag, use T+14 to T+30 days for Tier-3 slow-burn effects.
        - EXCEPTION: If the news explicitly states an upcoming event (e.g., "RBI meeting on March 15"), set the impact date to 1-2 days AFTER that specific event date.
+       - WEEKEND AWARENESS: Do not set T+1 to a Saturday or Sunday.
     5. PREDICT STOCK PRICE: If current_prices {current_prices} are provided, calculate a "predicted_price" for the primary stock on the "impact_date_est" based on the probability, impact strength, and direction.
        - Use the mapping: {current_prices} to find the current rate.
        - Formula logic: PredictedPrice = CurrentPrice * (1 + (VolatilityFactor * Probability/100 * DirectionMultiplier))
        - Be realistic. SME stocks like MAANALU can move 5-20% on major news, Large-caps move 1-5%.
        - "live_price" should be the numeric value from the provided current_prices.
-    6. STRICT REASONING LOG: You MUST explicitly log your step-by-step mathematical calculations and the exact theories you applied (EMH, PEAD, etc.) inside the "reason" field. Show your formula work so calculations can be validated.
+    6. STRICT REASONING LOG: You MUST explicitly log your step-by-step mathematical calculations and the exact theories you applied (EMH, PEAD, etc.) inside the "reason" field. 
+       - Format: [Theory Used] -> [Calculation: Today({current_date}) + N days = TargetDate] -> [Price Formula]
+       - Show your formula work so calculations can be validated.
 
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
 
-    TODAY IS: {current_date}.
+    TODAY IS: {current_day}, {current_date}.
     
     Return JSON only in this format:
     {{
@@ -528,7 +549,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
      "impact_date_est": "YYYY-MM-DD",
      "impact": "positive/negative/neutral",
      "strength": "low/medium/high",
-     "reason": "STRICT LOG: Detail your exact theoretical approach (e.g., 'Applying EMH for Tier-1...') and show your exact mathematical calculation for the predicted_price and impact_date_est.",
+     "reason": "STRICT LOG: [Theory] -> [Date Calc] -> [Price Calc]. Example: 'Applying EMH for Tier-1. Today(Fri) + 3 days (Mon) = {current_date}. Price: 100 * 1.05 = 105.'",
      "live_price": "Current price provided",
      "predicted_price": "Target price for impact date",
      "upside_pct": "A single string value (e.g. '+5.20%') representing the percentage change for the primary stock, NOT a dictionary/map",
@@ -583,7 +604,26 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                             continue
                         content = result['choices'][0]['message']['content']
                         content = content.replace('```json', '').replace('```', '').strip()
-                        data = json.loads(content)
+                        
+                        # Handle "no impact" or empty response
+                        if not content or "no impact" in content.lower()[:20]:
+                            print(f"      >> AI determined no market impact for this news.")
+                            return None
+
+                        try:
+                            data = json.loads(content)
+                        except json.JSONDecodeError:
+                            # Fallback: Try to extract JSON using regex if AI added conversational text
+                            json_match = re.search(r'(\{.*\})', content, re.DOTALL)
+                            if json_match:
+                                try:
+                                    data = json.loads(json_match.group(1))
+                                except:
+                                    print(f"      >> Failed to parse extracted JSON.")
+                                    continue
+                            else:
+                                print(f"      >> AI response was not valid JSON.")
+                                continue
                         
                         # Validate company name against official list
                         if 'company' in data and data['company']:

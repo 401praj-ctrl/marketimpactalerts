@@ -1,0 +1,58 @@
+[36mPackage open_file:macos references[39m
+[36mopen_file_macos:macos as the default plugin,[39m
+[36mbut the package does not exist, or is not a[39m
+[36mplugin package.[39m
+[36mAsk the maintainers of open_file to either[39m
+[36mavoid referencing a default implementation via[39m
+[36m`platforms: macos: default_package:[39m
+[36mopen_file_macos` or create a plugin named[39m
+[36mopen_file_macos.[39m
+[36m[39m
+
+[36mPackage open_file:macos references[39m
+[36mopen_file_macos:macos as the default plugin,[39m
+[36mbut the package does not exist, or is not a[39m
+[36mplugin package.[39m
+[36mAsk the maintainers of open_file to either[39m
+[36mavoid referencing a default implementation via[39m
+[36m`platforms: macos: default_package:[39m
+[36mopen_file_macos` or create a plugin named[39m
+[36mopen_file_macos.[39m
+[36m[39m
+
+[36mPackage open_file:macos references[39m
+[36mopen_file_macos:macos as the default plugin,[39m
+[36mbut the package does not exist, or is not a[39m
+[36mplugin package.[39m
+[36mAsk the maintainers of open_file to either[39m
+[36mavoid referencing a default implementation via[39m
+[36m`platforms: macos: default_package:[39m
+[36mopen_file_macos` or create a plugin named[39m
+[36mopen_file_macos.[39m
+[36m[39m
+
+[36mPackage open_file:macos references[39m
+[36mopen_file_macos:macos as the default plugin,[39m
+[36mbut the package does not exist, or is not a[39m
+[36mplugin package.[39m
+[36mAsk the maintainers of open_file to either[39m
+[36mavoid referencing a default implementation via[39m
+[36m`platforms: macos: default_package:[39m
+[36mopen_file_macos` or create a plugin named[39m
+[36mopen_file_macos.[39m
+[36m[39m
+
+[31mwarning: [options] source value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] target value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] To suppress warnings about obsolete options, use -Xlint:-options.[39m
+[31mNote: Some input files use unchecked or unsafe operations.[39m
+[31mNote: Recompile with -Xlint:unchecked for details.[39m
+[31m3 warnings[39m
+[31mwarning: [options] source value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] target value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] To suppress warnings about obsolete options, use -Xlint:-options.[39m
+[31m3 warnings[39m
+[31mwarning: [options] source value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] target value 8 is obsolete and will be removed in a future release[39m
+[31mwarning: [options] To suppress warnings about obsolete options, use -Xlint:-options.[39m
+[31m3 warnings[39m
