@@ -105,7 +105,9 @@ class ApiService {
       final response = await http.get(Uri.parse('$baseUrl/stats')).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data is Map<String, dynamic>) return data;
+        if (data is Map) {
+          return Map<String, dynamic>.from(data);
+        }
       }
     } catch (e) {
       print('ApiService: Stats exception: $e');

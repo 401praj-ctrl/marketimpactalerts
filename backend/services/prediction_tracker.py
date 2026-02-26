@@ -8,7 +8,13 @@ def get_ist_now():
     return datetime.utcnow() + timedelta(hours=5, minutes=30)
 # Replaced price source with Finnhub
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+# Render Persistent Disk Support
+RENDER_DISK = "/data" # Commonly used mount path for persistent disks on Render
+if os.path.exists(RENDER_DISK):
+    DATA_DIR = RENDER_DISK
+else:
+    DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+
 PREDICTIONS_FILE = os.path.join(DATA_DIR, "predictions_log.jsonl")
 STATS_FILE = os.path.join(DATA_DIR, "prediction_stats.json")
 
