@@ -416,8 +416,9 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         return data
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code}")
-                        if response.status_code == 429:
-                            print(f"      >> NOTICE: Key {i+1} rate limited on {model}")
+                        if response.status_code == 401 or response.status_code == 429:
+                            print(f"      >> NOTICE: Key {i+1} rate limited or unauthorized on {model} (Status {response.status_code})")
+                            cycle_failed_keys.setdefault(model, set()).add(api_key)
                 except Exception as e: 
                     print(f"      >> [DEEP] EXCEPTION: {str(e)}")
                     continue
