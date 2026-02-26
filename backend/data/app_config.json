@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+25",
+    "latest_version": "1.2.14+26",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 ALPHA STABILIZATION v1.2.14+25:\n• Dashboard Sync: Corrected the 'Next Analysis' time to reflect the midnight schedule.\n• Professional Precision: Verification now uses Angel One Master data for results.\n• Engine Performance: Optimized splash reliability and speed."
+    "release_notes": "💎 ALPHA STABILIZATION v1.2.14+26:\n• Interactive Metrics: Dashboard cards are now fully clickable and reveal historical predictions lists.\n• Price Mapping: Resolved the multi-stock price display bug on alert details.\n• Date Alignment: Fixed issue where event dates appeared identical to impact verification targets."
 }

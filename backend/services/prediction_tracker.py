@@ -3,6 +3,9 @@ import os
 import time
 import httpx
 from datetime import datetime, timedelta
+
+def get_ist_now():
+    return datetime.utcnow() + timedelta(hours=5, minutes=30)
 # Replaced price source with Finnhub
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -72,7 +75,7 @@ class PredictionTracker:
             except: pass
 
         prediction = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": get_ist_now().isoformat(),
             "event": event_name,
             "company": alert_data.get("company"),
             "stocks": alert_data.get("stocks", []),
@@ -131,7 +134,7 @@ class PredictionTracker:
         Scans predictions_log.jsonl for highlights where impact_date_est has passed.
         Verifies against actual market data and updates stats.
         """
-        now_ts = datetime.now().isoformat()
+        now_ts = get_ist_now().isoformat()
         if source == "manual":
             self.stats["last_manual_verification"] = now_ts
         else:
@@ -165,7 +168,7 @@ class PredictionTracker:
                 
                 try:
                     impact_date = datetime.strptime(impact_date_str, "%Y-%m-%d").date()
-                    today = datetime.now().date()
+                    today = get_ist_now().date()
                     
                     if impact_date < today:
                         # Time to verify!
@@ -266,6 +269,8 @@ class PredictionTracker:
                                         print(f"    --> Notification Error: {ne}")
                                 except Exception as ve:
                                     print(f"    --> Error verifying {symbol}: {ve}")
+                            else:
+                                print(f"    --> Skipped: Missing price data (Start: {start_price}, End: {end_price})")
                         
                         updated_predictions.append(pred)
                     else:
@@ -289,6 +294,36 @@ class PredictionTracker:
 
     def get_stats(self):
         return self.stats
+
+    def get_predictions(self, status=None):
+        """
+        Returns a list of predictions from the log.
+        If status == 'correct', returns only verified correct predictions.
+        If status == 'wrong', returns only verified wrong predictions.
+        Otherwise returns all.
+        """
+        predictions = []
+        if os.path.exists(PREDICTIONS_FILE):
+            try:
+                with open(PREDICTIONS_FILE, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip(): continue
+                        pred = json.loads(line)
+                        
+                        if status == "correct":
+                            if pred.get("verified") and pred.get("is_correct") == True:
+                                predictions.append(pred)
+                        elif status == "wrong":
+                            if pred.get("verified") and pred.get("is_correct") == False:
+                                predictions.append(pred)
+                        else:
+                            predictions.append(pred)
+            except Exception as e:
+                print(f"ERROR reading predictions log: {e}")
+        
+        # Sort newest first
+        predictions.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        return predictions
 
 # Global instance
 tracker = PredictionTracker()

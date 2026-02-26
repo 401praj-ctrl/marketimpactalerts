@@ -525,7 +525,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
      "reason": "Technical/Financial reason",
      "live_price": "Current price provided",
      "predicted_price": "Target price for impact date",
-     "upside_pct": "Percentage change from live to predicted",
+     "upside_pct": "A single string value (e.g. '+5.20%') representing the percentage change for the primary stock, NOT a dictionary/map",
      "impact_type": "Direct if company specific, Indirect if sector/macro"
     }}
 

@@ -184,31 +184,51 @@ class _PredictionScreenState extends State<PredictionScreen> {
       crossAxisSpacing: 12,
       childAspectRatio: 1.6, // Adjusted for slightly taller cards
       children: [
-        _buildStatCard('Total Predictions', (_stats?['total_predictions'] ?? 0).toString(), Icons.analytics_rounded),
-        _buildStatCard('Accuracy %', '${_stats?['avg_accuracy'] ?? 0.0}%', Icons.check_circle_rounded),
-        _buildStatCard('Correct Moves', (_stats?['correct_predictions'] ?? 0).toString(), Icons.trending_up_rounded),
-        _buildStatCard('Wrong Moves', (_stats?['false_signals'] ?? 0).toString(), Icons.trending_down_rounded, color: Colors.redAccent),
-        _buildStatCard('Profit Sim', '${_stats?['profit_simulation_pct'] ?? 0.0}%', Icons.account_balance_wallet_rounded),
+        _buildStatCard(
+            'Total Predictions',
+            (_stats?['total_predictions'] ?? 0).toString(),
+            Icons.analytics_rounded,
+            onTap: () => _showPredictionsList('all', 'Total Predictions')),
+        _buildStatCard(
+            'Accuracy %',
+            '${_stats?['avg_accuracy'] ?? 0.0}%',
+            Icons.check_circle_rounded,
+            onTap: () => _showPredictionsList('all', 'Total Predictions')), // Also maps to all for now
+        _buildStatCard(
+            'Correct Moves',
+            (_stats?['correct_predictions'] ?? 0).toString(),
+            Icons.trending_up_rounded,
+            onTap: () => _showPredictionsList('correct', 'Correct Moves')),
+        _buildStatCard(
+            'Wrong Moves',
+            (_stats?['false_signals'] ?? 0).toString(),
+            Icons.trending_down_rounded,
+            color: Colors.redAccent,
+            onTap: () => _showPredictionsList('wrong', 'Wrong Moves')),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, {Color color = AppTheme.glassBlue}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.silver.withOpacity(0.7))),
-        ],
+  Widget _buildStatCard(String label, String value, IconData icon, {Color color = AppTheme.glassBlue, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(label, style: TextStyle(fontSize: 12, color: AppTheme.silver.withOpacity(0.7))),
+          ],
+        ),
       ),
     );
   }
@@ -270,12 +290,140 @@ class _PredictionScreenState extends State<PredictionScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Predictions are verified against next-day market moves. Tier-3 news is capped at 35% probability to reduce noise.',
+              'Predictions are verified against next-day market moves. Tap on the cards above to see the specific alerts.',
               style: TextStyle(color: AppTheme.silver, fontSize: 13),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showPredictionsList(String status, String title) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, controller) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.spaceDark,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              child: FutureBuilder<List<dynamic>>(
+                future: _apiService.fetchPredictionHistory(status: status),
+                builder: (context, snapshot) {
+                  return Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 12),
+                        height: 5,
+                        width: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildListContent(snapshot, controller),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildListContent(AsyncSnapshot<List<dynamic>> snapshot, ScrollController controller) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError) {
+      return Center(child: Text('Error loading data', style: TextStyle(color: Colors.redAccent)));
+    }
+    
+    final items = snapshot.data ?? [];
+    if (items.isEmpty) {
+      return const Center(
+        child: Text('No predictions found for this category.', style: TextStyle(color: Colors.white54)),
+      );
+    }
+
+    return ListView.builder(
+      controller: controller,
+      itemCount: items.length,
+      padding: const EdgeInsets.all(15),
+      itemBuilder: (context, index) {
+        final pred = items[index];
+        final isVerified = pred['verified'] == true;
+        final isCorrect = pred['is_correct'] == true;
+        final actualMove = pred['actual_move'];
+        
+        String moveText = '';
+        if (isVerified && actualMove != null) {
+          final movePct = (actualMove * 100).toStringAsFixed(2);
+          moveText = actualMove > 0 ? '+$movePct%' : '$movePct%';
+        } else {
+          moveText = 'Pending';
+        }
+
+        return Card(
+          color: Colors.white.withOpacity(0.05),
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            title: Text(
+              pred['event'] ?? 'Unknown Event',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Icon(
+                    pred['direction'] == 'UP' ? Icons.arrow_upward : (pred['direction'] == 'DOWN' ? Icons.arrow_downward : Icons.remove),
+                    size: 14,
+                    color: pred['direction'] == 'UP' ? Colors.greenAccent : (pred['direction'] == 'DOWN' ? Colors.redAccent : Colors.orangeAccent),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    pred['stocks']?.isNotEmpty == true ? pred['stocks'][0] : (pred['company'] ?? 'Market'),
+                    style: TextStyle(color: AppTheme.silver, fontSize: 12),
+                  ),
+                  const Spacer(),
+                  Text(
+                    moveText,
+                    style: TextStyle(
+                      color: isVerified ? (isCorrect ? Colors.greenAccent : Colors.redAccent) : Colors.orangeAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

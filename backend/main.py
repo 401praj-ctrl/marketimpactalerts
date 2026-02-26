@@ -251,7 +251,7 @@ async def run_analysis(source="AUTOMATED"):
         print(f"WINDOW START: {last_search_end} | REGIME: {current_regime}")
         print("="*50)
         try:
-            start_time = datetime.datetime.now()
+            start_time = get_ist_now()
             today = start_time.date()
             print(f"DEBUG: Today's date: {today}")
             
@@ -322,7 +322,7 @@ async def run_analysis(source="AUTOMATED"):
             print(f"DEBUG: {len(new_headlines)} fresh items for analysis.")
             
             if not new_headlines:
-                print(f"DEBUG: Auto-Scanner activated at {datetime.datetime.now().time()} but found 0 new headlines.")
+                print(f"DEBUG: Auto-Scanner activated at {get_ist_now().strftime('%H:%M:%S')} but found 0 new headlines.")
                 print("DEBUG: All articles already processed. Skipping AI run.")
                 print("="*50 + "\n")
                 return # Keep the return here to prevent unnecessary AI calls
@@ -408,7 +408,21 @@ async def run_analysis(source="AUTOMATED"):
                     raw_time = analysis.get('published', get_ist_now().isoformat())
                     parsed_dt = parse_published_date(raw_time)
                     analysis['timestamp'] = parsed_dt.isoformat() if parsed_dt else get_ist_now().isoformat()
+                    # Event date should be the actual publish date, not an AI hallucinated future date.
+                    analysis['event_date'] = analysis['timestamp'][:10]
                     analysis['article_summary'] = analysis.get('article_summary', analysis.get('reason', ''))
+                    
+                    # Sanitize upside_pct if it's a dict representing multiple stocks
+                    upside_val = analysis.get('upside_pct')
+                    if isinstance(upside_val, dict):
+                        # Extract the first available value, e.g { "NSE:TCS": "-2.63%" } -> "-2.63%"
+                        if upside_val:
+                            first_val = list(upside_val.values())[0]
+                            analysis['upside_pct'] = str(first_val)
+                        else:
+                            analysis['upside_pct'] = ""
+                    elif upside_val is not None:
+                        analysis['upside_pct'] = str(upside_val)
                     
                     # LOGGING & SAVING
                     tracker.save_prediction(analysis)
@@ -465,7 +479,7 @@ async def background_scheduler():
     print("DEBUG: background_scheduler initialized and waiting for intervals.")
     while True:
         try:
-            print(f"DEBUG: background_scheduler triggering AUTOMATED analysis at {datetime.datetime.now()}")
+            print(f"DEBUG: background_scheduler triggering AUTOMATED analysis at {get_ist_now()}")
             await run_analysis(source="AUTOMATED")
             # Also refresh prices for existing alerts periodicly
             await refresh_cached_prices()
@@ -526,15 +540,15 @@ async def automated_verification_job():
     while True:
         try:
             # 1. Calculate time until next midnight
-            now = datetime.datetime.now()
+            now = get_ist_now()
             next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
             seconds_until_midnight = (next_midnight - now).total_seconds()
             
-            print(f"DEBUG: automated_verification_job sleeping for {seconds_until_midnight:.0f}s until {next_midnight}")
+            print(f"DEBUG: automated_verification_job sleeping for {seconds_until_midnight:.0f}s until {next_midnight} IST")
             await asyncio.sleep(seconds_until_midnight)
             
             # 2. Run verification
-            print(f"DEBUG: automated_verification_job starting daily cycle at {datetime.datetime.now()}")
+            print(f"DEBUG: automated_verification_job starting daily cycle at {get_ist_now()} IST")
             await tracker.run_cleanup_and_verification(source="auto")
             
         except Exception as e:
@@ -564,6 +578,14 @@ async def get_alerts():
 @app.get("/stats")
 async def get_prediction_stats():
     return tracker.get_stats()
+
+@app.get("/predictions")
+async def get_prediction_history(status: str = None):
+    """
+    Returns history of predictions.
+    status: optional filter ('correct', 'wrong', or 'all')
+    """
+    return tracker.get_predictions(status=status)
 
 class DeviceRequest(BaseModel):
     player_id: str
@@ -693,64 +715,80 @@ async def refresh_cached_prices():
     Iterates through cached_alerts and fetches the latest Finnhub price for each.
     Tries multiple symbols if the first one fails.
     """
-    print(f"DEBUG: Refreshing prices for {len(cached_alerts)} cached alerts...")
-    updated_any = False
-    # Refresh all cached alerts to be thorough
-    for alert in cached_alerts:
-        symbols = alert.get('stocks', [])
-        if not symbols: continue
-        
-        current_p = alert.get('live_price')
-        new_p = None
-        
-        # Try each symbol until one works
-        for symbol in symbols:
-            try:
-                price = await price_service.get_live_price(symbol)
-                if price:
-                    new_p = price
-                    break
-            except:
-                continue
-        
-        if new_p:
-            # Update if it was missing or has changed
-            if current_p is None or abs(new_p - float(current_p)) > 0.001:
-                alert['live_price'] = new_p
-                # Always update currency when price is refreshed
-                alert['currency'] = price_service.get_currency_for_symbol(symbol)
-                
-                # Re-calculate upside OR calculate fallback predicted_price if missing
-                if alert.get('predicted_price'):
-                    try:
-                        pred = float(alert['predicted_price'])
-                        upside = ((pred / new_p) - 1) * 100
-                        alert['upside_pct'] = f"{upside:+.2f}%"
-                    except: pass
+    try:
+        print(f"DEBUG: Refreshing prices for {len(cached_alerts)} cached alerts...")
+        updated_any = False
+        # Refresh all cached alerts to be thorough
+        for alert in cached_alerts:
+            symbols = alert.get('stocks', [])
+            if not symbols: continue
+            
+            current_p = alert.get('live_price')
+            new_p = None
+            
+            # Try each symbol until one works
+            for symbol in symbols:
+                try:
+                    price = await price_service.get_live_price(symbol)
+                    if price:
+                        new_p = price
+                        break
+                except:
+                    continue
+            
+            if new_p:
+                # Update if it was missing or has changed
+                # Ensure we handle non-floatable current_p correctly
+                should_update = False
+                if current_p is None:
+                    should_update = True
                 else:
-                    # FALLBACK Logic: If no predicted price, calculate one based on probability
                     try:
-                        lp = float(new_p)
-                        prob = float(alert.get('probability', 60))
-                        direction = alert.get('impact_direction', 'NEUTRAL').lower()
-                        move_factor = (prob / 1000.0)
-                        if direction == 'up':
-                            alert['predicted_price'] = round(lp * (1 + move_factor), 2)
-                        elif direction == 'down':
-                            alert['predicted_price'] = round(lp * (1 - move_factor), 2)
+                        if abs(new_p - float(current_p)) > 0.001:
+                            should_update = True
+                    except (ValueError, TypeError):
+                        should_update = True
                         
-                        if alert.get('predicted_price'):
+                if should_update:
+                    alert['live_price'] = new_p
+                    # Always update currency when price is refreshed
+                    alert['currency'] = price_service.get_currency_for_symbol(symbol)
+                    
+                    # Re-calculate upside OR calculate fallback predicted_price if missing
+                    if alert.get('predicted_price'):
+                        try:
                             pred = float(alert['predicted_price'])
                             upside = ((pred / new_p) - 1) * 100
                             alert['upside_pct'] = f"{upside:+.2f}%"
-                    except: pass
-                updated_any = True
-            
-    if updated_any:
-        save_alerts(cached_alerts)
-        print("DEBUG: Cached alert prices updated and saved.")
-    else:
-        print("DEBUG: No price updates needed or all fetches failed.")
+                        except: pass
+                    else:
+                        # FALLBACK Logic: If no predicted price, calculate one based on probability
+                        try:
+                            lp = float(new_p)
+                            prob = float(alert.get('probability', 60))
+                            direction = alert.get('impact_direction', 'NEUTRAL').lower()
+                            move_factor = (prob / 1000.0)
+                            if direction == 'up':
+                                alert['predicted_price'] = round(lp * (1 + move_factor), 2)
+                            elif direction == 'down':
+                                alert['predicted_price'] = round(lp * (1 - move_factor), 2)
+                            
+                            if alert.get('predicted_price'):
+                                pred = float(alert['predicted_price'])
+                                upside = ((pred / new_p) - 1) * 100
+                                alert['upside_pct'] = f"{upside:+.2f}%"
+                        except: pass
+                    updated_any = True
+                
+        if updated_any:
+            save_alerts(cached_alerts)
+            print("DEBUG: Cached alert prices updated and saved.")
+        else:
+            print("DEBUG: No price updates needed or all fetches failed.")
+    except Exception as e:
+        import traceback
+        print(f"ERROR in refresh_cached_prices: {e}")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

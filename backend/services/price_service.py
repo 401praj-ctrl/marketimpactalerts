@@ -236,15 +236,28 @@ class PriceService:
         """
         Fetches historical daily close price for a specific date.
         Prioritizes Angel One for Indian stocks, fallbacks to yfinance.
+        If the date lands on a weekend/holiday resulting in no data, it will look backwards up to 5 days.
         """
         if not symbol or not date_str: return None
         is_indian = ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol
         
-        if is_indian:
-            price = await self._get_angel_historical(symbol, date_str)
+        try:
+            target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+        except:
+            return None
+            
+        for d in range(5):
+            eval_date_str = (target_dt - timedelta(days=d)).strftime("%Y-%m-%d")
+            
+            if is_indian:
+                price = await self._get_angel_historical(symbol, eval_date_str)
+                if price: return price
+                
+            price = await self._get_international_historical(symbol, eval_date_str)
             if price: return price
             
-        return await self._get_international_historical(symbol, date_str)
+        return None
+
 
     async def _get_angel_historical(self, symbol, date_str):
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").strip()

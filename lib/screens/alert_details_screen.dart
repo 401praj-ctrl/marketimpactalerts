@@ -190,7 +190,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                                 ),
                                 if (alert.upsidePct != null) ...[
                                   const SizedBox(width: 8),
-                                  Text('(${alert.upsidePct})', 
+                                  Text('(${_cleanUpsidePct(alert.upsidePct!)})', 
                                     style: TextStyle(
                                       color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : 
                                              alert.impactDirection.toLowerCase() == 'down' ? AppTheme.getImpactColor('down') : 
@@ -420,5 +420,25 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
     
     final symbol = finalCurrency == "USD" ? "\$" : "₹";
     return "$symbol${price.toStringAsFixed(2)}";
+  }
+
+  String _cleanUpsidePct(String raw) {
+    if (raw.startsWith('{') && raw.endsWith('}')) {
+      // Basic extraction of the first value if it's a map string
+      try {
+        final parts = raw.split(':');
+        if (parts.length > 1) {
+          String val = parts.last.replaceAll('}', '').replaceAll('"', '').trim();
+          if (!val.endsWith('%')) val += '%';
+          return val;
+        }
+      } catch (e) {
+        return raw;
+      }
+    }
+    if (!raw.endsWith('%') && double.tryParse(raw.replaceAll('+', '').replaceAll('-', '')) != null) {
+        return '$raw%';
+    }
+    return raw;
   }
 }

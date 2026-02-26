@@ -32,6 +32,27 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> fetchPredictionHistory({String? status}) async {
+    String url = '$baseUrl/predictions';
+    if (status != null && status.isNotEmpty) {
+      url += '?status=$status';
+    }
+    
+    print('ApiService: Fetching prediction history from $url...');
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as List<dynamic>;
+      } else {
+        print('ApiService: Error fetching history status: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('ApiService: fetchPredictionHistory exception: $e');
+      return [];
+    }
+  }
+
   Future<void> refreshAlerts() async {
     print('ApiService: Triggering manual refresh at $baseUrl/refresh...');
     try {
