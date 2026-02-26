@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+26",
+    "latest_version": "1.2.14+27",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 ALPHA STABILIZATION v1.2.14+26:\n• Interactive Metrics: Dashboard cards are now fully clickable and reveal historical predictions lists.\n• Price Mapping: Resolved the multi-stock price display bug on alert details.\n• Date Alignment: Fixed issue where event dates appeared identical to impact verification targets."
+    "release_notes": "💎 ALPHA STABILIZATION v1.2.14+27:\n• Full Prediction Details: Tapping any historical prediction in the accuracy dashboard now instantly opens its full Alert Details page.\n• Persistent Memory: The engine now seamlessly integrates with Render disks to safeguard long-term prediction metrics against redeploy wipes."
 }
