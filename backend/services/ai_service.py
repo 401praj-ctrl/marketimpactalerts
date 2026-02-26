@@ -495,7 +495,12 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     1. Identify the EVENT, COMPANY, SECTOR, and TIER.
     2. Focus on specific stock/sector impacts.
     3. "probability" MUST reflect the Tier Calibration rules.
-    4. PREDICT STOCK PRICE: If current_prices {current_prices} are provided, calculate a "predicted_price" for the primary stock on the "impact_date_est" based on the probability, impact strength, and direction.
+    4. IMPACT DATE ESTIMATION (impact_date_est): Calculate exactly when the stock will reach the "predicted_price".
+       - Based on Efficient Market Hypothesis (EMH), markets react instantly to Tier-1 news. Set impact_date_est to T+1 or T+2 days from today ({current_date}).
+       - Based on Post-Earnings Announcement Drift (PEAD), target gradual moves over T+3 to T+10 days for complex Tier-2 structural news.
+       - Based on Macro lag, use T+14 to T+30 days for Tier-3 slow-burn effects.
+       - EXCEPTION: If the news explicitly states an upcoming event (e.g., "RBI meeting on March 15"), set the impact date to 1-2 days AFTER that specific event date.
+    5. PREDICT STOCK PRICE: If current_prices {current_prices} are provided, calculate a "predicted_price" for the primary stock on the "impact_date_est" based on the probability, impact strength, and direction.
        - Use the mapping: {current_prices} to find the current rate.
        - Formula logic: PredictedPrice = CurrentPrice * (1 + (VolatilityFactor * Probability/100 * DirectionMultiplier))
        - Be realistic. SME stocks like MAANALU can move 5-20% on major news, Large-caps move 1-5%.
