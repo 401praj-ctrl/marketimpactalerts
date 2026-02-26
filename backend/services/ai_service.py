@@ -102,10 +102,11 @@ if BYTEZ_API_KEYS:
 else:
     print("DEBUG: No Bytez API keys found.")
 
-# Models in order of preference: Gemma 12b Primary, GPT-OSS 20b Secondary
+# Models in order of preference
 MODELS = [
     "google/gemma-3-12b-it:free",
     "openai/gpt-oss-20b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
 ]
 
 
@@ -399,13 +400,24 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         timeout=50
                     )
                     if response.status_code == 200:
-                        content = response.json()['choices'][0]['message']['content'].strip().replace('```json', '').replace('```', '')
+                        result = response.json()
+                        content = result['choices'][0]['message']['content'].strip().replace('```json', '').replace('```', '')
+                        
+                        # Logging for reasoning tokens from user snippet logic
+                        try:
+                            usage = result.get('usage')
+                            if usage and 'reasoning_tokens' in usage:
+                                print(f"      >> Reasoning Tokens: {usage['reasoning_tokens']}")
+                        except: pass
+
                         data = json.loads(content)
                         if 'stocks' in data:
                             data['stocks'] = validate_stocks(data['stocks'])
                         return data
                     else:
-                        print(f"      >> [DEEP] WARNING: Model {model} returned status {response.status_code}")
+                        print(f"      >> WARNING: Model {model} returned status {response.status_code}")
+                        if response.status_code == 429:
+                            print(f"      >> NOTICE: Key {i+1} rate limited on {model}")
                 except Exception as e: 
                     print(f"      >> [DEEP] EXCEPTION: {str(e)}")
                     continue
