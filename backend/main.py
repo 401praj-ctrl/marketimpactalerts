@@ -257,7 +257,6 @@ async def run_analysis(source="AUTOMATED"):
             
             # --- DAILY CACHE RESET ---
             # Check if the day has changed since the last run
-            global processed_links, last_search_end
             last_run_date_str = last_search_end.split('T')[0] if 'T' in last_search_end else ""
             if last_run_date_str and last_run_date_str != today.isoformat():
                 print(f"DEBUG: [DAILY RESET] New day detected ({today}). Clearing processed links cache.")
