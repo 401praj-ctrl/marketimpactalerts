@@ -293,7 +293,14 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         print(f"      >> SUCCESS: OpenRouter Model {model} with Key {i+1} responded.")
                         result = response.json()
                         if 'choices' not in result: continue
-                        content = result['choices'][0]['message']['content']
+                        message = result['choices'][0]['message']
+                        content = message.get('content', '')
+                        
+                        # Logging reasoning tokens if present (as requested in user snippet)
+                        reasoning = message.get('reasoning')
+                        if reasoning:
+                            print(f"      >> Reasoning: {reasoning[:200]}...")
+                        
                         content = content.strip().replace('```json', '').replace('```', '')
 
                         data = json.loads(content)
