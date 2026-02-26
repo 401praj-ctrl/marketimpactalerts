@@ -240,10 +240,15 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     
     Values are 0.0 to 1.0. If Final Score < 0.4 ➔ Return "no impact".
 
+    RELEVANT HISTORICAL EXAMPLES TO FOLLOW:
+    {examples_text}
+
     RULES:
     1. Identify the EVENT, COMPANY, SECTOR, and TIER.
     2. Use JSON format.
     3. Return "no impact" if not relevant.
+    4. EMH & AR APPLICATION: If news is strictly "priced in", return probability < 50%.
+    5. PEAD APPLICATION: Use the drift effect to set 'impact_date_est' significantly in the future if the news has long-term implications.
 
     Headline: "{headline_text}"
     """
@@ -363,9 +368,12 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     Analyze the full news content for stock impacts.
     
     1. Tier Calibration: Direct(Tier-1), Sector(Tier-2), Macro(Tier-3).
-    2. Date Estimation: EMH(T+1/2), PEAD(T+3-10), Macro(T+14+).
-    3. Price Logic: Calculate predicted price based on {current_prices}.
+    2. Date Estimation: Apply PEAD [Post-Earnings Announcement Drift] to set 'impact_date_est'. For major surprises, set it T+3 to T+10 days for entry/drift.
+    3. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
     
+    RELEVANT HISTORICAL EXAMPLES:
+    {examples_text}
+
     Return JSON format only.
     Headline: "{headline}"
     Content: "{full_content[:4000]}"
