@@ -505,6 +505,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
        - Formula logic: PredictedPrice = CurrentPrice * (1 + (VolatilityFactor * Probability/100 * DirectionMultiplier))
        - Be realistic. SME stocks like MAANALU can move 5-20% on major news, Large-caps move 1-5%.
        - "live_price" should be the numeric value from the provided current_prices.
+    6. STRICT REASONING LOG: You MUST explicitly log your step-by-step mathematical calculations and the exact theories you applied (EMH, PEAD, etc.) inside the "reason" field. Show your formula work so calculations can be validated.
 
     TRAINING EXAMPLES (Relevant to this news):
     {examples_text}
@@ -527,7 +528,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
      "impact_date_est": "YYYY-MM-DD",
      "impact": "positive/negative/neutral",
      "strength": "low/medium/high",
-     "reason": "Technical/Financial reason",
+     "reason": "STRICT LOG: Detail your exact theoretical approach (e.g., 'Applying EMH for Tier-1...') and show your exact mathematical calculation for the predicted_price and impact_date_est.",
      "live_price": "Current price provided",
      "predicted_price": "Target price for impact date",
      "upside_pct": "A single string value (e.g. '+5.20%') representing the percentage change for the primary stock, NOT a dictionary/map",
