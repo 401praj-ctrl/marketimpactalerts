@@ -105,8 +105,9 @@ else:
 # Models in order of preference: Exclusive free models as requested
 MODELS = [
     "google/gemma-3-12b-it:free",
-    "openai/gpt-oss-20b:free",
-    "mistralai/mistral-7b-instruct:free", # Safety fallback to avoid Bytez unless necessary
+    "meta-llama/llama-3.3-70b-instruct:free", # High performance GPT-4 class free model
+    "google/gemini-2.0-flash:free",      # Fast and extremely reliable fallback
+    "openai/gpt-oss-20b:free",          # Backup reasoning model
 ]
 
 
