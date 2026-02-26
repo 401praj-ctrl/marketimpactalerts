@@ -29,7 +29,11 @@ TICKER_CORRECTIONS = {
     "ICICI": "ICICIBANK",
     "ANGLONE": "ANGELONE",
     "BNAGROCHEM": "BHARATAGRI",
-    "KALYANKJ": "KALYANKJIL"
+    "KALYANKJ": "KALYANKJIL",
+    "INFOSYS": "INFY",
+    "ZEEL": "ZEEL",
+    "RELIANCE": "RELIANCE",
+    "EXPORTS": "RELIGARE"
 }
 
 class PriceService:
@@ -78,14 +82,11 @@ class PriceService:
             response = requests.get(url, timeout=30)
             if response.status_code == 200:
                 full_list = response.json()
-                # We only care about NSE and BSE for now
-                # Format a map: SYMBOL -> {"token": token, "exch": exchange}
                 new_map = {}
                 for item in full_list:
                     exch = item.get('exch_seg')
                     if exch in ['NSE', 'BSE']:
                         symbol = item.get('symbol')
-                        # For NSE stocks, we prefer symbols ending in -EQ for consistency
                         if symbol:
                             new_map[symbol] = {
                                 "token": item.get('token'),
@@ -103,9 +104,9 @@ class PriceService:
         except Exception as e:
             print(f"ERROR: Token list download exception: {e}")
 
-    async def authenticate(self):
+    async def authenticate(self, force=False):
         """Logs into Angel One using TOTP."""
-        if self.smart_api and self.last_auth_time:
+        if not force and self.smart_api and self.last_auth_time:
             if datetime.now() - self.last_auth_time < timedelta(hours=10):
                 return True
 
@@ -118,52 +119,46 @@ class PriceService:
             self.smart_api = SmartConnect(api_key=self.api_key)
             totp = pyotp.TOTP(self.totp_key.replace(" ", "")).now()
             
-            # SmartConnect login is synchronous
             loop = asyncio.get_event_loop()
             data = await loop.run_in_executor(None, lambda: self.smart_api.generateSession(self.user_id, self.password, totp))
             
-            if data['status']:
+            if data and isinstance(data, dict) and data.get('status'):
                 self.last_auth_time = datetime.now()
                 print("DEBUG: Angel One authentication successful.")
                 return True
             else:
-                print(f"ERROR: Angel One login failed: {data.get('message')}")
+                msg = data.get('message') if isinstance(data, dict) else "Unknown response format"
+                print(f"ERROR: Angel One login failed: {msg}")
         except Exception as e:
             print(f"ERROR: Angel One authentication exception: {e}")
         
         return False
 
     async def get_live_price(self, symbol):
-        """
-        Fetches live stock price, prioritizing Angel One for Indian stocks.
-        """
+        """Fetches live stock price, prioritizing Angel One for Indian stocks."""
         if not symbol: return None
-        
         is_indian = ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol
-        
-        # 1. Handle Indian Stocks via Angel One
         if is_indian:
             return await self._get_angel_price(symbol)
-        
-        # 2. Handle International (US) via Finnhub/yfinance
         return await self._get_international_price(symbol)
 
     async def _get_angel_price(self, symbol):
-        # Normalize for Angel One
-        # Symbol in our app: NSE:RELIANCE or RELIANCE.NS
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").strip()
-        if clean_symbol in TICKER_CORRECTIONS:
+        
+        # Case-insensitive ticker correction
+        upper_symbol = clean_symbol.upper()
+        if upper_symbol in TICKER_CORRECTIONS:
+            clean_symbol = TICKER_CORRECTIONS[upper_symbol]
+        elif clean_symbol in TICKER_CORRECTIONS:
             clean_symbol = TICKER_CORRECTIONS[clean_symbol]
 
-        # Angel One usually wants "SYMBOL-EQ" for NSE Cash
         if "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
             exch = "NSE"
             angel_symbol = f"{clean_symbol}-EQ"
         else:
             exch = "BSE"
-            angel_symbol = f"{clean_symbol}-EQ" # Some BSE symbols are different, but -EQ is common
+            angel_symbol = f"{clean_symbol}-EQ"
 
-        # Check Cache
         now = datetime.now()
         cache_key = f"ANGEL:{angel_symbol}"
         if cache_key in self.cache:
@@ -172,52 +167,61 @@ class PriceService:
                 return c['price']
 
         await self._ensure_token_list()
-        
-        # Find token
-        token_info = self.token_map.get(angel_symbol)
+        token_info = self.token_map.get(angel_symbol) or self.token_map.get(clean_symbol)
         if not token_info:
-            # Try without -EQ
-            token_info = self.token_map.get(clean_symbol)
-            if not token_info:
-                print(f"WARNING: No token found for {angel_symbol} or {clean_symbol}")
-                return await self._get_international_price(symbol) # Fallback
+            print(f"WARNING: No token found for {angel_symbol} or {clean_symbol}")
+            return await self._get_international_price(symbol)
 
-        if not await self.authenticate():
-            return await self._get_international_price(symbol) # Fallback
+        for attempt in range(2):
+            if not await self.authenticate(force=(attempt > 0)):
+                return await self._get_international_price(symbol)
 
-        try:
-            token = token_info['token']
-            exch_seg = token_info['exch']
-            loop = asyncio.get_event_loop()
-            print(f"DEBUG: Fetching LTP from Angel One for {angel_symbol} ({token})...")
-            
-            data = await loop.run_in_executor(None, lambda: self.smart_api.ltpData(exch_seg, angel_symbol, token))
-            
-            if data['status'] and data['data']:
-                price = float(data['data'].get('ltp', 0))
-                if price > 0:
-                    self.cache[cache_key] = {"price": price, "timestamp": now.isoformat()}
-                    self.save_price_cache()
-                    return price
-            else:
-                print(f"WARNING: Angel LTP failed for {angel_symbol}: {data.get('message')}")
-        except Exception as e:
-            print(f"ERROR: Angel LTP exception for {angel_symbol}: {e}")
+            try:
+                token = token_info['token']
+                exch_seg = token_info['exch']
+                loop = asyncio.get_event_loop()
+                print(f"DEBUG: Fetching LTP from Angel One for {angel_symbol} ({token})...")
+                
+                data = await loop.run_in_executor(None, lambda: self.smart_api.ltpData(exch_seg, angel_symbol, token))
+                
+                if not isinstance(data, dict):
+                    print(f"ERROR: Angel LTP returned non-dict response for {angel_symbol}: {type(data)}")
+                    if attempt == 0: continue
+                    else: break
+
+                if data.get('status') and data.get('data'):
+                    price = float(data['data'].get('ltp', 0))
+                    if price > 0:
+                        self.cache[cache_key] = {"price": price, "timestamp": now.isoformat()}
+                        self.save_price_cache()
+                        return price
+                elif data.get('errorCode') == 'AG8001' or 'Invalid Token' in str(data.get('message', '')):
+                    if attempt == 0:
+                        print(f"DEBUG: Invalid Token detected in LTP. Forcing re-authentication...")
+                        continue
+                    else:
+                        print(f"WARNING: Angel LTP failed after retry: {data.get('message')}")
+                else:
+                    print(f"WARNING: Angel LTP failed for {angel_symbol}: {data.get('message')}")
+            except Exception as e:
+                if "'status'" in str(e) or 'KeyError' in str(type(e)):
+                    print(f"DEBUG: SDK raised {type(e)} with {e} for {angel_symbol}. Possibly session died. Retrying...")
+                    if attempt == 0: continue
+                print(f"ERROR: Angel LTP exception for {angel_symbol}: {e}")
+                if attempt == 0: continue
 
         return await self._get_international_price(symbol)
 
     async def _get_international_price(self, symbol):
-        """Lightweight fallback using yfinance for US/International or blocked Indian symbols."""
         try:
             import yfinance as yf
             clean = symbol.replace("NSE:", "").replace(".NS", ".NS").replace("BSE:", "").replace(".BO", ".BO")
             if "NSE:" in symbol and not clean.endswith(".NS"): clean += ".NS"
             if "BSE:" in symbol and not clean.endswith(".BO"): clean += ".BO"
             
-            # Apply corrections even for fallbacks
             ticker_stem = clean.replace(".NS", "").replace(".BO", "")
-            if ticker_stem in TICKER_CORRECTIONS:
-                clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem])
+            if ticker_stem.upper() in TICKER_CORRECTIONS:
+                clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem.upper()])
             
             print(f"DEBUG: YFinance fallback for {clean}...")
             ticker = yf.Ticker(clean)
@@ -233,36 +237,26 @@ class PriceService:
         return "USD"
 
     async def get_historical_price(self, symbol, date_str):
-        """
-        Fetches historical daily close price for a specific date.
-        Prioritizes Angel One for Indian stocks, fallbacks to yfinance.
-        If the date lands on a weekend/holiday resulting in no data, it will look backwards up to 5 days.
-        """
         if not symbol or not date_str: return None
         is_indian = ".NS" in symbol or ".BO" in symbol or "NSE:" in symbol or "BSE:" in symbol
-        
         try:
             target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
-        except:
-            return None
+        except: return None
             
         for d in range(5):
             eval_date_str = (target_dt - timedelta(days=d)).strftime("%Y-%m-%d")
-            
             if is_indian:
                 price = await self._get_angel_historical(symbol, eval_date_str)
                 if price: return price
-                
             price = await self._get_international_historical(symbol, eval_date_str)
             if price: return price
-            
         return None
-
 
     async def _get_angel_historical(self, symbol, date_str):
         clean_symbol = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").strip()
-        if clean_symbol in TICKER_CORRECTIONS:
-            clean_symbol = TICKER_CORRECTIONS[clean_symbol]
+        upper_symbol = clean_symbol.upper()
+        if upper_symbol in TICKER_CORRECTIONS:
+            clean_symbol = TICKER_CORRECTIONS[upper_symbol]
 
         if "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
             exch = "NSE"
@@ -274,38 +268,50 @@ class PriceService:
         await self._ensure_token_list()
         token_info = self.token_map.get(angel_symbol) or self.token_map.get(clean_symbol)
         
-        if not token_info or not await self.authenticate():
-            return None
-            
         try:
             target_dt = datetime.fromisoformat(date_str) if "T" in date_str else datetime.strptime(date_str, "%Y-%m-%d")
-        except ValueError:
-            try:
-                target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
-            except:
-                return None
+        except:
+            try: target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            except: return None
                 
         start_time_str = target_dt.strftime("%Y-%m-%d 09:00")
         end_time_str = target_dt.strftime("%Y-%m-%d 15:30")
         
         historicParam = {
-            "exchange": token_info['exch'],
-            "symboltoken": token_info['token'],
+            "exchange": token_info['exch'] if token_info else "NSE",
+            "symboltoken": token_info['token'] if token_info else "",
             "interval": "ONE_DAY",
             "fromdate": start_time_str,
             "todate": end_time_str
         }
-        
-        try:
-            loop = asyncio.get_event_loop()
-            data = await loop.run_in_executor(None, lambda: self.smart_api.getCandleData(historicParam))
-            if data and data.get('status') and data.get('data'):
-                candles = data['data']
-                if candles and len(candles) > 0:
-                    return float(candles[-1][4]) # Return close price
-        except Exception as e:
-            print(f"DEBUG: Angel History failed for {angel_symbol}: {e}")
-            
+
+        for attempt in range(2):
+            if not await self.authenticate(force=(attempt > 0)):
+                return None
+                
+            try:
+                loop = asyncio.get_event_loop()
+                data = await loop.run_in_executor(None, lambda: self.smart_api.getCandleData(historicParam))
+                if not isinstance(data, dict):
+                    if attempt == 0: continue
+                    else: break
+
+                if data.get('status') and data.get('data'):
+                    candles = data['data']
+                    if candles and len(candles) > 0:
+                        return float(candles[-1][4])
+                elif data.get('errorCode') == 'AG8001' or 'Invalid Token' in str(data.get('message', '')):
+                    if attempt == 0:
+                        print(f"DEBUG: [VERIFY] Invalid Token in History. Forcing re-authentication...")
+                        continue
+                
+                if not data.get('status'):
+                    print(f"DEBUG: [VERIFY] Angel History failure: {data.get('message')} for {angel_symbol}")
+            except Exception as e:
+                if "'status'" in str(e) or 'KeyError' in str(type(e)):
+                    if attempt == 0: continue
+                print(f"DEBUG: Angel History failed for {angel_symbol}: {e}")
+                if attempt == 0: continue
         return None
 
     async def _get_international_historical(self, symbol, date_str):
@@ -314,13 +320,10 @@ class PriceService:
             clean = symbol.replace("NSE:", "").replace(".NS", ".NS").replace("BSE:", "").replace(".BO", ".BO")
             if "NSE:" in symbol and not clean.endswith(".NS"): clean += ".NS"
             if "BSE:" in symbol and not clean.endswith(".BO"): clean += ".BO"
-            
             ticker = yf.Ticker(clean)
             target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
-            # Fetch history for that specific day
             hist = ticker.history(start=target_dt.strftime("%Y-%m-%d"), end=(target_dt + timedelta(days=1)).strftime("%Y-%m-%d"))
-            if not hist.empty:
-                return float(hist['Close'].iloc[0])
+            if not hist.empty: return float(hist['Close'].iloc[0])
         except: pass
         return None
 

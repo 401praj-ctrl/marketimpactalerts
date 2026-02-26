@@ -235,6 +235,19 @@ processed_links = load_processed()
 registered_devices = load_devices()
 last_search_end = load_last_run_time()
 analysis_lock = asyncio.Lock()
+verification_lock = asyncio.Lock()
+
+def is_financial_news(title: str) -> bool:
+    """Fast keyword filter to skip obviously irrelevant news."""
+    keywords = [
+        "stock", "market", "ipo", "profit", "loss", "revenue", "earnings",
+        "dividend", "acquisition", "merger", "shares", "fed", "rbi",
+        "inflation", "economy", "growth", "bank", "tech", "ai", "layoff",
+        "hiring", "deal", "contract", "price", "quarter", "fiscal",
+        "trade", "tariff", "rate", "index", "nifty", "sensex", "nasdaq"
+    ]
+    title_lower = title.lower()
+    return any(k in title_lower for k in keywords)
 
 async def run_analysis(source="AUTOMATED"):
     global cached_alerts
@@ -338,10 +351,10 @@ async def run_analysis(source="AUTOMATED"):
             print(f"DEBUG: {len(new_headlines)} fresh items for analysis.")
             
             if not new_headlines:
-                print(f"DEBUG: Auto-Scanner activated at {get_ist_now().strftime('%H:%M:%S')} but found 0 new headlines.")
-                print("DEBUG: All articles already processed. Skipping AI run.")
+                print(f"DEBUG: [NEWS] Auto-Scanner at {get_ist_now().strftime('%H:%M:%S')} found 0 new headlines.")
+                print("DEBUG: [NEWS] All articles already processed. Skipping AI run.")
                 print("="*50 + "\n")
-                return # Keep the return here to prevent unnecessary AI calls
+                return 
 
             # IMMEDIATELY mark as processed to prevent race conditions during long AI runs
             print(f"DEBUG: Pre-emptively marking {len(new_headlines)} headlines as processed.")
@@ -360,6 +373,11 @@ async def run_analysis(source="AUTOMATED"):
                 try:
                     print(f"  [{i+1}/{len(new_headlines)}] Analyzing: {h['title'][:60]}...")
                     
+                    # Pass 0: Fast keyword filter
+                    if not is_financial_news(h['title']):
+                        print(f"    --> [SKIP] Non-financial headline.")
+                        continue
+
                     # Pass 1: Quick AI check
                     analysis = await analyze_headline(h['title'], regime=current_regime)
                     if analysis.get('impact', '').lower() == "no impact":
@@ -564,8 +582,9 @@ async def automated_verification_job():
             await asyncio.sleep(seconds_until_midnight)
             
             # 2. Run verification
-            print(f"DEBUG: automated_verification_job starting daily cycle at {get_ist_now()} IST")
-            await tracker.run_cleanup_and_verification(source="auto")
+            print(f"DEBUG: [VERIFY] automated_verification_job starting daily cycle at {get_ist_now()} IST")
+            async with verification_lock:
+                await tracker.run_cleanup_and_verification(source="auto")
             
         except Exception as e:
             print(f"ERROR: automated_verification_job caught exception: {e}")
@@ -637,12 +656,16 @@ async def register_device(req: DeviceRequest):
 async def trigger_verification(background_tasks: BackgroundTasks):
     print("\nRECEIVED MANUAL VERIFICATION REQUEST")
     
-    # Check if analysis is already running
-    if analysis_lock.locked():
-        print("DEBUG: Analysis already running in background.")
-        return {"status": "Analysis already running. Please wait."}
+    # Check if verification is already running
+    if verification_lock.locked():
+        print("DEBUG: [VERIFY] Verification already running.")
+        return {"status": "Verification already running."}
         
-    background_tasks.add_task(tracker.run_cleanup_and_verification, source="manual")
+    async def run_verify_with_lock():
+        async with verification_lock:
+            await tracker.run_cleanup_and_verification(source="manual")
+
+    background_tasks.add_task(run_verify_with_lock)
     return {"status": "Manual verification analysis started."}
 
 async def broadcast_verification_result(event_name, is_correct, move):
