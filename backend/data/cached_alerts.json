@@ -349,28 +349,6 @@
     "timestamp": "2026-02-20T06:46:00"
   },
   {
-    "event": "F1 Energy Management Concerns - Sainz Calls for FIA Flexibility",
-    "company": "Williams F1",
-    "sector": "Automotive - Motorsports",
-    "stocks": [
-      "NSE:WILLIAMS"
-    ],
-    "impact_direction": "NEUTRAL",
-    "impact_description": "This news primarily impacts companies involved in the design, manufacturing, and supply of components for Formula 1 power units. While the regulations are intended to promote efficiency and sustainability, Sainz's concerns suggest the current implementation might be too stringent, potentially impacting performance and the overall racing spectacle. The call for flexibility implies a possibility of rule adjustments, which could affect the development strategies and investments of F1 engine suppliers. The mention of Melbourne and Jeddah highlights circuits where the impact might be most pronounced, potentially affecting teams' performance on those tracks. The news also indirectly impacts Williams F1, as they are currently struggling to catch up to their rivals.",
-    "event_date": "2026-02-19",
-    "impact_date_est": "2026-03-19",
-    "probability": 75,
-    "reason": "Technical",
-    "impact": "neutral",
-    "strength": "medium",
-    "confidence": 85,
-    "id": "https://motorsport.nextgen-auto.com/fr/formule-1/sainz-appelle-la-fia-a-rester-flexible-sur-la-gestion-de-l-energie-en-f1,206224.html",
-    "link": "https://motorsport.nextgen-auto.com/fr/formule-1/sainz-appelle-la-fia-a-rester-flexible-sur-la-gestion-de-l-energie-en-f1,206224.html",
-    "published": "2026-02-20 06:46:00",
-    "article_summary": "Carlos Sainz, driving for Williams, has expressed concerns about the new 2026 Formula 1 energy management regulations, particularly the increased reliance on battery power and the potential need for 'lift and coast' maneuvers. He is urging the FIA and FOM to remain flexible and potentially adjust the rules if the energy management proves overly restrictive on certain circuits, like Melbourne and Jeddah. Sainz acknowledges the complexity of the changes and the uncertainty surrounding the new power units.",
-    "timestamp": "2026-02-20T06:46:00"
-  },
-  {
     "event": "Hypersonix Launch Window Set for Landmark Hypersonic Flight Test",
     "company": "Hypersonix Launch Systems",
     "sector": "Aerospace & Defense, Hydrogen Technology",
