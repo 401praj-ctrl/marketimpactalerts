@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+28",
+    "latest_version": "1.2.14+29",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🎯 ALPHA ACCURACY ENGINE v1.2.14+28:\n• Strict Target Verification: The backend now strictly calculates whether the explicit Target Impact Price was definitively reached, rather than just checking direction.\n• Verification UI Details: Opening a prediction from the Dashboard now reveals a green/red verification status block showing precisely if the actual price hit the predicted target."
+    "release_notes": "🎯 ALPHA ACCURACY ENGINE v1.2.14+29:\n• Exact Verification Text: Tapping on any alert in the Correct/Wrong lists now states exactly: 'Impact price of [X] was correctly achieved on the impact date ([Y])' unconditionally.\n• Strict Target Verification: The backend now strictly calculates whether the explicit Target Impact Price was definitively reached."
 }

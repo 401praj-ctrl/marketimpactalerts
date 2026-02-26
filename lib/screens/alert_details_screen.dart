@@ -229,9 +229,10 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
     final Color statusColor = isCorrect ? Colors.greenAccent : Colors.redAccent;
     final Color bgColor = isCorrect ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1);
     final String title = isCorrect ? 'TARGET ACHIEVED' : 'TARGET MISSED';
+    final String impactPriceStr = _formatPrice(alert.predictedPrice, alert.currency, alert.stocks);
     final String subtitle = isCorrect 
-        ? 'The exact target impact price was successfully reached.' 
-        : 'The target impact price was not achieved on the estimated impact date.';
+        ? 'Impact price of $impactPriceStr was correctly achieved on the impact date (${alert.impactDateEst}).' 
+        : 'Impact price of $impactPriceStr was not achieved on the impact date (${alert.impactDateEst}).';
 
     return Container(
       width: double.infinity,
