@@ -184,14 +184,14 @@ def get_relevant_examples(headline, limit=3, regime="NORMAL"):
 
 # Track keys that are out of credits to avoid retrying them in the same session
 depleted_keys = set()
-# Track keys that failed in the current analysis cycle
-cycle_failed_keys = set()
+# Track keys that failed in the current analysis cycle (per model)
+cycle_failed_keys = {} # Model name -> set of failed keys
 
 def start_new_cycle():
     """Reset the per-cycle failure tracking."""
     global cycle_failed_keys
     print("  DEBUG: Starting new analysis cycle - Resetting per-cycle API key blacklists.")
-    cycle_failed_keys.clear()
+    cycle_failed_keys = {}
 
 def validate_stocks(stocks_list):
     """
@@ -264,7 +264,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                 is_free_model = model.endswith(":free")
                 if api_key in depleted_keys and not is_free_model:
                     continue
-                if api_key in cycle_failed_keys:
+                if api_key in cycle_failed_keys.get(model, set()):
                     continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
@@ -308,18 +308,22 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     elif response.status_code == 402:
                         depleted_keys.add(api_key)
                     elif response.status_code == 401 or response.status_code == 429:
-                        cycle_failed_keys.add(api_key)
+                        print(f"      >> NOTICE: Key {i+1} rate limited or unauthorized on {model} (Status {response.status_code})")
+                        cycle_failed_keys.setdefault(model, set()).add(api_key)
+                    else:
+                        print(f"      >> WARNING: Model {model} returned status {response.status_code} with Key {i+1}")
                 except Exception as e:
-                    print(f"      >> EXCEPTION with Key {i+1}: {str(e)}")
+                    print(f"      >> EXCEPTION with Key {i+1} on {model}: {str(e)}")
                     continue
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
+        b_model_name = "google/gemma-3-12b-it"
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
-            if b_key in cycle_failed_keys: continue
+            # For Bytez, we skip if the key is in the general cycle_failed_keys for the bytez model
+            if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
             try:
                 sdk = Bytez(b_key)
-                b_model_name = "google/gemma-3-12b-it"
                 model = sdk.model(b_model_name)
                 loop = asyncio.get_event_loop()
                 results = await asyncio.wait_for(
@@ -332,7 +336,10 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     if 'stocks' in data:
                         data['stocks'] = validate_stocks(data['stocks'])
                     return data
-            except: continue
+            except Exception as e:
+                print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
+                cycle_failed_keys.setdefault(f"bytez/{b_model_name}", set()).add(b_key)
+                continue
 
     return {"impact": "no impact"}
 
@@ -366,9 +373,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     
     async with httpx.AsyncClient(timeout=35.0) as client:
         for model in MODELS:
-            for api_key in API_KEYS:
-                if api_key in depleted_keys or api_key in cycle_failed_keys: continue
+            for i, api_key in enumerate(API_KEYS):
+                if api_key in depleted_keys or api_key in cycle_failed_keys.get(model, set()): continue
                 try:
+                    display_key = f"{api_key[:6]}...{api_key[-4:]}"
+                    print(f"      >> [DEEP] Trying Key {i+1} ({display_key}) on model {model}")
                     response = await client.post(
                         url="https://openrouter.ai/api/v1/chat/completions",
                         headers={"Authorization": f"Bearer {api_key.strip()}"},
@@ -381,7 +390,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         if 'stocks' in data:
                             data['stocks'] = validate_stocks(data['stocks'])
                         return data
-                except: continue
+                    else:
+                        print(f"      >> [DEEP] WARNING: Model {model} returned status {response.status_code}")
+                except Exception as e: 
+                    print(f"      >> [DEEP] EXCEPTION: {str(e)}")
+                    continue
     return None
 
 async def identify_high_impact_events(headlines, regime="NORMAL"):
