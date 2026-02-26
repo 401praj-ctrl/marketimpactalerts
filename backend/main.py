@@ -255,6 +255,18 @@ async def run_analysis(source="AUTOMATED"):
             today = start_time.date()
             print(f"DEBUG: Today's date: {today}")
             
+            # --- DAILY CACHE RESET ---
+            # Check if the day has changed since the last run
+            global processed_links, last_search_end
+            last_run_date_str = last_search_end.split('T')[0] if 'T' in last_search_end else ""
+            if last_run_date_str and last_run_date_str != today.isoformat():
+                print(f"DEBUG: [DAILY RESET] New day detected ({today}). Clearing processed links cache.")
+                processed_links = set()
+                # Also reset the search window to start of today IST
+                last_search_end = today.isoformat() + "T00:00:00"
+                save_processed(processed_links)
+                save_last_run_time(last_search_end)
+            
             # Fetch headlines concurrently
             results = await asyncio.gather(
                 fetch_news_api_headlines(),
@@ -301,17 +313,22 @@ async def run_analysis(source="AUTOMATED"):
             headlines = unique_headlines
             print(f"DEBUG: {len(headlines)} unique headlines after deduplication.")
 
-            # 72-hour window
+            # --- TODAY ONLY FILTER ---
+            # Strictly only process news from the current day (IST)
             live_headlines = []
-            three_days_ago = today - datetime.timedelta(days=2)
             for h in headlines:
                 try:
-                    pub_dt = date_parser.parse(h['published'])
-                    if pub_dt.date() >= three_days_ago:
+                    pub_dt = parse_published_date(h.get('published'))
+                    if pub_dt and pub_dt.date() == today:
                         live_headlines.append(h)
+                    else:
+                        # Skip yesterday's news as requested
+                        pass
                 except:
+                    # If date is unparseable but we're in a fresh cycle, might be brand new
                     live_headlines.append(h)
 
+            print(f"DEBUG: Filtered {len(live_headlines)} headlines from today's date ({today}).")
             new_headlines = [h for h in live_headlines if h['link'] not in processed_links]
             
             # Backup for empty cache
