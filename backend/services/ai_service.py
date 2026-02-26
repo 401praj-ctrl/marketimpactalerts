@@ -102,12 +102,10 @@ if BYTEZ_API_KEYS:
 else:
     print("DEBUG: No Bytez API keys found.")
 
-# Models in order of preference: Exclusive free models as requested
+# Models in order of preference: Gemma 12b Primary, GPT-OSS 20b Secondary
 MODELS = [
     "google/gemma-3-12b-it:free",
-    "meta-llama/llama-3.3-70b-instruct:free", # High performance GPT-4 class free model
-    "google/gemini-2.0-flash:free",      # Fast and extremely reliable fallback
-    "openai/gpt-oss-20b:free",          # Backup reasoning model
+    "openai/gpt-oss-20b:free",
 ]
 
 
