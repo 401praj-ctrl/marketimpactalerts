@@ -407,6 +407,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 livePrice: pred['live_price'] != null ? double.tryParse(pred['live_price'].toString()) : null,
                 predictedPrice: pred['predicted_price'] != null ? double.tryParse(pred['predicted_price'].toString()) : null,
                 currency: pred['currency'] ?? 'INR',
+                isVerified: pred['verified'] ?? false,
+                isCorrect: pred['is_correct'],
+                actualMove: pred['actual_move'] != null ? double.tryParse(pred['actual_move'].toString()) : null,
               );
               Navigator.push(
                 context,

@@ -17,6 +17,9 @@ class EventAlert {
   final String? upsidePct;
   final String impactType; // 'Direct' or 'Indirect'
   final String? currency;
+  final bool isVerified;
+  final bool? isCorrect;
+  final double? actualMove;
 
   EventAlert({
     required this.id,
@@ -37,6 +40,9 @@ class EventAlert {
     this.upsidePct,
     this.impactType = 'Direct',
     this.currency,
+    this.isVerified = false,
+    this.isCorrect,
+    this.actualMove,
   });
 
   factory EventAlert.fromJson(Map<String, dynamic> json) {
@@ -59,6 +65,9 @@ class EventAlert {
       upsidePct: json['upside_pct']?.toString(),
       impactType: json['impact_type'] ?? 'Direct',
       currency: json['currency'],
+      isVerified: json['verified'] ?? false,
+      isCorrect: json['is_correct'],
+      actualMove: _toDouble(json['actual_move']),
     );
   }
 
@@ -89,6 +98,9 @@ class EventAlert {
       'upside_pct': upsidePct,
       'impact_type': impactType,
       'currency': currency,
+      'verified': isVerified,
+      'is_correct': isCorrect,
+      'actual_move': actualMove,
     };
   }
 }

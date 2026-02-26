@@ -195,16 +195,26 @@ class PredictionTracker:
                             if start_price and end_price:
                                 try:
                                     actual_move = (end_price / start_price) - 1
-                                    direction = pred.get("direction", "").upper()
-                                    
                                     # Match result
                                     is_correct = False
-                                    if direction == "UP" and actual_move > 0.01: # >1% move
-                                        is_correct = True
-                                    elif direction == "DOWN" and actual_move < -0.01: # <-1% move
-                                        is_correct = True
-                                    elif direction == "NEUTRAL" and abs(actual_move) < 0.01:
-                                        is_correct = True
+                                    direction = pred.get("direction", "").upper()
+                                    target_price = pred.get("predicted_price")
+
+                                    if target_price:
+                                        if direction == "UP" and end_price >= float(target_price):
+                                            is_correct = True
+                                        elif direction == "DOWN" and end_price <= float(target_price):
+                                            is_correct = True
+                                        elif direction == "NEUTRAL" and abs(actual_move) < 0.01:
+                                            is_correct = True
+                                    else:
+                                        # Fallback to percentage move if no exact target price is given
+                                        if direction == "UP" and actual_move > 0.01: # >1% move
+                                            is_correct = True
+                                        elif direction == "DOWN" and actual_move < -0.01: # <-1% move
+                                            is_correct = True
+                                        elif direction == "NEUTRAL" and abs(actual_move) < 0.01:
+                                            is_correct = True
                                     
                                     # Calculate Z-Move and Brier
                                     z_move, is_sig = await self.verify_prediction(symbol, actual_move)

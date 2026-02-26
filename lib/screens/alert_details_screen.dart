@@ -112,6 +112,10 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                 Expanded(child: _buildInfoRow(Icons.speed_rounded, "EST. IMPACT", alert.impactDateEst)),
               ],
             ),
+            if (alert.isVerified) ...[
+              const SizedBox(height: 32),
+              _buildVerificationStatus(),
+            ],
             const SizedBox(height: 40),
             _buildSectionHeader('THE EVENT'),
             const SizedBox(height: 12),
@@ -215,6 +219,61 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
             const SizedBox(height: 60),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVerificationStatus() {
+    final alert = widget.alert;
+    final bool isCorrect = alert.isCorrect == true;
+    final Color statusColor = isCorrect ? Colors.greenAccent : Colors.redAccent;
+    final Color bgColor = isCorrect ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1);
+    final String title = isCorrect ? 'TARGET ACHIEVED' : 'TARGET MISSED';
+    final String subtitle = isCorrect 
+        ? 'The exact target impact price was successfully reached.' 
+        : 'The target impact price was not achieved on the estimated impact date.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(isCorrect ? Icons.check_circle_outline : Icons.cancel_outlined, color: statusColor, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: GoogleFonts.outfit(color: statusColor, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 14),
+          ),
+          if (alert.actualMove != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Actual Move Verified on Date: ${(alert.actualMove! * 100).toStringAsFixed(2)}%',
+                style: GoogleFonts.inter(color: AppTheme.silver, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ]
+        ],
       ),
     );
   }
