@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../models/event_alert.dart';
+import 'alert_details_screen.dart';
 
 class PredictionScreen extends StatefulWidget {
   const PredictionScreen({super.key});
@@ -388,6 +390,29 @@ class _PredictionScreenState extends State<PredictionScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
+            onTap: () {
+              final alert = EventAlert(
+                id: pred['id'] ?? 'hist_$index',
+                event: pred['event'] ?? 'Unknown Event',
+                company: pred['company'] ?? 'Market',
+                sector: pred['tier'] ?? 'Tier-3',
+                stocks: List<String>.from(pred['stocks'] ?? []),
+                impactDirection: pred['direction'] ?? 'NEUTRAL',
+                impactDescription: 'Historical prediction record from the accuracy dashboard.',
+                eventDate: pred['timestamp']?.toString().split('T')[0] ?? '',
+                impactDateEst: pred['impact_date_est'] ?? '',
+                probability: ((pred['probability'] ?? 0.5) * 100).toInt(),
+                reason: 'Prediction stored on ${pred['timestamp']}',
+                timestamp: pred['timestamp'] ?? DateTime.now().toIso8601String(),
+                livePrice: pred['live_price'] != null ? double.tryParse(pred['live_price'].toString()) : null,
+                predictedPrice: pred['predicted_price'] != null ? double.tryParse(pred['predicted_price'].toString()) : null,
+                currency: pred['currency'] ?? 'INR',
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AlertDetailsScreen(alert: alert)),
+              );
+            },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             title: Text(
               pred['event'] ?? 'Unknown Event',
