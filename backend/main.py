@@ -418,25 +418,31 @@ async def run_analysis(source="AUTOMATED"):
                         first_symbol = analysis['stocks'][0]
                         analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
 
-                    # Ensure live price is set if missing
+                    # Logic: Robust price fallback for missed stock or impact prices
                     if not analysis.get('live_price') and current_prices:
                         first_symbol = analysis.get('stocks', [None])[0]
                         if first_symbol and first_symbol in current_prices:
                             analysis['live_price'] = current_prices[first_symbol]
-                    
-                    # Logic: Robust price fallback for missed stock or impact prices
+
                     if analysis.get('live_price') and not analysis.get('predicted_price'):
                         try:
                             lp = float(analysis['live_price'])
                             p = float(analysis.get('probability', 60))
                             direction = analysis.get('impact_direction', 'NEUTRAL').lower()
-                            move_factor = (p / 1000.0) 
+                            # Improved volatility factor: 60% probability -> ~1.5% move for Tier-1
+                            tier = analysis.get('tier', 'Tier-3')
+                            base_move = 0.01 if tier == 'Tier-1' else (0.005 if tier == 'Tier-2' else 0.002)
+                            move_factor = base_move * (p / 50.0) 
+                            
                             if direction == 'up':
                                 analysis['predicted_price'] = round(lp * (1 + move_factor), 2)
+                                analysis['upside_pct'] = f"+{(move_factor * 100):.2f}%"
                             elif direction == 'down':
                                 analysis['predicted_price'] = round(lp * (1 - move_factor), 2)
+                                analysis['upside_pct'] = f"-{(move_factor * 100):.2f}%"
+                            
                             if analysis.get('predicted_price'):
-                                print(f"      [FALLBACK] Predicted Price: {analysis['predicted_price']}")
+                                print(f"      [FALLBACK] Predicted Price: {analysis['predicted_price']} ({analysis['upside_pct']})")
                         except: pass
 
                     # Standardize timestamp
@@ -445,6 +451,11 @@ async def run_analysis(source="AUTOMATED"):
                     analysis['timestamp'] = parsed_dt.isoformat() if parsed_dt else get_ist_now().isoformat()
                     # Event date should be the actual publish date, not an AI hallucinated future date.
                     analysis['event_date'] = analysis['timestamp'][:10]
+                    
+                    # Ensure impact_description is populated
+                    if not analysis.get('impact_description'):
+                        analysis['impact_description'] = analysis.get('article_summary', analysis.get('event', h['title']))
+                        
                     analysis['article_summary'] = analysis.get('article_summary', analysis.get('reason', ''))
                     
                     # Sanitize upside_pct if it's a dict representing multiple stocks

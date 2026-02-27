@@ -89,6 +89,9 @@ class PredictionTracker:
             "probability": float(alert_data.get("probability", 50)) / 100.0, 
             "tier": alert_data.get("tier", "Tier-3"),
             "impact_score": alert_data.get("impact_score", 50),
+            "impact_description": alert_data.get("impact_description"),
+            "reason": alert_data.get("reason") or alert_data.get("article_summary"),
+            "impact_type": alert_data.get("impact_type", "Direct"),
             "live_price": alert_data.get("live_price"),
             "predicted_price": alert_data.get("predicted_price"),
             "currency": alert_data.get("currency"),
@@ -174,9 +177,14 @@ class PredictionTracker:
                 
                 try:
                     impact_date = datetime.strptime(impact_date_str, "%Y-%m-%d").date()
-                    today = get_ist_now().date()
+                    now = get_ist_now()
+                    today = now.date()
                     
-                    if impact_date < today:
+                    # Direct Impact Theory (T+0 Support): 
+                    # If current time is after market close (15:45 IST) and impact date is today, verify now.
+                    market_closed = now.hour > 15 or (now.hour == 15 and now.minute >= 45)
+                    
+                    if impact_date < today or (impact_date == today and market_closed):
                         # Time to verify!
                         symbol = pred.get("stocks", [None])[0]
                         if symbol:

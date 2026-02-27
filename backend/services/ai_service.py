@@ -136,10 +136,22 @@ except Exception as e:
 
 def clean_json_string(content: str) -> str:
     if not isinstance(content, str): return ""
-    if '```json' in content: content = content.split('```json')[1]
-    if '```' in content: content = content.split('```')[0]
+    # Extract JSON between triple backticks if present
+    if '```json' in content:
+        content = content.split('```json')[1]
+    elif '```' in content:
+        content = content.split('```')[1]
+    
+    if '```' in content:
+        content = content.split('```')[0]
+        
     content = content.strip()
-    # Remove trailing commas before closing braces/brackets that cause JSONDecodeError
+    
+    # Handle cases where AI returns "Output: { ... }"
+    if content.startswith("Output:"):
+        content = content[len("Output:"):].strip()
+        
+    # Remove trailing commas before closing braces/brackets
     content = re.sub(r',\s*([}\]])', r'\1', content)
     return content
 
@@ -245,10 +257,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
 
     RULES:
     1. Identify the EVENT, COMPANY, SECTOR, and TIER.
-    2. Use JSON format.
-    3. Return "no impact" if not relevant.
+    2. Use JSON format. 
+    3. Return "no impact" only if there is absolutely zero financial relevance.
     4. EMH & AR APPLICATION: If news is strictly "priced in", return probability < 50%.
-    5. PEAD APPLICATION: Use the drift effect to set 'impact_date_est' significantly in the future if the news has long-term implications.
+    5. PEAD APPLICATION: Use the drift effect to set 'impact_date_est' significantly in the future (T+3 to T+10) if the news has long-term implications.
+    6. DIRECT IMPACT PROXIMITY (T+0, T+1, T+2): For news that causes an immediate, direct impact (Tier-1), set 'impact_date_est' to the range [T+0, T+1, T+2] from {current_date} based on when the news broke and when the market will react.
+    7. MANDATORY FIELDS: 'impact_description' (detailed analysis) and 'stocks' (list of symbols) MUST BE POPULATED.
 
     Headline: "{headline_text}"
     """
@@ -375,8 +389,10 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     Analyze the full news content for stock impacts.
     
     1. Tier Calibration: Direct(Tier-1), Sector(Tier-2), Macro(Tier-3).
-    2. Date Estimation: Apply PEAD [Post-Earnings Announcement Drift] to set 'impact_date_est'. For major surprises, set it T+3 to T+10 days for entry/drift.
+    2. Date Estimation: For Direct (Tier-1) impacts, set 'impact_date_est' within T+0 to T+2 range (Current Date: {current_date}). If a long-term drift is expected (Sector/Macro), apply PEAD [Post-Earnings Announcement Drift] to set it T+3 to T+10 days.
     3. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
+    4. ANALYSIS: Provide a granular 'impact_description' explaining the move.
+    5. STOCKS: List specific ticker symbols impacted.
     
     RELEVANT HISTORICAL EXAMPLES:
     {examples_text}

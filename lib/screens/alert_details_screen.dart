@@ -231,8 +231,8 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
     final String title = isCorrect ? 'TARGET ACHIEVED' : 'TARGET MISSED';
     final String impactPriceStr = _formatPrice(alert.predictedPrice, alert.currency, alert.stocks);
     final String subtitle = isCorrect 
-        ? 'Impact price of $impactPriceStr was correctly achieved on the impact date (${alert.impactDateEst}).' 
-        : 'Impact price of $impactPriceStr was not achieved on the impact date (${alert.impactDateEst}).';
+        ? 'Target price of $impactPriceStr was achieved by the impact date (${alert.impactDateEst}).' 
+        : 'Target price of $impactPriceStr was not reached by the impact date (${alert.impactDateEst}).';
 
     return Container(
       width: double.infinity,
@@ -269,8 +269,8 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Actual Move Verified on Date: ${(alert.actualMove! * 100).toStringAsFixed(2)}%',
-                style: GoogleFonts.inter(color: AppTheme.silver, fontSize: 12, fontWeight: FontWeight.bold),
+                'Verified Move: ${(alert.actualMove! * 100).toStringAsFixed(2)}%',
+                style: GoogleFonts.inter(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
           ]
