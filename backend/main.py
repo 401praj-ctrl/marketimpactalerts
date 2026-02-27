@@ -472,16 +472,22 @@ async def run_analysis(source="AUTOMATED"):
                         try:
                             lp = float(analysis['live_price'])
                             p = float(analysis.get('probability', 60))
-                            direction = analysis.get('impact_direction', 'NEUTRAL').lower()
+                            
+                            # Safely get direction from various AI naming conventions
+                            raw_dir = str(analysis.get('impact_direction', analysis.get('direction', analysis.get('impact', 'NEUTRAL')))).lower()
+                            
+                            is_up = any(x in raw_dir for x in ['up', 'positive', 'bullish', 'high', 'increase'])
+                            is_down = any(x in raw_dir for x in ['down', 'negative', 'bearish', 'low', 'decrease'])
+                            
                             # Improved volatility factor: 60% probability -> ~1.5% move for Tier-1
                             tier = analysis.get('tier', 'Tier-3')
                             base_move = 0.01 if tier == 'Tier-1' else (0.005 if tier == 'Tier-2' else 0.002)
                             move_factor = base_move * (p / 50.0) 
                             
-                            if direction == 'up':
+                            if is_up:
                                 analysis['predicted_price'] = round(lp * (1 + move_factor), 2)
                                 analysis['upside_pct'] = f"+{(move_factor * 100):.2f}%"
-                            elif direction == 'down':
+                            elif is_down:
                                 analysis['predicted_price'] = round(lp * (1 - move_factor), 2)
                                 analysis['upside_pct'] = f"-{(move_factor * 100):.2f}%"
                             
