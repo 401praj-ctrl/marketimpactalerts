@@ -396,6 +396,7 @@ async def run_analysis(source="AUTOMATED"):
             
             for i, h in enumerate(new_headlines):
                 try:
+                    await asyncio.sleep(0.1) # Yield to event loop to keep server alive
                     print(f"  [{i+1}/{len(new_headlines)}] Analyzing: {h['title'][:60]}...")
                     
                     # Pass 0: Fast keyword filter

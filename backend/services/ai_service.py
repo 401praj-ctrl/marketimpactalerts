@@ -365,8 +365,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         return data
                     elif response.status_code == 402:
                         depleted_keys.add(api_key)
-                    elif response.status_code == 401 or response.status_code == 429:
-                        print(f"      >> NOTICE: Key {i+1} rate limited or unauthorized on {model} (Status {response.status_code})")
+                    elif response.status_code == 429:
+                        print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
+                        cycle_failed_keys.setdefault(model, set()).add(api_key)
+                        await asyncio.sleep(1) # Cooldown to be polite
+                    elif response.status_code == 401:
+                        print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
                         cycle_failed_keys.setdefault(model, set()).add(api_key)
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code} with Key {i+1}")
@@ -464,8 +468,12 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         return data
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code}")
-                        if response.status_code == 401 or response.status_code == 429:
-                            print(f"      >> NOTICE: Key {i+1} rate limited or unauthorized on {model} (Status {response.status_code})")
+                        if response.status_code == 429:
+                            print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
+                            cycle_failed_keys.setdefault(model, set()).add(api_key)
+                            await asyncio.sleep(1)
+                        if response.status_code == 401:
+                            print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
                             cycle_failed_keys.setdefault(model, set()).add(api_key)
                 except Exception as e: 
                     print(f"      >> [DEEP] EXCEPTION: {str(e)}")
