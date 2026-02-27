@@ -411,41 +411,41 @@ async def analyze_headline(headline_text, regime="NORMAL"):
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        # We try Qwen3-0.6B as it is genuinely open-source and free
-        b_model_name = "Qwen/Qwen3-0.6B"
-        print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez with model {b_model_name}...")
-        for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
-            try:
-                print(f"      >> Trying Bytez Key {b_key_idx+1}...")
-                sdk = Bytez(b_key)
-                model = sdk.model(b_model_name)
-                loop = asyncio.get_event_loop()
-                results = await asyncio.wait_for(
-                    loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
-                    timeout=35.0
-                )
-                
-                # Robust output extraction
-                raw_output = None
-                if results and hasattr(results, 'output') and results.output:
-                    raw_output = results.output
-                elif isinstance(results, dict) and 'output' in results:
-                    raw_output = results['output']
-                elif isinstance(results, str):
-                    raw_output = results
-                
-                if raw_output:
-                    print(f"      >> SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
-                    content = clean_json_string(str(raw_output))
-                    data = json.loads(content)
-                    if 'stocks' in data:
-                        data['stocks'] = validate_stocks(data['stocks'])
-                    return data
-                else:
-                    print(f"      >> NOTICE: Bytez Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
-            except Exception as e:
-                print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
-                continue
+        BYTEZ_MODELS = ["google/gemma-3-4b-it", "openai/gpt-3.5-turbo-1106"]
+        print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez Text-Generation models...")
+        for b_model_name in BYTEZ_MODELS:
+            for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
+                try:
+                    print(f"      >> Trying Bytez Key {b_key_idx+1} on model {b_model_name}...")
+                    sdk = Bytez(b_key)
+                    model = sdk.model(b_model_name)
+                    loop = asyncio.get_event_loop()
+                    results = await asyncio.wait_for(
+                        loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
+                        timeout=35.0
+                    )
+                    
+                    # Robust output extraction
+                    raw_output = None
+                    if results and hasattr(results, 'output') and results.output:
+                        raw_output = results.output
+                    elif isinstance(results, dict) and 'output' in results:
+                        raw_output = results['output']
+                    elif isinstance(results, str):
+                        raw_output = results
+                    
+                    if raw_output:
+                        print(f"      >> SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
+                        content = clean_json_string(str(raw_output))
+                        data = json.loads(content)
+                        if 'stocks' in data:
+                            data['stocks'] = validate_stocks(data['stocks'])
+                        return data
+                    else:
+                        print(f"      >> NOTICE: Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
+                except Exception as e:
+                    print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
+                    continue
 
     return {"impact": "no impact"}
 
@@ -525,39 +525,40 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     
     # --- FALLBACK TO BYTEZ for Deep Analysis ---
     if BYTEZ_API_KEYS:
-        b_model_name = "Qwen/Qwen3-0.6B"
-        print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez with model {b_model_name}...")
-        for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
-            try:
-                print(f"      >> [DEEP] Trying Bytez Key {b_key_idx+1}...")
-                sdk = Bytez(b_key)
-                model = sdk.model(b_model_name)
-                loop = asyncio.get_event_loop()
-                results = await asyncio.wait_for(
-                    loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
-                    timeout=50.0
-                )
-                
-                raw_output = None
-                if results and hasattr(results, 'output') and results.output:
-                    raw_output = results.output
-                elif isinstance(results, dict) and 'output' in results:
-                    raw_output = results['output']
-                elif isinstance(results, str):
-                    raw_output = results
-
-                if raw_output:
-                    print(f"      >> [DEEP] SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
-                    content = clean_json_string(str(raw_output))
-                    data = json.loads(content)
-                    if 'stocks' in data:
-                        data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
-                    return data
-                else:
-                    print(f"      >> [DEEP-NOTICE] Bytez Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
-            except Exception as e:
-                print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
-                continue
+        BYTEZ_MODELS = ["google/gemma-3-4b-it", "openai/gpt-3.5-turbo-1106"]
+        print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez Text-Generation models...")
+        for b_model_name in BYTEZ_MODELS:
+            for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
+                try:
+                    print(f"      >> [DEEP] Trying Bytez Key {b_key_idx+1} on model {b_model_name}...")
+                    sdk = Bytez(b_key)
+                    model = sdk.model(b_model_name)
+                    loop = asyncio.get_event_loop()
+                    results = await asyncio.wait_for(
+                        loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
+                        timeout=50.0
+                    )
+                    
+                    raw_output = None
+                    if results and hasattr(results, 'output') and results.output:
+                        raw_output = results.output
+                    elif isinstance(results, dict) and 'output' in results:
+                        raw_output = results['output']
+                    elif isinstance(results, str):
+                        raw_output = results
+    
+                    if raw_output:
+                        print(f"      >> [DEEP] SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
+                        content = clean_json_string(str(raw_output))
+                        data = json.loads(content)
+                        if 'stocks' in data:
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                        return data
+                    else:
+                        print(f"      >> [DEEP-NOTICE] Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
+                except Exception as e:
+                    print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
+                    continue
 
     return None
 
