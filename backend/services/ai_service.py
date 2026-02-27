@@ -136,14 +136,13 @@ except Exception as e:
 
 def clean_json_string(content: str) -> str:
     if not isinstance(content, str): return ""
-    # Extract JSON between triple backticks if present
     if '```json' in content:
-        content = content.split('```json')[1]
+        content = content.split('```json', 1)[-1]
     elif '```' in content:
-        content = content.split('```')[1]
+        content = content.split('```', 1)[-1]
     
     if '```' in content:
-        content = content.split('```')[0]
+        content = content.split('```', 1)[0]
         
     content = content.strip()
     
@@ -173,14 +172,19 @@ def clean_json_string(content: str) -> str:
         
     # Last resort: Try to find a JSON-like object string using regex
     try:
-        match = re.search(r'\{.*\}', content, re.DOTALL)
-        if match:
-            extracted = match.group(0)
-            # Replace single quotes with double quotes as a rough fix
-            extracted = extracted.replace("'", '"')
-            # Verify if this rough fix made it valid JSON
-            json.loads(extracted)
-            return extracted
+        # Find the first { and the last }
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            extracted = content[start_idx:end_idx+1]
+            try:
+                json.loads(extracted)
+                return extracted
+            except json.JSONDecodeError:
+                # Replace single quotes with double quotes as a rough fix
+                extracted = extracted.replace("'", '"')
+                json.loads(extracted)
+                return extracted
     except:
         pass
 
