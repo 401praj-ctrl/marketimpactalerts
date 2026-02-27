@@ -450,6 +450,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     elif isinstance(results, str):
                         raw_output = results
                     
+                    # Handle Bytez/OpenAI chat completion dictionary format
+                    if isinstance(raw_output, dict) and 'content' in raw_output:
+                        raw_output = raw_output['content']
+                    elif isinstance(raw_output, dict) and 'message' in raw_output and 'content' in raw_output['message']:
+                        raw_output = raw_output['message']['content']
+                    
                     if raw_output:
                         print(f"      >> SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
                         print(f"      >> RAW OUTPUT: {repr(raw_output)[:300]}")
@@ -588,6 +594,12 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         raw_output = results['output']
                     elif isinstance(results, str):
                         raw_output = results
+                    
+                    # Handle Bytez/OpenAI chat completion dictionary format
+                    if isinstance(raw_output, dict) and 'content' in raw_output:
+                        raw_output = raw_output['content']
+                    elif isinstance(raw_output, dict) and 'message' in raw_output and 'content' in raw_output['message']:
+                        raw_output = raw_output['message']['content']
     
                     if raw_output:
                         print(f"      >> [DEEP] SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
