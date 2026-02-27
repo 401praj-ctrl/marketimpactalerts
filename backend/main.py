@@ -179,10 +179,11 @@ def get_ist_now():
 def parse_published_date(date_str):
     if not date_str: return None
     
-    # Pre-processing: Translate French date parts to English
-    # This handles errors like "ven., 27 févr. 2026"
+    # Pre-processing: Translate foreign date parts to English
+    # This handles errors like "ven., 27 févr. 2026" or "Cum, 27 Şub 2026"
     import re
-    french_to_english = {
+    foreign_to_english = {
+        # French
         'janv': 'Jan', 'févr': 'Feb', 'mars': 'Mar', 'avr': 'Apr',
         'mai': 'May', 'juin': 'Jun', 'juill': 'Jul', 'août': 'Aug',
         'sept': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'déc': 'Dec',
@@ -193,13 +194,25 @@ def parse_published_date(date_str):
         'ven': 'Fri', 'sam': 'Sat', 'dim': 'Sun',
         'lundi': 'Mon', 'mardi': 'Tue', 'mercredi': 'Wed',
         'jeudi': 'Thu', 'vendredi': 'Fri', 'samedi': 'Sat',
-        'dimanche': 'Sun'
+        'dimanche': 'Sun',
+        
+        # Turkish
+        'oca': 'Jan', 'şub': 'Feb', 'mar': 'Mar', 'nis': 'Apr',
+        'may': 'May', 'haz': 'Jun', 'tem': 'Jul', 'ağu': 'Aug',
+        'eyl': 'Sep', 'eki': 'Oct', 'kas': 'Nov', 'ara': 'Dec',
+        'ocak': 'Jan', 'şubat': 'Feb', 'mart': 'Mar', 'nisan': 'Apr',
+        'mayıs': 'May', 'haziran': 'Jun', 'temmuz': 'Jul', 'ağustos': 'Aug',
+        'eylül': 'Sep', 'ekim': 'Oct', 'kasım': 'Nov', 'aralık': 'Dec',
+        'pzt': 'Mon', 'sal': 'Tue', 'çar': 'Wed', 'per': 'Thu',
+        'cum': 'Fri', 'cmt': 'Sat', 'paz': 'Sun',
+        'pazartesi': 'Mon', 'salı': 'Tue', 'çarşamba': 'Wed',
+        'perşembe': 'Thu', 'cuma': 'Fri', 'cumartesi': 'Sat', 'pazar': 'Sun'
     }
     
     clean_date_str = date_str
-    if any(fr in date_str.lower() for fr in ['févr', 'janv', 'août', 'déc', 'ven.', 'lun.', 'mar.', 'mer.', 'jeu.', 'sam.', 'dim.']):
-        for fr, en in french_to_english.items():
-            pattern = re.compile(rf'\b{fr}\b\.?', re.IGNORECASE)
+    if any(foreign in date_str.lower() for foreign in foreign_to_english.keys()):
+        for foreign, en in foreign_to_english.items():
+            pattern = re.compile(rf'\b{foreign}\b\.?', re.IGNORECASE)
             clean_date_str = pattern.sub(en, clean_date_str)
 
     try:
