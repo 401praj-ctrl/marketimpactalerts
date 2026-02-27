@@ -234,6 +234,7 @@ def get_relevant_examples(headline, limit=3, regime="NORMAL"):
 
 # Track keys that are out of credits to avoid retrying them in the same session
 depleted_keys = set()
+depleted_bytez_keys = set()
 # Track keys that failed in the current analysis cycle (per model)
 cycle_failed_keys = {} # Model name -> set of failed keys
 
@@ -424,13 +425,15 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
         BYTEZ_MODELS = [
+            "Qwen/Qwen2.5-1.5B-Instruct",
             "mistralai/Mistral-7B-Instruct-v0.2", 
-            "HuggingFaceH4/zephyr-7b-beta", 
-            "Qwen/Qwen2.5-1.5B-Instruct"
+            "HuggingFaceH4/zephyr-7b-beta"
         ]
         print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez Text-Generation models...")
         for b_model_name in BYTEZ_MODELS:
             for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
+                if b_key in depleted_bytez_keys:
+                    continue
                 try:
                     print(f"      >> Trying Bytez Key {b_key_idx+1} on model {b_model_name}...")
                     sdk = Bytez(b_key)
@@ -467,7 +470,11 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     else:
                         print(f"      >> NOTICE: Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
                 except Exception as e:
-                    print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
+                    error_msg = str(e)
+                    print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {error_msg}")
+                    if "min balance" in error_msg.lower() or "0.1 credits" in error_msg.lower():
+                        print(f"      >> BLACKLISTING Bytez Key {b_key_idx+1} (Depleted/Insufficient Balance)")
+                        depleted_bytez_keys.add(b_key)
                     continue
 
     # --- FALLBACK TO GEMINI ---
@@ -570,13 +577,15 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     # --- FALLBACK TO BYTEZ for Deep Analysis ---
     if BYTEZ_API_KEYS:
         BYTEZ_MODELS = [
+            "Qwen/Qwen2.5-1.5B-Instruct",
             "mistralai/Mistral-7B-Instruct-v0.2", 
-            "HuggingFaceH4/zephyr-7b-beta", 
-            "Qwen/Qwen2.5-1.5B-Instruct"
+            "HuggingFaceH4/zephyr-7b-beta"
         ]
         print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez Text-Generation models...")
         for b_model_name in BYTEZ_MODELS:
             for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
+                if b_key in depleted_bytez_keys:
+                    continue
                 try:
                     print(f"      >> [DEEP] Trying Bytez Key {b_key_idx+1} on model {b_model_name}...")
                     sdk = Bytez(b_key)
@@ -612,7 +621,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     else:
                         print(f"      >> [DEEP-NOTICE] Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
                 except Exception as e:
-                    print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
+                    error_msg = str(e)
+                    print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {error_msg}")
+                    if "min balance" in error_msg.lower() or "0.1 credits" in error_msg.lower():
+                        print(f"      >> [DEEP] BLACKLISTING Bytez Key {b_key_idx+1} (Depleted/Insufficient Balance)")
+                        depleted_bytez_keys.add(b_key)
                     continue
 
     # --- FALLBACK TO GEMINI for Deep Analysis ---
