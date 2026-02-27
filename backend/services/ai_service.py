@@ -447,6 +447,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     
                     if raw_output:
                         print(f"      >> SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
+                        print(f"      >> RAW OUTPUT: {repr(raw_output)[:300]}")
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
@@ -459,10 +460,11 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     continue
 
     # --- FALLBACK TO GEMINI ---
-    if GEMINI_API_KEY:
+    gemini_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+    if gemini_key:
         try:
             print("  --> [FALLBACK] OpenRouter AND Bytez failed. Trying Google Gemini...")
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=gemini_key)
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt
@@ -584,6 +586,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     
                     if raw_output:
                         print(f"      >> [DEEP] SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
+                        print(f"      >> [DEEP] RAW OUTPUT: {repr(raw_output)[:300]}")
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
@@ -596,10 +599,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     continue
 
     # --- FALLBACK TO GEMINI for Deep Analysis ---
-    if GEMINI_API_KEY:
+    gemini_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+    if gemini_key:
         try:
             print("      >> [DEEP-FALLBACK] OpenRouter AND Bytez failed. Trying Google Gemini...")
-            client = genai.Client(api_key=GEMINI_API_KEY)
+            client = genai.Client(api_key=gemini_key)
             response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt
