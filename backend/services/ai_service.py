@@ -23,7 +23,9 @@ COMPANY_SYMBOLS = {}
 GLOBAL_SYMBOLS = {
     "DELL", "NVDA", "AAPL", "MSFT", "GOOGL", "GOOG", "TSLA", "META", "AMZN", 
     "NFLX", "INTC", "AMD", "AVGO", "CSCO", "ORCL", "TSM", "ARM", "ASML", 
-    "QCOM", "MU", "SMCI", "SNOW", "PLTR", "WDC", "STX", "HPQ"
+    "QCOM", "MU", "SMCI", "SNOW", "PLTR", "WDC", "STX", "HPQ",
+    "WBD", "PARA", "DIS", "AMC", "CMG", "MCD", "SBUX", "COST", "WMT", "TGT",
+    "JPM", "GS", "MS", "BAC", "C", "V", "MA", "AXP"
 }
 try:
     names_path = os.path.join(BASE_DIR, "data", "company_names.json")
@@ -269,7 +271,9 @@ MACRO_SECTOR_MAPPING = {
     "Agriculture": ["NSE:COROMANDEL", "NSE:UPL"],
     "Macro": ["NSE:RELIANCE", "NSE:HDFCBANK"], # Market proxies
     "Tech": ["NSE:TCS", "NSE:INFY", "NSE:WIPRO"],
-    "Artificial Intelligence": ["NSE:TCS", "NSE:INFY", "NSE:HCLTECH"]
+    "Artificial Intelligence": ["NSE:TCS", "NSE:INFY", "NSE:HCLTECH"],
+    "Entertainment": ["NSE:PVRINOX", "NSE:ZEEL", "NSE:SUNTV"],
+    "Media": ["NSE:ZEEL", "NSE:SUNTV", "NSE:NETWORK18"]
 }
 
 def validate_stocks(stocks_list, sector=None):
