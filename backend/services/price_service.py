@@ -107,11 +107,18 @@ class PriceService:
             if datetime.now() - self.last_auth_time < timedelta(hours=10):
                 return True
 
+        # Throttle auth attempts to prevent TOTP duplicate token rate-limits
+        if hasattr(self, 'last_auth_attempt') and self.last_auth_attempt:
+            if datetime.now() - self.last_auth_attempt < timedelta(seconds=35):
+                print(f"DEBUG: Angel auth throttled to prevent spam. Waiting for next TOTP window.")
+                return False
+
         if not all([self.api_key, self.user_id, self.password, self.totp_key]):
             print("ERROR: Missing Angel One credentials.")
             return False
 
         print(f"DEBUG: Authenticating with Angel One for User: {self.user_id}...")
+        self.last_auth_attempt = datetime.now()
         try:
             self.smart_api = SmartConnect(api_key=self.api_key)
             totp = pyotp.TOTP(self.totp_key.replace(" ", "")).now()
