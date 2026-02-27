@@ -411,7 +411,11 @@ async def analyze_headline(headline_text, regime="NORMAL"):
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        BYTEZ_MODELS = ["google/gemma-3-4b-it", "openai/gpt-3.5-turbo-1106"]
+        BYTEZ_MODELS = [
+            "mistralai/Mistral-7B-Instruct-v0.2", 
+            "HuggingFaceH4/zephyr-7b-beta", 
+            "Qwen/Qwen2.5-1.5B-Instruct"
+        ]
         print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez Text-Generation models...")
         for b_model_name in BYTEZ_MODELS:
             for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
@@ -525,7 +529,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     
     # --- FALLBACK TO BYTEZ for Deep Analysis ---
     if BYTEZ_API_KEYS:
-        BYTEZ_MODELS = ["google/gemma-3-4b-it", "openai/gpt-3.5-turbo-1106"]
+        BYTEZ_MODELS = [
+            "mistralai/Mistral-7B-Instruct-v0.2", 
+            "HuggingFaceH4/zephyr-7b-beta", 
+            "Qwen/Qwen2.5-1.5B-Instruct"
+        ]
         print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez Text-Generation models...")
         for b_model_name in BYTEZ_MODELS:
             for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
