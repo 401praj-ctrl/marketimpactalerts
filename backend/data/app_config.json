@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+30",
+    "latest_version": "1.2.14+31",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🎯 AI DATE INTELLIGENCE v1.2.14+30:\n• Theory-Driven Predictions: AI now uses EMH and PEAD frameworks for hyper-accurate impact date estimation.\n• Step-by-Step Reasoning: View the exact mathematical logic behind every price and date prediction in the alert details.\n• Expanded Intelligence: Integrated ~6,000 historical training examples for better pattern matching."
+    "release_notes": "🚀 ALPHA V1.2.14+31: DIRECT IMPACT FIXES\n• Refined Direct Impact Theory: AI improved for T+0, T+1, and T+2 windows for high-intensity news.\n• Real-Time Price Backfill: Today's alerts now sync with live market prices immediately.\n• Accuracy Dashboard Fixes: Resolved empty analysis and stock symbol display errors.\n• Angel One Stock Split: Fully verified and updated post-split pricing logic."
 }
