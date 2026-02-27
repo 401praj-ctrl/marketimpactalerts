@@ -178,18 +178,42 @@ def get_ist_now():
 
 def parse_published_date(date_str):
     if not date_str: return None
+    
+    # Pre-processing: Translate French date parts to English
+    # This handles errors like "ven., 27 févr. 2026"
+    import re
+    french_to_english = {
+        'janv': 'Jan', 'févr': 'Feb', 'mars': 'Mar', 'avr': 'Apr',
+        'mai': 'May', 'juin': 'Jun', 'juill': 'Jul', 'août': 'Aug',
+        'sept': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'déc': 'Dec',
+        'janvier': 'Jan', 'février': 'Feb', 'avril': 'Apr',
+        'juillet': 'Jul', 'septembre': 'Sep', 'octobre': 'Oct',
+        'novembre': 'Nov', 'décembre': 'Dec',
+        'lun': 'Mon', 'mar': 'Tue', 'mer': 'Wed', 'jeu': 'Thu',
+        'ven': 'Fri', 'sam': 'Sat', 'dim': 'Sun',
+        'lundi': 'Mon', 'mardi': 'Tue', 'mercredi': 'Wed',
+        'jeudi': 'Thu', 'vendredi': 'Fri', 'samedi': 'Sat',
+        'dimanche': 'Sun'
+    }
+    
+    clean_date_str = date_str
+    if any(fr in date_str.lower() for fr in ['févr', 'janv', 'août', 'déc', 'ven.', 'lun.', 'mar.', 'mer.', 'jeu.', 'sam.', 'dim.']):
+        for fr, en in french_to_english.items():
+            pattern = re.compile(rf'\b{fr}\b\.?', re.IGNORECASE)
+            clean_date_str = pattern.sub(en, clean_date_str)
+
     try:
         # First attempt basic ISO parsing if it's strictly formatted
-        if "T" in date_str:
+        if "T" in clean_date_str:
             try:
                 # Handle cases like 2026-02-21T12:34:56.123Z
-                clean_date = date_str.replace("Z", "+00:00")
-                return datetime.datetime.fromisoformat(clean_date).replace(tzinfo=None)
+                iso_clean = clean_date_str.replace("Z", "+00:00")
+                return datetime.datetime.fromisoformat(iso_clean).replace(tzinfo=None)
             except: pass
 
         # Use dateutil.parser for maximum robustness (handles "Tue, 21 Feb 2026 ...")
         from dateutil import parser as d_parser
-        dt = d_parser.parse(date_str)
+        dt = d_parser.parse(clean_date_str)
         
         # ENSURE NAIVE: Strip timezone before any comparison or return
         if dt.tzinfo:

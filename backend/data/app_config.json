@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+31",
+    "latest_version": "1.2.14+32",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🚀 ALPHA V1.2.14+31: DIRECT IMPACT FIXES\n• Refined Direct Impact Theory: AI improved for T+0, T+1, and T+2 windows for high-intensity news.\n• Real-Time Price Backfill: Today's alerts now sync with live market prices immediately.\n• Accuracy Dashboard Fixes: Resolved empty analysis and stock symbol display errors.\n• Angel One Stock Split: Fully verified and updated post-split pricing logic."
+    "release_notes": "🛠️ ALPHA V1.2.14+32: MULTILINGUAL DATA FIX\n• Global Compatibility: Resolved \"Unknown string format\" errors for French and other multilingual date formats in RSS feeds.\n• Stable Analysis: Improved reliability of the news analysis pipeline for non-English sources.\n• Plus all v1.2.14+31 features: Direct Impact Theory fixes and real-time price backfills."
 }
