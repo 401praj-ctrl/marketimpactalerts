@@ -436,6 +436,12 @@ async def run_analysis(source="AUTOMATED"):
                     
                     if deep_report:
                         analysis.update(deep_report)
+                        # Re-fetch prices if stocks were added during deep analysis
+                        for symbol in analysis.get('stocks', []):
+                            if symbol not in current_prices:
+                                price = await price_service.get_live_price(symbol)
+                                if price:
+                                    current_prices[symbol] = price
                     
                     # Ensure currency is set based on the first stock symbol
                     if not analysis.get('currency') and analysis.get('stocks'):

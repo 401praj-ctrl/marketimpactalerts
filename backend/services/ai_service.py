@@ -205,12 +205,28 @@ def start_new_cycle():
     print("  DEBUG: Starting new analysis cycle - Resetting per-cycle API key blacklists.")
     cycle_failed_keys = {}
 
-def validate_stocks(stocks_list):
+# Sector to Representative Tickers mapping for Macro news
+MACRO_SECTOR_MAPPING = {
+    "Banking": ["NSE:SBIN", "NSE:HDFCBANK"],
+    "IT Services": ["NSE:TCS", "NSE:INFY"],
+    "Pharma": ["NSE:SUNPHARMA", "NSE:DRREDDY"],
+    "Auto": ["NSE:TATAMOTORS", "NSE:MARUTI"],
+    "Energy": ["NSE:RELIANCE", "NSE:ONGC"],
+    "Consumer": ["NSE:HINDUNILVR", "NSE:ITC"],
+    "Metal": ["NSE:TATASTEEL", "NSE:JINDALSTEL"],
+    "Real Estate": ["NSE:DLF", "NSE:GODREJPROP"],
+    "Infrastructure": ["NSE:LT", "NSE:ADANIPORTS"],
+    "Macro": ["NSE:RELIANCE", "NSE:HDFCBANK"] # Market proxies
+}
+
+def validate_stocks(stocks_list, sector=None):
     """
     Strips exchange prefixes and validates symbols against the master list.
     Also handles common NSE symbols that might be missing the -EQ suffix.
+    If stocks_list is empty, attempts to provide sector-based proxies.
     """
-    if not isinstance(stocks_list, list): return []
+    if not isinstance(stocks_list, list): stocks_list = []
+    
     clean_stocks = []
     for stock in stocks_list:
         s = stock.replace("NSE:", "").replace("BSE:", "").strip()
@@ -221,6 +237,14 @@ def validate_stocks(stocks_list):
             clean_stocks.append(f"{s}-EQ")
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
+            
+    # FALLBACK: If list is empty after validation, use sector mapping
+    if not clean_stocks and sector:
+        for cat, proxies in MACRO_SECTOR_MAPPING.items():
+            if cat.lower() in str(sector).lower():
+                print(f"      >> [FALLBACK] Empty stocks for {sector}. Using proxies: {proxies}")
+                return proxies
+                
     return list(set(clean_stocks))
 
 async def analyze_headline(headline_text, regime="NORMAL"):
@@ -261,8 +285,11 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     3. Return "no impact" only if there is absolutely zero financial relevance.
     4. EMH & AR APPLICATION: If news is strictly "priced in", return probability < 50%.
     5. PEAD APPLICATION: Use the drift effect to set 'impact_date_est' significantly in the future (T+3 to T+10) if the news has long-term implications.
-    6. DIRECT IMPACT PROXIMITY (T+0, T+1, T+2): For news that causes an immediate, direct impact (Tier-1), set 'impact_date_est' to the range [T+0, T+1, T+2] from {current_date} based on when the news broke and when the market will react.
-    7. MANDATORY FIELDS: 'impact_description' (detailed analysis) and 'stocks' (list of symbols) MUST BE POPULATED.
+    8. STOCK IDENTIFICATION (CRITICAL): You MUST provide at least 1-3 valid NSE/BSE ticker symbols for EVERY alert. 
+       - Tier-1 (Direct): Use the specific company ticker (e.g., \"NSE:RELIANCE\").
+       - Tier-2 (Sector): Use 2-3 major companies in that sector (e.g., \"NSE:TCS\", \"NSE:INFY\" for IT).
+       - Tier-3 (Macro): Use market-wide proxies or the most affected sector leaders (e.g., \"NSE:SBIN\" for RBI news).
+       - NEVER return an empty 'stocks' list if the news has any financial impact.
 
     Headline: "{headline_text}"
     """
@@ -392,7 +419,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     2. Date Estimation: For Direct (Tier-1) impacts, set 'impact_date_est' within T+0 to T+2 range (Current Date: {current_date}). If a long-term drift is expected (Sector/Macro), apply PEAD [Post-Earnings Announcement Drift] to set it T+3 to T+10 days.
     3. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
     4. ANALYSIS: Provide a granular 'impact_description' explaining the move.
-    5. STOCKS: List specific ticker symbols impacted.
+    5. STOCKS (MANDATORY): List specific ticker symbols impacted. NEVER leave this empty. If it's macro news, list the top 2-3 companies in the most affected sector (e.g., \"NSE:SBIN\", \"NSE:HDFCBANK\" for banking macro news).
     
     RELEVANT HISTORICAL EXAMPLES:
     {examples_text}
@@ -428,7 +455,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
 
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'])
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
                         return data
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code}")

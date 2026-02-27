@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+32",
+    "latest_version": "1.2.14+33",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "🛠️ ALPHA V1.2.14+32: MULTILINGUAL DATA FIX\n• Global Compatibility: Resolved \"Unknown string format\" errors for French and other multilingual date formats in RSS feeds.\n• Stable Analysis: Improved reliability of the news analysis pipeline for non-English sources.\n• Plus all v1.2.14+31 features: Direct Impact Theory fixes and real-time price backfills."
+    "release_notes": "💎 ALPHA V1.2.14+33: GUARANTEED SYMBOL DATA\n• Stock identification fix: AI now identifies representative ticker symbols for ALL tiers (Direct, Sector, and Macro).\n• End-to-End Prices: Live price and impact price will now always be populated, even for macroeconomic news.\n• Sectoral Fallbacks: Integrated proxy mapping for major Indian sectors (Banking, IT, Auto, etc.).\n• Date Parsing Stability: Inherited v1.2.14+32 multilingual date fixes."
 }
