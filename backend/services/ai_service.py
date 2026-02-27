@@ -381,10 +381,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
         b_model_name = "google/gemma-3-12b-it"
+        print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez with model {b_model_name}...")
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
             # For Bytez, we skip if the key is in the general cycle_failed_keys for the bytez model
             if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
             try:
+                print(f"      >> Trying Bytez Key {b_key_idx+1}...")
                 sdk = Bytez(b_key)
                 model = sdk.model(b_model_name)
                 loop = asyncio.get_event_loop()
@@ -393,6 +395,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     timeout=35.0
                 )
                 if results and hasattr(results, 'output') and results.output:
+                    print(f"      >> SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
                     content = clean_json_string(str(results.output))
                     data = json.loads(content)
                     if 'stocks' in data:
