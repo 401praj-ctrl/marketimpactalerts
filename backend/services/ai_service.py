@@ -232,8 +232,10 @@ def get_relevant_examples(headline, limit=3, regime="NORMAL"):
     scored_examples.sort(key=lambda x: x[0], reverse=True)
     return [ex for score, ex in scored_examples[:limit]]
 
-# Track keys that are out of credits to avoid retrying them in the same session
+# Track keys that are out of credits or rate-limited to avoid retrying them in the same session
 depleted_keys = set()
+rate_limited_keys = set()
+unauthorized_keys = set()
 depleted_bytez_keys = set()
 # Track keys that failed in the current analysis cycle (per model)
 cycle_failed_keys = {} # Model name -> set of failed keys
@@ -357,7 +359,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                 if not api_key: continue
                 # Skip keys that are out of credits OR failed in this specific cycle
                 is_free_model = model.endswith(":free")
-                if api_key in depleted_keys and not is_free_model:
+                if (api_key in depleted_keys and not is_free_model) or api_key in rate_limited_keys or api_key in unauthorized_keys:
                     continue
                 if api_key in cycle_failed_keys.get(model, set()):
                     continue
@@ -408,14 +410,14 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                             
                         return data
                     elif response.status_code == 402:
+                        print(f"      >> BLACKLISTING Key {i+1} (Depleted/Status 402)")
                         depleted_keys.add(api_key)
                     elif response.status_code == 429:
-                        print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
-                        # REMOVED: cycle_failed_keys.setdefault(model, set()).add(api_key)
-                        await asyncio.sleep(2) # Cooldown to be polite
+                        print(f"      >> BLACKLISTING Key {i+1} (Rate Limited/Status 429)")
+                        rate_limited_keys.add(api_key)
                     elif response.status_code == 401:
-                        print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
-                        cycle_failed_keys.setdefault(model, set()).add(api_key)
+                        print(f"      >> BLACKLISTING Key {i+1} (Unauthorized/Status 401)")
+                        unauthorized_keys.add(api_key)
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code} with Key {i+1}")
                 except Exception as e:
@@ -536,7 +538,8 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     async with httpx.AsyncClient(timeout=35.0) as client:
         for model in MODELS:
             for i, api_key in enumerate(API_KEYS):
-                if api_key in depleted_keys or api_key in cycle_failed_keys.get(model, set()): continue
+                if api_key in depleted_keys or api_key in rate_limited_keys or api_key in unauthorized_keys or api_key in cycle_failed_keys.get(model, set()):
+                    continue
                 try:
                     display_key = f"{api_key[:6]}...{api_key[-4:]}"
                     print(f"      >> [DEEP] Trying Key {i+1} ({display_key}) on model {model}")
@@ -562,14 +565,16 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                             data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
                         return data
                     else:
-                        print(f"      >> WARNING: Model {model} returned status {response.status_code}")
-                        if response.status_code == 429:
-                            print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
-                            # REMOVED: cycle_failed_keys.setdefault(model, set()).add(api_key)
-                            await asyncio.sleep(2)
-                        if response.status_code == 401:
-                            print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
-                            cycle_failed_keys.setdefault(model, set()).add(api_key)
+                        print(f"      >> [DEEP] WARNING: Model {model} returned status {response.status_code}")
+                        if response.status_code == 402:
+                            print(f"      >> [DEEP] BLACKLISTING Key {i+1} (Depleted/Status 402)")
+                            depleted_keys.add(api_key)
+                        elif response.status_code == 429:
+                            print(f"      >> [DEEP] BLACKLISTING Key {i+1} (Rate Limited/Status 429)")
+                            rate_limited_keys.add(api_key)
+                        elif response.status_code == 401:
+                            print(f"      >> [DEEP] BLACKLISTING Key {i+1} (Unauthorized/Status 401)")
+                            unauthorized_keys.add(api_key)
                 except Exception as e: 
                     print(f"      >> [DEEP] EXCEPTION: {str(e)}")
                     continue
