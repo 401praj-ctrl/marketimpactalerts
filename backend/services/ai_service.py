@@ -216,6 +216,11 @@ MACRO_SECTOR_MAPPING = {
     "Metal": ["NSE:TATASTEEL", "NSE:JINDALSTEL"],
     "Real Estate": ["NSE:DLF", "NSE:GODREJPROP"],
     "Infrastructure": ["NSE:LT", "NSE:ADANIPORTS"],
+    "Insurance": ["NSE:HDFCLIFE", "NSE:LICHSGFIN"],
+    "Telecom": ["NSE:BHARTIARTL", "NSE:IDEA"],
+    "FMCG": ["NSE:HINDUNILVR", "NSE:ITC"],
+    "Retail": ["NSE:TRENT", "NSE:RELIANCE"],
+    "Agriculture": ["NSE:COROMANDEL", "NSE:UPL"],
     "Macro": ["NSE:RELIANCE", "NSE:HDFCBANK"] # Market proxies
 }
 

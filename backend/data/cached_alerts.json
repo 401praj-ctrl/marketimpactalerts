@@ -1,5 +1,84 @@
 [
   {
+    "event": "Angel One Stock Split & NCD Allotment",
+    "company": "Angel One Limited",
+    "sector": "Financial Services",
+    "stocks": [
+      "NSE:ANGELONE",
+      "BSE:ANGELONE"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Angel One shares are in focus today as the company executes its stock split and announces NCD allotment, which boosts its borrowing capacity for margin funding. The 90% price technical adjustment is due to the split, but sentiment remains positive.",
+    "event_date": "2026-02-27",
+    "impact_date_est": "2026-02-27",
+    "probability": 85,
+    "tier": "Tier-1",
+    "impact_score": 0.85,
+    "reason": "Direct impact from stock split execution and capital raising via NCDs.",
+    "impact": "positive",
+    "strength": "high",
+    "confidence": 90,
+    "impact_type": "Direct",
+    "id": "https://www.thehindubusinessline.com/markets/stock-markets/angel-one-shares-slip-on-stock-split-day-ncd-allotment-adds-to-borrowing-base/article70678492.ece",
+    "link": "https://www.thehindubusinessline.com/markets/stock-markets/angel-one-shares-slip-on-stock-split-day-ncd-allotment-adds-to-borrowing-base/article70678492.ece",
+    "published": "2026-02-27T11:01:01.248111",
+    "timestamp": "2026-02-27T11:01:01.248111",
+    "live_price": 233.2,
+    "predicted_price": 236.7,
+    "currency": "INR",
+    "upside_pct": "+1.50%"
+  },
+  {
+    "event": "Bharat Biotech $500M IPO Plans",
+    "company": "Bharat Biotech (Pre-IPO)",
+    "sector": "Pharma & Healthcare",
+    "stocks": [
+      "NSE:DRREDDY",
+      "NSE:CIPLA",
+      "NSE:SUNPHARMA"
+    ],
+    "impact_direction": "UP",
+    "impact_description": "Vaccine maker Bharat Biotech is mulling a $500 million IPO. While the company is not listed, the news brings sector-wide attention to Indian pharma and vaccine development capabilities, potentially lifting peers.",
+    "event_date": "2026-02-27",
+    "impact_date_est": "2026-03-05",
+    "probability": 65,
+    "tier": "Tier-2",
+    "impact_score": 0.65,
+    "reason": "Sentiment boost for healthcare sector from major IPO news.",
+    "impact": "positive",
+    "strength": "medium",
+    "confidence": 75,
+    "impact_type": "Indirect",
+    "id": "https://news.google.com/rss/articles/CBMi",
+    "link": "https://news.google.com/rss/articles/CBMi",
+    "published": "2026-02-27T11:01:01.248111",
+    "timestamp": "2026-02-27T11:01:01.248111",
+    "live_price": 1286.3,
+    "predicted_price": 7545.0,
+    "currency": "INR",
+    "upside_pct": "+0.60%"
+  },
+  {
+    "impact": "high",
+    "probability": 95,
+    "event": "TEST: MASSIVE STOCK RALLY EXPECTED",
+    "company": "TestCorp",
+    "stocks": [
+      "NSE:RELIANCE"
+    ],
+    "impact_direction": "UP",
+    "tier": "Tier-1",
+    "id": "https://hackersmacker.org",
+    "link": "https://hackersmacker.org",
+    "published": "2026-02-26T23:26:02.859923",
+    "article_summary": "Highly positive news for TestCorp.",
+    "live_price": 2500.0,
+    "predicted_price": 2750.0,
+    "currency": "INR",
+    "timestamp": "2026-02-26T23:26:02.859923",
+    "event_date": "2026-02-26"
+  },
+  {
     "event": "HSBC India profit up 11%",
     "company": "HSBC",
     "sector": "Banking",
@@ -24,7 +103,9 @@
     "live_price": 87.88,
     "currency": "USD",
     "timestamp": "2026-02-25T19:36:36",
-    "article_summary": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector."
+    "article_summary": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector.",
+    "predicted_price": 88.54,
+    "upside_pct": "+0.75%"
   },
   {
     "event": "IRFC OFS Subscription Failure",
@@ -52,7 +133,9 @@
     "live_price": 104.55,
     "currency": "INR",
     "timestamp": "2026-02-25T19:37:42",
-    "article_summary": "Lower investor demand for IRFC's OFS suggests potential concerns about its financial health or valuation. The government's decision to not utilize the green shoe option further reinforces this negative sentiment."
+    "article_summary": "Lower investor demand for IRFC's OFS suggests potential concerns about its financial health or valuation. The government's decision to not utilize the green shoe option further reinforces this negative sentiment.",
+    "predicted_price": 103.92,
+    "upside_pct": "-0.60%"
   },
   {
     "event": "Zerodha's Kamath advocates for loan against shares facility",
@@ -82,7 +165,9 @@
     "live_price": 11.0,
     "currency": "INR",
     "timestamp": "2026-02-25T19:03:11",
-    "article_summary": "Sector-specific regulatory change proposal impacting credit access and trading volumes."
+    "article_summary": "Sector-specific regulatory change proposal impacting credit access and trading volumes.",
+    "predicted_price": 11.07,
+    "upside_pct": "+0.60%"
   },
   {
     "event": "Copper prices surge to highest in over a week",
@@ -110,7 +195,9 @@
     "timestamp": "2026-02-25T01:24:02.961474",
     "article_summary": "Increased demand from China, a major consumer of copper, leads to higher prices, benefiting Indian metal producers.",
     "live_price": 936.9,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 942.52,
+    "upside_pct": "+0.60%"
   },
   {
     "event": "Trump Tariff Refund Deadline Looms",
@@ -137,7 +224,9 @@
     "article_summary": "The article reports on an approaching deadline for US importers to file refund requests related to tariffs imposed during the Trump administration. These tariffs, initially levied on goods from China, are now subject to potential refunds for businesses that paid them. The deadline is rapidly approaching, creating a sense of urgency for importers seeking to recover these costs.",
     "timestamp": "2026-02-20T18:42:50",
     "live_price": 15070.0,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 15070.0,
+    "upside_pct": "0.00%"
   },
   {
     "event": "Trump Announces Stronger Tariffs - Content Unavailable",
@@ -165,7 +254,9 @@
     "article_summary": "The provided news article is inaccessible, preventing a full analysis. However, based on the headline indicating stronger tariffs announced by Donald Trump, we can infer potential impacts on Indian companies and sectors reliant on international trade. The lack of content makes a precise assessment impossible.",
     "timestamp": "2026-02-20T18:39:10",
     "live_price": 1398.5,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 1391.51,
+    "upside_pct": "-0.50%"
   },
   {
     "event": "US-India Relations Analysis - Potential Trade & Policy Impacts",
@@ -193,7 +284,9 @@
     "article_summary": "Illinois Governor Pritzker's State of the State address highlighted concerns about the Trump administration's policies and their financial impact on Illinois, citing $8.4 billion in illegally withheld funds and detrimental trade practices. He drew parallels to historical figures advocating for social justice and economic stability, emphasizing Illinois's resilience in the face of federal challenges. The speech suggests potential for continued friction and legal battles between Illinois and the federal government.",
     "timestamp": "2026-02-19T06:51:41Z",
     "live_price": 1398.5,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 1389.41,
+    "upside_pct": "-0.65%"
   },
   {
     "event": "Bill Gates Cancels AI Summit Keynote Amidst Epstein Allegations",
@@ -219,7 +312,9 @@
     "article_summary": "Bill Gates abruptly cancelled his keynote address at the AI Impact Summit in New Delhi, India, just hours before he was scheduled to speak. This decision follows recent scrutiny and allegations stemming from newly released emails purportedly written by Jeffrey Epstein, which claim Gates had inappropriate interactions and sought medication to conceal a sexually transmitted infection from his wife. Gates has vehemently denied these claims, but the controversy has prompted his withdrawal from the summit.",
     "timestamp": "2026-02-19T05:06:09Z",
     "live_price": 1290.1,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 1281.71,
+    "upside_pct": "-0.65%"
   },
   {
     "event": "Bernie Sanders Advocates for Wealth Tax in California",
@@ -249,7 +344,9 @@
     "article_summary": "Bernie Sanders, a prominent US politician, has publicly advocated for the implementation of a wealth tax in California. This proposal aims to tax the assets of the wealthiest individuals in the state, potentially generating significant revenue for public programs. The advocacy occurred during a recent visit to California.",
     "timestamp": "2026-02-19T04:03:49Z",
     "live_price": 907.6,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 901.7,
+    "upside_pct": "-0.65%"
   },
   {
     "event": "Expanded ICE Detention Powers",
@@ -276,7 +373,9 @@
     "timestamp": "2026-02-19T03:59:00Z",
     "article_summary": "Increased demand for surveillance tech (positive) is offset by ethical concerns and potential reputational damage (negative). The net effect is likely a downward pressure on valuations, particularly for companies heavily involved in government contracts.",
     "live_price": 1290.1,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 1277.84,
+    "upside_pct": "-0.95%"
   },
   {
     "event": "Bird Flu Outbreak in Hainesport Twp.",
@@ -326,13 +425,18 @@
     "article_summary": "A Deutsche Welle correspondent, Alijian Uludag, has been arrested in Ankara on charges of \"insulting the president\" and \"spreading false information\" related to his social media posts on X (formerly Twitter). The Istanbul Chief Prosecutor's Office initiated an investigation and Uludag is expected to be transferred to Istanbul for questioning.",
     "timestamp": "2026-02-20T06:46:00",
     "live_price": 4577.0,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 4540.38,
+    "upside_pct": "-0.80%"
   },
   {
     "event": "Marcos Review of ICI Report - No Content Available",
     "company": "Unspecified - Dependent on ICI Report Subject",
     "sector": "Insurance",
-    "stocks": [],
+    "stocks": [
+      "NSE:HDFCLIFE",
+      "NSE:LICHSGFIN"
+    ],
     "impact_direction": "NEUTRAL",
     "impact_description": "Due to the complete lack of content, it's impossible to determine the nature of the review or the ICI report's findings.  A review itself doesn't inherently signal positive or negative news. It could be a routine check, a response to concerns, or a prelude to significant action. The absence of information makes any prediction speculative.  Applying EMH, the market likely hasn't priced in anything without the report's details.",
     "event_date": "2026-02-19",
@@ -346,7 +450,11 @@
     "link": "https://mb.com.ph/article/10906537/philippines/national/palace-result-of-marcos-review-of-ici-report-may-be-issued-this-february",
     "published": "2026-02-20 06:46:00",
     "article_summary": "The headline indicates a review of an ICI (Insurance Claims Investigation) report by Marcos. However, the provided content is unavailable, preventing a detailed analysis. Without the report's findings, assessing the potential impact is impossible.",
-    "timestamp": "2026-02-20T06:46:00"
+    "timestamp": "2026-02-20T06:46:00",
+    "live_price": 715.3,
+    "currency": "INR",
+    "predicted_price": 715.3,
+    "upside_pct": "0.00%"
   },
   {
     "event": "Hypersonix Launch Window Set for Landmark Hypersonic Flight Test",
@@ -372,13 +480,18 @@
     "article_summary": "Australian hypersonic flight pioneer Hypersonix Launch Systems has announced a launch window for a critical flight test of its DART AE hypersonic aircraft, powered by a hydrogen-based scramjet engine. The Cassowary Vex mission, launching with Rocket Lab, aims to validate advanced propulsion, materials, and guidance systems at real hypersonic conditions. The project is backed by significant funding and partnerships, accelerating the development of reusable, sustainable hypersonic vehicles.",
     "timestamp": "2026-02-20T06:46:00",
     "live_price": 3985.0,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 4014.89,
+    "upside_pct": "+0.75%"
   },
   {
     "event": "India's Trade Deficit Widens",
     "company": "N/A",
     "sector": "Exports/Imports, Macroeconomic",
-    "stocks": [],
+    "stocks": [
+      "NSE:RELIANCE",
+      "NSE:HDFCBANK"
+    ],
     "impact_direction": "DOWN",
     "impact_description": "A widening trade deficit suggests increased import costs and potentially reduced domestic demand, which could negatively impact Indian companies and overall economic growth. This could lead to pressure on the Rupee and potentially inflationary pressures.",
     "event_date": "2026-02-19",
@@ -392,7 +505,11 @@
     "link": "https://www.tportal.hr/biznis/clanak/sad-u-trgovinskom-deficitu-s-ostatkom-svijeta-poznato-i-za-koliko-20260220",
     "published": "2026-02-20 06:46:00",
     "timestamp": "2026-02-20T06:46:00",
-    "article_summary": "Increased trade deficit puts downward pressure on the Indian economy, potentially impacting corporate earnings and investor sentiment. The EMH suggests this is priced in, but the magnitude warrants monitoring."
+    "article_summary": "Increased trade deficit puts downward pressure on the Indian economy, potentially impacting corporate earnings and investor sentiment. The EMH suggests this is priced in, but the magnitude warrants monitoring.",
+    "live_price": 1393.9,
+    "currency": "INR",
+    "predicted_price": 1380.66,
+    "upside_pct": "-0.95%"
   },
   {
     "event": "Google's Commitment to Open Android",
@@ -418,6 +535,8 @@
     "timestamp": "2026-02-21T00:16:17.015170",
     "article_summary": "An open Android platform encourages wider adoption and innovation, which is generally positive for companies operating within the mobile ecosystem. This is likely priced in, but reinforces existing positive trends.",
     "live_price": 1290.1,
-    "currency": "INR"
+    "currency": "INR",
+    "predicted_price": 1302.36,
+    "upside_pct": "+0.95%"
   }
 ]
