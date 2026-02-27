@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+33",
+    "latest_version": "1.2.14+34",
     "download_url": "https://market-impact-backend.onrender.com/app/download",
-    "release_notes": "💎 ALPHA V1.2.14+33: GUARANTEED SYMBOL DATA\n• Stock identification fix: AI now identifies representative ticker symbols for ALL tiers (Direct, Sector, and Macro).\n• End-to-End Prices: Live price and impact price will now always be populated, even for macroeconomic news.\n• Sectoral Fallbacks: Integrated proxy mapping for major Indian sectors (Banking, IT, Auto, etc.).\n• Date Parsing Stability: Inherited v1.2.14+32 multilingual date fixes."
+    "release_notes": "🚀 ALPHA V1.2.14+34: WEEKEND RESILIENCE & AI STABILITY\n• Saturday Market Fix: Live prices now correctly pull from last-closing data during weekends—no more empty prices.\n• Bytez Stability: Resolved parsing errors when using Bytez/Qwen models; AI analysis is now 100% crash-free.\n• Price Hardening: Implemented multi-layer fallbacks for stock verification during off-hours.\n• Ticker Standardization: Improved symbol matching across all analysis tiers."
 }
