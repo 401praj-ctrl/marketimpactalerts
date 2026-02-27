@@ -153,6 +153,37 @@ def clean_json_string(content: str) -> str:
         
     # Remove trailing commas before closing braces/brackets
     content = re.sub(r',\s*([}\]])', r'\1', content)
+    
+    # CRITICAL: Fix Python dict string representations and malformed JSON
+    try:
+        # First check if it's already valid JSON
+        json.loads(content)
+        return content
+    except json.JSONDecodeError:
+        pass
+
+    try:
+        # Attempt to safely evaluate a python dictionary string
+        import ast
+        parsed_dict = ast.literal_eval(content)
+        if isinstance(parsed_dict, dict):
+            return json.dumps(parsed_dict)
+    except:
+        pass
+        
+    # Last resort: Try to find a JSON-like object string using regex
+    try:
+        match = re.search(r'\{.*\}', content, re.DOTALL)
+        if match:
+            extracted = match.group(0)
+            # Replace single quotes with double quotes as a rough fix
+            extracted = extracted.replace("'", '"')
+            # Verify if this rough fix made it valid JSON
+            json.loads(extracted)
+            return extracted
+    except:
+        pass
+
     return content
 
 def get_relevant_examples(headline, limit=3, regime="NORMAL"):
