@@ -26,7 +26,9 @@ GLOBAL_SYMBOLS = {
     "QCOM", "MU", "SMCI", "SNOW", "PLTR", "WDC", "STX", "HPQ",
     "WBD", "PARA", "DIS", "AMC", "CMG", "MCD", "SBUX", "COST", "WMT", "TGT",
     "JPM", "GS", "MS", "BAC", "C", "V", "MA", "AXP", "BABA", "SONY", "XIACF",
-    "XOM", "SHEL", "BP", "JNJ", "PG", "TM", "HMC"
+    "XOM", "SHEL", "BP", "JNJ", "PG", "TM", "HMC",
+    "LMT", "RTX", "HON", "BA", "CAT", "GE", "IBM", "NOW", "UBER", "ABNB",
+    "CVX", "SLB", "COP", "UNH", "PFE", "MRK", "ABBV", "LLY"
 }
 try:
     names_path = os.path.join(BASE_DIR, "data", "company_names.json")
@@ -283,11 +285,11 @@ MACRO_SECTOR_MAPPING = {
     "Energy": ["NSE:RELIANCE", "NSE:ONGC", "NSE:NTPC"]
 }
 
-def validate_stocks(stocks_list, sector=None):
+def validate_stocks(stocks_list, sector=None, headline=""):
     """
     Strips exchange prefixes and validates symbols against the master list.
     Also handles common NSE symbols that might be missing the -EQ suffix.
-    If stocks_list is empty, attempts to provide sector-based proxies.
+    If stocks_list is empty, attempts to provide sector-based proxies using sector or headline.
     """
     if not isinstance(stocks_list, list): stocks_list = []
     
@@ -325,12 +327,18 @@ def validate_stocks(stocks_list, sector=None):
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
             
-    # FALLBACK: If list is empty after validation, use sector mapping
-    if not clean_stocks and sector:
+    # FALLBACK: If list is empty after validation, use sector mapping or headline keywords
+    if not clean_stocks:
+        search_target = (str(sector or "") + " " + str(headline or "")).lower()
         for cat, proxies in MACRO_SECTOR_MAPPING.items():
-            if cat.lower() in str(sector).lower():
-                print(f"      >> [FALLBACK] Empty stocks for {sector}. Using proxies: {proxies}")
+            if cat.lower() in search_target:
+                print(f"      >> [FALLBACK] Triggered for '{cat}' match in context. Using proxies: {proxies}")
                 return proxies
+        
+        # Final safety: If headline mentions broad market terms but index-specific check missed
+        if any(w in search_target for w in ["gdp", "fiscal", "inflation", "market", "economy", "sensex", "nifty", "wall st"]):
+            print(f"      >> [FALLBACK] Broad macro match. Using Macro proxies.")
+            return MACRO_SECTOR_MAPPING.get("Macro", [])
                 
     return list(set(clean_stocks))
 
@@ -442,7 +450,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                                 data['stocks'] = s if isinstance(s, list) else [s]
                         
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline_text)
                             
                         return data
                     elif response.status_code == 402:
@@ -503,7 +511,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline_text)
                         return data
                     else:
                         print(f"      >> NOTICE: Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
@@ -531,7 +539,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                 content = clean_json_string(str(raw_output))
                 data = json.loads(content)
                 if 'stocks' in data:
-                    data['stocks'] = validate_stocks(data['stocks'])
+                    data['stocks'] = validate_stocks(data['stocks'], headline=headline_text)
                 return data
         except Exception as e:
             print(f"      >> GEMINI EXCEPTION: {str(e)}")
@@ -598,7 +606,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
 
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
                         return data
                     else:
                         print(f"      >> [DEEP] WARNING: Model {model} returned status {response.status_code}")
@@ -657,7 +665,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
                         return data
                     else:
                         print(f"      >> [DEEP-NOTICE] Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
@@ -685,7 +693,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                 content = clean_json_string(str(raw_output))
                 data = json.loads(content)
                 if 'stocks' in data:
-                    data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                    data['stocks'] = validate_stocks(data['stocks'], headline=headline)
                 return data
         except Exception as e:
             print(f"      >> [DEEP] GEMINI EXCEPTION: {str(e)}")
