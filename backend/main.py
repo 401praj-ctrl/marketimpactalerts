@@ -647,6 +647,45 @@ async def get_status():
         "last_run_time": last_search_end
     }
 
+@app.get("/trigger-demo")
+async def trigger_demo_endpoint():
+    """
+    Temporary endpoint to trigger a demo high-impact alert for testing notifications.
+    """
+    demo_alert = {
+        "id": f"demo_{int(datetime.datetime.now().timestamp())}",
+        "event": "Reliance-NVIDIA AI partnership",
+        "company": "Reliance Industries",
+        "sector": "Technology / AI",
+        "stocks": ["NSE:RELIANCE"],
+        "impact": "high",
+        "impact_direction": "UP",
+        "impact_description": "A strategic partnership with NVIDIA positions Reliance as a leader in India's sovereign AI cloud. This move is expected to drive long-term value through cloud infrastructure and AI service subscriptions. The market sees this as a major positive catalyst.",
+        "event_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+        "impact_date_est": (datetime.datetime.now() + datetime.timedelta(days=2)).strftime("%Y-%m-%d"),
+        "probability": 75,
+        "live_price": 1393.9,
+        "predicted_price": 1414.81,
+        "upside_pct": "+1.50%",
+        "currency": "INR",
+        "tier": "Tier-1",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "published": datetime.datetime.now().isoformat(),
+        "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
+        "link": "https://example.com/demo-news"
+    }
+    
+    # 1. Save to cache
+    global cached_alerts
+    cached_alerts = [demo_alert] + [a for a in cached_alerts if a.get('id') != demo_alert['id']]
+    save_alerts(cached_alerts[:100])
+    tracker.save_prediction(demo_alert)
+    
+    # 2. Send notification
+    send_onesignal_notification([demo_alert], registered_devices)
+    
+    return {"status": "success", "message": "Demo alert triggered on server.", "alert": demo_alert}
+
 @app.get("/alerts")
 async def get_alerts():
     print(f"DEBUG: Returning {len(cached_alerts)} alerts")
