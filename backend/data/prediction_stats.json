@@ -1,16 +1,46 @@
 {
-  "total_predictions": 18,
-  "correct_predictions": 2,
-  "false_signals": 0,
-  "avg_accuracy": 100.0,
-  "profit_simulation_pct": 94.33,
-  "brier_score": 0.8986851211072664,
+  "total_predictions": 19,
+  "correct_predictions": 3,
+  "false_signals": 5,
+  "avg_accuracy": 37.5,
+  "profit_simulation_pct": 95.66,
+  "brier_score": 0.7660249083669508,
   "tier_accuracy": {
     "Tier-1": 0,
     "Tier-2": 100,
-    "Tier-3": 0
+    "Tier-3": 16
   },
   "recent_performance": [
+    {
+      "event": "Google's Commitment to Open Android",
+      "is_correct": false,
+      "move": -0.0007751337252338564
+    },
+    {
+      "event": "Deutsche Welle Correspondent Arrested in Ankara",
+      "is_correct": true,
+      "move": -0.015184618745903378
+    },
+    {
+      "event": "Bernie Sanders Advocates for Wealth Tax in California",
+      "is_correct": false,
+      "move": -0.009916262937523457
+    },
+    {
+      "event": "Bill Gates Cancels AI Summit Keynote Amidst Epstein Allegations",
+      "is_correct": false,
+      "move": -0.0007751337252338564
+    },
+    {
+      "event": "US-India Relations Analysis - Potential Trade & Policy Impacts",
+      "is_correct": false,
+      "move": 0.0059349651970861395
+    },
+    {
+      "event": "Trump Announces Stronger Tariffs - Content Unavailable",
+      "is_correct": false,
+      "move": 0.0059349651970861395
+    },
     {
       "event": "Copper prices surge to highest in over a week",
       "is_correct": true,
@@ -22,8 +52,10 @@
       "move": 0.07191621470462217
     }
   ],
-  "last_auto_verification": "2026-02-25T15:54:25.486075",
+  "last_auto_verification": "2026-02-28T01:58:43.931124",
   "last_manual_verification": "2026-02-26T19:32:55.751578",
   "total_tier2": 2,
-  "correct_tier2": 2
+  "correct_tier2": 2,
+  "total_tier3": 6,
+  "correct_tier3": 1
 }

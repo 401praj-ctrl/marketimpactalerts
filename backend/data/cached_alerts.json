@@ -1,5 +1,77 @@
 [
   {
+    "id": "demo_1772193822",
+    "event": "Reliance-NVIDIA AI partnership",
+    "company": "Reliance Industries",
+    "sector": "Technology / AI",
+    "stocks": [
+      "NSE:RELIANCE"
+    ],
+    "impact": "high",
+    "impact_direction": "UP",
+    "impact_description": "A strategic partnership with NVIDIA positions Reliance as a leader in India's sovereign AI cloud. This move is expected to drive long-term value through cloud infrastructure and AI service subscriptions. The market sees this as a major positive catalyst.",
+    "event_date": "2026-02-27",
+    "impact_date_est": "2026-03-01",
+    "probability": 75,
+    "live_price": 1393.9,
+    "predicted_price": 1414.81,
+    "upside_pct": "+1.50%",
+    "currency": "INR",
+    "tier": "Tier-1",
+    "timestamp": "2026-02-27T17:33:42.949087",
+    "published": "2026-02-27T17:33:42.949087",
+    "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
+    "link": "https://example.com/demo-news"
+  },
+  {
+    "id": "demo_1772193765",
+    "event": "Reliance-NVIDIA AI partnership",
+    "company": "Reliance Industries",
+    "sector": "Technology / AI",
+    "stocks": [
+      "NSE:RELIANCE"
+    ],
+    "impact": "high",
+    "impact_direction": "UP",
+    "impact_description": "A strategic partnership with NVIDIA positions Reliance as a leader in India's sovereign AI cloud. This move is expected to drive long-term value through cloud infrastructure and AI service subscriptions. The market sees this as a major positive catalyst.",
+    "event_date": "2026-02-27",
+    "impact_date_est": "2026-03-01",
+    "probability": 75,
+    "live_price": 1393.9,
+    "predicted_price": 1414.81,
+    "upside_pct": "+1.50%",
+    "currency": "INR",
+    "tier": "Tier-1",
+    "timestamp": "2026-02-27T17:32:45.763101",
+    "published": "2026-02-27T17:32:45.763101",
+    "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
+    "link": "https://example.com/demo-news"
+  },
+  {
+    "id": "demo_1772193721",
+    "event": "Reliance-NVIDIA AI partnership",
+    "company": "Reliance Industries",
+    "sector": "Technology / AI",
+    "stocks": [
+      "NSE:RELIANCE"
+    ],
+    "impact": "high",
+    "impact_direction": "UP",
+    "impact_description": "A strategic partnership with NVIDIA positions Reliance as a leader in India's sovereign AI cloud. This move is expected to drive long-term value through cloud infrastructure and AI service subscriptions. The market sees this as a major positive catalyst.",
+    "event_date": "2026-02-27",
+    "impact_date_est": "2026-03-01",
+    "probability": 75,
+    "live_price": 1393.9,
+    "predicted_price": 1414.81,
+    "upside_pct": "+1.50%",
+    "currency": "INR",
+    "tier": "Tier-1",
+    "timestamp": "2026-02-27T17:32:01.829631",
+    "published": "2026-02-27T17:32:01.829631",
+    "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
+    "link": "https://example.com/demo-news"
+  },
+  {
     "event": "Angel One Stock Split & NCD Allotment",
     "company": "Angel One Limited",
     "sector": "Financial Services",
