@@ -751,10 +751,28 @@ async def get_app_version():
     return {"latest_version": "1.0.0", "download_url": "", "release_notes": ""}
 
 @app.get("/app/download")
-async def download_apk():
-    apk_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "app-release.apk")
-    if os.path.exists(apk_path):
-        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename="market-impact-v1.2.1.apk")
+async def download_apk(v: str = None):
+    # Try multiple common locations for the APK
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    locations = [
+        os.path.join(base_path, "data", "app-release.apk"),
+        os.path.join(base_path, "static", "app-release.apk"),
+        os.path.join(os.path.dirname(base_path), "build", "app", "outputs", "flutter-apk", "app-release.apk"),
+    ]
+    
+    apk_path = None
+    for loc in locations:
+        if os.path.exists(loc):
+            apk_path = loc
+            break
+            
+    if apk_path:
+        # Return a version-aware filename to prevent OS/Browser caching issues
+        safe_v = str(v).replace('+', '-').replace(' ', '_') if v else "latest"
+        fname = f"alpha-impact-v{safe_v}.apk"
+        print(f"DEBUG: Serving APK from {apk_path} as {fname}")
+        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename=fname)
+        
     return {"error": "APK file not found on server. Please ensure data/app-release.apk exists."}
 
 @app.post("/register_device")
