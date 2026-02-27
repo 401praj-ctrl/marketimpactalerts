@@ -25,7 +25,8 @@ GLOBAL_SYMBOLS = {
     "NFLX", "INTC", "AMD", "AVGO", "CSCO", "ORCL", "TSM", "ARM", "ASML", 
     "QCOM", "MU", "SMCI", "SNOW", "PLTR", "WDC", "STX", "HPQ",
     "WBD", "PARA", "DIS", "AMC", "CMG", "MCD", "SBUX", "COST", "WMT", "TGT",
-    "JPM", "GS", "MS", "BAC", "C", "V", "MA", "AXP"
+    "JPM", "GS", "MS", "BAC", "C", "V", "MA", "AXP", "BABA", "SONY", "XIACF",
+    "XOM", "SHEL", "BP", "JNJ", "PG", "TM", "HMC"
 }
 try:
     names_path = os.path.join(BASE_DIR, "data", "company_names.json")
@@ -273,7 +274,13 @@ MACRO_SECTOR_MAPPING = {
     "Tech": ["NSE:TCS", "NSE:INFY", "NSE:WIPRO"],
     "Artificial Intelligence": ["NSE:TCS", "NSE:INFY", "NSE:HCLTECH"],
     "Entertainment": ["NSE:PVRINOX", "NSE:ZEEL", "NSE:SUNTV"],
-    "Media": ["NSE:ZEEL", "NSE:SUNTV", "NSE:NETWORK18"]
+    "Media": ["NSE:ZEEL", "NSE:SUNTV", "NSE:NETWORK18"],
+    "FMCG": ["NSE:HINDUNILVR", "NSE:ITC", "NSE:TATACONSUM"],
+    "Auto": ["NSE:TATAMOTORS", "NSE:MARUTI", "NSE:M&M"],
+    "Pharma": ["NSE:SUNPHARMA", "NSE:DRREDDY", "NSE:CIPLA"],
+    "Metal": ["NSE:TATASTEEL", "NSE:JINDALSTEL", "NSE:HINDALCO"],
+    "Real Estate": ["NSE:DLF", "NSE:GODREJPROP", "NSE:OBEROIRLTY"],
+    "Energy": ["NSE:RELIANCE", "NSE:ONGC", "NSE:NTPC"]
 }
 
 def validate_stocks(stocks_list, sector=None):
@@ -302,12 +309,18 @@ def validate_stocks(stocks_list, sector=None):
             clean_stocks.append(s)
         elif s == "DELLTECH": # Common AI hallucination for Dell
             clean_stocks.append("DELL")
-        elif "NIFTY" in s:
-            # Map NIFTY index hallucinations to sector proxies
-            if "BANK" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Banking", []))
+        elif "NIFTY" in s or s in ["SENSEX", "NASDAQ", "DOW", "S&P", "USDINR", "CRUDE", "BANKNIFTY", "FINNIFTY"]:
+            # Map NIFTY indices and Macro terms to sector proxies
+            if "BANK" in s or "FIN" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Banking", []))
             elif "INFRA" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Infrastructure", []))
-            elif "IT" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("IT Services", []))
-            elif "FIN" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Banking", []))
+            elif "IT" in s or "TECH" in s or "NASDAQ" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("IT Services", []))
+            elif "FMCG" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("FMCG", []))
+            elif "AUTO" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Auto", []))
+            elif "PHARMA" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Pharma", []))
+            elif "METAL" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Metal", []))
+            elif "REAL" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Real Estate", []))
+            elif "ENERGY" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Energy", []))
+            elif "MEDIA" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Media", []))
             else: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Macro", []))
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
