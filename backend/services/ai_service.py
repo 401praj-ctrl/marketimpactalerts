@@ -481,6 +481,34 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                 except Exception as e: 
                     print(f"      >> [DEEP] EXCEPTION: {str(e)}")
                     continue
+                    
+    # --- FALLBACK TO BYTEZ for Deep Analysis ---
+    if BYTEZ_API_KEYS:
+        b_model_name = "google/gemma-3-12b-it"
+        print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez with model {b_model_name}...")
+        for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
+            if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
+            try:
+                print(f"      >> [DEEP] Trying Bytez Key {b_key_idx+1}...")
+                sdk = Bytez(b_key)
+                model = sdk.model(b_model_name)
+                loop = asyncio.get_event_loop()
+                results = await asyncio.wait_for(
+                    loop.run_in_executor(None, lambda: model.run([{"role": "user", "content": prompt}])),
+                    timeout=50.0
+                )
+                if results and hasattr(results, 'output') and results.output:
+                    print(f"      >> [DEEP] SUCCESS: Bytez Model {b_model_name} with Key {b_key_idx+1} responded.")
+                    content = clean_json_string(str(results.output))
+                    data = json.loads(content)
+                    if 'stocks' in data:
+                        data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                    return data
+            except Exception as e:
+                print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
+                cycle_failed_keys.setdefault(f"bytez/{b_model_name}", set()).add(b_key)
+                continue
+
     return None
 
 async def identify_high_impact_events(headlines, regime="NORMAL"):
