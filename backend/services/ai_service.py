@@ -380,11 +380,10 @@ async def analyze_headline(headline_text, regime="NORMAL"):
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        # We try Qwen3-0.6B as it is genuinely free on Bytez
-        b_model_name = "Qwen/Qwen3-0.6B"
+        # We try gpt-oss-20b as requested
+        b_model_name = "openai/gpt-oss-20b"
         print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez with model {b_model_name}...")
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
-            if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
             try:
                 print(f"      >> Trying Bytez Key {b_key_idx+1}...")
                 sdk = Bytez(b_key)
@@ -415,7 +414,6 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     print(f"      >> NOTICE: Bytez Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
             except Exception as e:
                 print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
-                cycle_failed_keys.setdefault(f"bytez/{b_model_name}", set()).add(b_key)
                 continue
 
     return {"impact": "no impact"}
@@ -496,10 +494,9 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     
     # --- FALLBACK TO BYTEZ for Deep Analysis ---
     if BYTEZ_API_KEYS:
-        b_model_name = "Qwen/Qwen3-0.6B"
+        b_model_name = "openai/gpt-oss-20b"
         print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez with model {b_model_name}...")
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
-            if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
             try:
                 print(f"      >> [DEEP] Trying Bytez Key {b_key_idx+1}...")
                 sdk = Bytez(b_key)
@@ -529,7 +526,6 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     print(f"      >> [DEEP-NOTICE] Bytez Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
             except Exception as e:
                 print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1}: {str(e)}")
-                cycle_failed_keys.setdefault(f"bytez/{b_model_name}", set()).add(b_key)
                 continue
 
     return None
