@@ -206,9 +206,12 @@ class PriceService:
     async def _get_international_price(self, symbol):
         try:
             import yfinance as yf
-            clean = symbol.replace("NSE:", "").replace(".NS", ".NS").replace("BSE:", "").replace(".BO", ".BO")
-            if "NSE:" in symbol and not clean.endswith(".NS"): clean += ".NS"
-            if "BSE:" in symbol and not clean.endswith(".BO"): clean += ".BO"
+            # Strip prefixes and common Angel One suffixes for YFinance
+            clean = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "")
+            clean = clean.replace("-EQ", "").replace("-BE", "").replace("-SM", "").strip()
+            
+            suffix = ".NS" if ("NSE:" in symbol or ".NS" in symbol) else (".BO" if ("BSE:" in symbol or ".BO" in symbol) else "")
+            clean = f"{clean}{suffix}"
             
             ticker_stem = clean.replace(".NS", "").replace(".BO", "").upper()
             if ticker_stem in TICKER_CORRECTIONS:

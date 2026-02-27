@@ -272,12 +272,17 @@ def validate_stocks(stocks_list, sector=None):
     
     clean_stocks = []
     for stock in stocks_list:
-        s = stock.replace("NSE:", "").replace("BSE:", "").strip()
+        raw_s = str(stock).upper()
+        s = raw_s.replace("NSE:", "").replace("BSE:", "").strip()
+        
+        # Determine prefix if it was in the original string
+        prefix = "NSE:" if "NSE:" in raw_s else ("BSE:" if "BSE:" in raw_s else "NSE:")
+        
         # Check raw symbol or appended -EQ for NSE stocks
         if s in VALID_SYMBOLS:
-            clean_stocks.append(s)
+            clean_stocks.append(f"{prefix}{s}")
         elif f"{s}-EQ" in VALID_SYMBOLS:
-            clean_stocks.append(f"{s}-EQ")
+            clean_stocks.append(f"NSE:{s}-EQ")
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
             

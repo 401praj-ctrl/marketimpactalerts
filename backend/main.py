@@ -463,10 +463,23 @@ async def run_analysis(source="AUTOMATED"):
                         analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
 
                     # Logic: Robust price fallback for missed stock or impact prices
-                    if not analysis.get('live_price') and current_prices:
+                    # We check if the AI's live_price is missing, empty, or non-numeric
+                    ai_lp = str(analysis.get('live_price', '')).strip().lower()
+                    needs_fallback = not ai_lp or any(x in ai_lp for x in ['n/a', 'closed', 'none', 'null', 'nan'])
+                    
+                    if not needs_fallback:
+                        try:
+                            # Verify if it's actually a valid number
+                            if float(ai_lp) <= 0:
+                                needs_fallback = True
+                        except (ValueError, TypeError):
+                            needs_fallback = True
+                    
+                    if needs_fallback and current_prices:
                         first_symbol = analysis.get('stocks', [None])[0]
                         if first_symbol and first_symbol in current_prices:
                             analysis['live_price'] = current_prices[first_symbol]
+                            print(f"      [DEBUG] Force-assigned live_price from fallback: {analysis['live_price']}")
 
                     if analysis.get('live_price') and not analysis.get('predicted_price'):
                         try:
