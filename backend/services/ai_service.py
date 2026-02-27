@@ -302,6 +302,13 @@ def validate_stocks(stocks_list, sector=None):
             clean_stocks.append(s)
         elif s == "DELLTECH": # Common AI hallucination for Dell
             clean_stocks.append("DELL")
+        elif "NIFTY" in s:
+            # Map NIFTY index hallucinations to sector proxies
+            if "BANK" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Banking", []))
+            elif "INFRA" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Infrastructure", []))
+            elif "IT" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("IT Services", []))
+            elif "FIN" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Banking", []))
+            else: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Macro", []))
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
             
