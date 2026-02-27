@@ -380,8 +380,8 @@ async def analyze_headline(headline_text, regime="NORMAL"):
             
     # --- FALLBACK TO BYTEZ ---
     if BYTEZ_API_KEYS:
-        # We try Qwen3-0.6B as it is genuinely free on Bytez
-        b_model_name = "Qwen/Qwen3-0.6B"
+        # We try gpt-oss-20b as requested by user's snippet
+        b_model_name = "openai/gpt-oss-20b"
         print(f"  --> [FALLBACK] All OpenRouter keys failed or rate-limited. Trying Bytez with model {b_model_name}...")
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
             if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
@@ -496,7 +496,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                     
     # --- FALLBACK TO BYTEZ for Deep Analysis ---
     if BYTEZ_API_KEYS:
-        b_model_name = "Qwen/Qwen3-0.6B"
+        b_model_name = "openai/gpt-oss-20b"
         print(f"      >> [DEEP-FALLBACK] All OpenRouter keys failed. Trying Bytez with model {b_model_name}...")
         for b_key_idx, b_key in enumerate(BYTEZ_API_KEYS):
             if b_key in cycle_failed_keys.get(f"bytez/{b_model_name}", set()): continue
