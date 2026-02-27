@@ -20,6 +20,11 @@ if not os.environ.get("OPENROUTER_API_KEY_1"):
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COMPANY_NAMES = []
 COMPANY_SYMBOLS = {}
+GLOBAL_SYMBOLS = {
+    "DELL", "NVDA", "AAPL", "MSFT", "GOOGL", "GOOG", "TSLA", "META", "AMZN", 
+    "NFLX", "INTC", "AMD", "AVGO", "CSCO", "ORCL", "TSM", "ARM", "ASML", 
+    "QCOM", "MU", "SMCI", "SNOW", "PLTR", "WDC", "STX", "HPQ"
+}
 try:
     names_path = os.path.join(BASE_DIR, "data", "company_names.json")
     if os.path.exists(names_path):
@@ -262,7 +267,9 @@ MACRO_SECTOR_MAPPING = {
     "FMCG": ["NSE:HINDUNILVR", "NSE:ITC"],
     "Retail": ["NSE:TRENT", "NSE:RELIANCE"],
     "Agriculture": ["NSE:COROMANDEL", "NSE:UPL"],
-    "Macro": ["NSE:RELIANCE", "NSE:HDFCBANK"] # Market proxies
+    "Macro": ["NSE:RELIANCE", "NSE:HDFCBANK"], # Market proxies
+    "Tech": ["NSE:TCS", "NSE:INFY", "NSE:WIPRO"],
+    "Artificial Intelligence": ["NSE:TCS", "NSE:INFY", "NSE:HCLTECH"]
 }
 
 def validate_stocks(stocks_list, sector=None):
@@ -286,6 +293,11 @@ def validate_stocks(stocks_list, sector=None):
             clean_stocks.append(f"{prefix}{s}")
         elif f"{s}-EQ" in VALID_SYMBOLS:
             clean_stocks.append(f"NSE:{s}-EQ")
+        elif s in GLOBAL_SYMBOLS:
+            # Allow well-known global symbols (will be fetched via YFinance)
+            clean_stocks.append(s)
+        elif s == "DELLTECH": # Common AI hallucination for Dell
+            clean_stocks.append("DELL")
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
             
@@ -406,7 +418,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                                 data['stocks'] = s if isinstance(s, list) else [s]
                         
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'])
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
                             
                         return data
                     elif response.status_code == 402:
@@ -467,7 +479,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'])
+                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
                         return data
                     else:
                         print(f"      >> NOTICE: Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
