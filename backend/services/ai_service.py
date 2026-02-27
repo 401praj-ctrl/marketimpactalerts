@@ -398,8 +398,8 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         depleted_keys.add(api_key)
                     elif response.status_code == 429:
                         print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
-                        cycle_failed_keys.setdefault(model, set()).add(api_key)
-                        await asyncio.sleep(1) # Cooldown to be polite
+                        # REMOVED: cycle_failed_keys.setdefault(model, set()).add(api_key)
+                        await asyncio.sleep(2) # Cooldown to be polite
                     elif response.status_code == 401:
                         print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
                         cycle_failed_keys.setdefault(model, set()).add(api_key)
@@ -514,8 +514,8 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         print(f"      >> WARNING: Model {model} returned status {response.status_code}")
                         if response.status_code == 429:
                             print(f"      >> NOTICE: Key {i+1} rate limited on {model} (Status 429). Cooling down...")
-                            cycle_failed_keys.setdefault(model, set()).add(api_key)
-                            await asyncio.sleep(1)
+                            # REMOVED: cycle_failed_keys.setdefault(model, set()).add(api_key)
+                            await asyncio.sleep(2)
                         if response.status_code == 401:
                             print(f"      >> NOTICE: Key {i+1} unauthorized on {model} (Status 401)")
                             cycle_failed_keys.setdefault(model, set()).add(api_key)
