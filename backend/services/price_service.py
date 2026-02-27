@@ -195,12 +195,10 @@ class PriceService:
                     if attempt == 0:
                         print(f"DEBUG: Session issue detected. Forcing re-authentication...")
                         continue
-                else:
+                if not data.get('status'):
                     print(f"WARNING: Angel LTP failed: {data.get('message')}")
             except Exception as e:
-                if "'status'" in str(e) or 'KeyError' in str(type(e)):
-                    if attempt == 0: continue
-                print(f"ERROR: Angel LTP exception: {e}")
+                print(f"ERROR: Angel LTP exception for {angel_symbol}: {e}")
                 if attempt == 0: continue
 
         return await self._get_international_price(symbol)
@@ -263,9 +261,11 @@ class PriceService:
         
         try:
             target_dt = datetime.fromisoformat(date_str) if "T" in date_str else datetime.strptime(date_str, "%Y-%m-%d")
-        except:
-            try: target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
-            except: return None
+        except Exception:
+            try: 
+                target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            except Exception: 
+                return None
                 
         start_time_str = target_dt.strftime("%Y-%m-%d 09:00")
         end_time_str = target_dt.strftime("%Y-%m-%d 15:30")
@@ -300,10 +300,9 @@ class PriceService:
                 if not data.get('status'):
                     print(f"DEBUG: [VERIFY] Angel History failure: {data.get('message')} for {angel_symbol}")
             except Exception as e:
-                if "'status'" in str(e) or 'KeyError' in str(type(e)):
-                    if attempt == 0: continue
                 print(f"DEBUG: Angel History failed: {e}")
-                if attempt == 0: continue
+                if attempt == 0: 
+                    continue
         return None
 
     async def _get_international_historical(self, symbol, date_str):
