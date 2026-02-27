@@ -8,6 +8,7 @@ import math
 from dotenv import load_dotenv
 from thefuzz import process
 from bytez import Bytez
+from google import genai
 
 # Environment variables are managed by main.py
 # Only load here if running standalone
@@ -108,6 +109,8 @@ MODELS = [
     "openai/gpt-oss-20b:free",
     "meta-llama/llama-3.3-70b-instruct:free",
 ]
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 
 # Load training examples from multiple sources
@@ -455,6 +458,26 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     print(f"      >> BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
                     continue
 
+    # --- FALLBACK TO GEMINI ---
+    if GEMINI_API_KEY:
+        try:
+            print("  --> [FALLBACK] OpenRouter AND Bytez failed. Trying Google Gemini...")
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            raw_output = response.text
+            if raw_output:
+                print("      >> SUCCESS: Google Gemini Model gemini-2.5-flash responded.")
+                content = clean_json_string(str(raw_output))
+                data = json.loads(content)
+                if 'stocks' in data:
+                    data['stocks'] = validate_stocks(data['stocks'])
+                return data
+        except Exception as e:
+            print(f"      >> GEMINI EXCEPTION: {str(e)}")
+
     return {"impact": "no impact"}
 
 async def perform_deep_analysis(full_content, headline, regime="NORMAL", current_prices=None):
@@ -571,6 +594,26 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                 except Exception as e:
                     print(f"      >> [DEEP] BYTEZ EXCEPTION with Key {b_key_idx+1} on {b_model_name}: {str(e)}")
                     continue
+
+    # --- FALLBACK TO GEMINI for Deep Analysis ---
+    if GEMINI_API_KEY:
+        try:
+            print("      >> [DEEP-FALLBACK] OpenRouter AND Bytez failed. Trying Google Gemini...")
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            raw_output = response.text
+            if raw_output:
+                print("      >> [DEEP] SUCCESS: Google Gemini Model gemini-2.5-flash responded.")
+                content = clean_json_string(str(raw_output))
+                data = json.loads(content)
+                if 'stocks' in data:
+                    data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'))
+                return data
+        except Exception as e:
+            print(f"      >> [DEEP] GEMINI EXCEPTION: {str(e)}")
 
     return None
 
