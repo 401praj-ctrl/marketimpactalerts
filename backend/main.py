@@ -320,18 +320,11 @@ def migrate_legacy_alerts():
         impact_date = alert.get('impact_date_est', '')
         if impact_date:
             impact_date_str = str(impact_date)
-            is_direct = alert.get('impact_type') == 'Direct'
             
             # Case A: T+N formatting
             if "T+" in impact_date_str.upper():
                 print(f"  --> Migrating relative impact date: {impact_date}")
-                alert['impact_date_est'] = convert_relative_to_actual_date(impact_date_str, alert.get('timestamp'), force_single=is_direct)
-                changed = True
-            
-            # Case B: Range detected (ONLY collapse to start date if Direct Impact)
-            if is_direct and " to " in alert['impact_date_est']:
-                print(f"  --> Sanitizing date range for Direct impact: {alert['impact_date_est']}")
-                alert['impact_date_est'] = alert['impact_date_est'].split(" to ")[0]
+                alert['impact_date_est'] = convert_relative_to_actual_date(impact_date_str, alert.get('timestamp'))
                 changed = True
 
         # 3. Price Schema Migration (Flat to Map)
@@ -594,18 +587,24 @@ async def run_analysis(source="AUTOMATED"):
                     # Event date should be the actual publish date, not an AI hallucinated future date.
                     analysis['event_date'] = analysis['timestamp'][:10]
                     
-                    # Impact Type Mapping (Tier-1 = Direct, Tier-2/3 = Indirect)
-                    tier = str(analysis.get('tier', 'Tier-3')).lower()
-                    if 'tier-1' in tier or ( 'direct' in tier and 'indirect' not in tier):
+                    # Impact Type Mapping (Prioritize Explicit Classification from AI)
+                    impact_class = str(analysis.get('impact_classification', '')).lower()
+                    if 'direct' in impact_class and 'indirect' not in impact_class:
                         analysis['impact_type'] = 'Direct'
-                    else:
+                    elif 'indirect' in impact_class:
                         analysis['impact_type'] = 'Indirect'
+                    else:
+                        # Fallback to Tier logic if impact_classification isn't provided correctly
+                        tier = str(analysis.get('tier', 'Tier-3')).lower()
+                        if 'tier-1' in tier or ('direct' in tier and 'indirect' not in tier):
+                            analysis['impact_type'] = 'Direct'
+                        else:
+                            analysis['impact_type'] = 'Indirect'
                     
                     # Convert relative impact date (T+0 to T+2) to actual date strings
-                    # Enforce singular dates ONLY for Direct Impact (Tier-1)
-                    force_single = analysis['impact_type'] == 'Direct'
+                    # We rely completely on the AI's judgment for date formats (single or range)
                     impact_date = analysis.get('impact_date_est', '')
-                    analysis['impact_date_est'] = convert_relative_to_actual_date(impact_date, analysis['timestamp'], force_single=force_single)
+                    analysis['impact_date_est'] = convert_relative_to_actual_date(impact_date, analysis['timestamp'])
                     
                     # Impact Description and Reasoning (UI separation)
                     if not analysis.get('impact_description'):

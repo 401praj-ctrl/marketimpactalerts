@@ -394,6 +394,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
       "sector": "Affected sector (e.g. Banking, IT, Pharma)",
       "tier": "Tier-1 (Direct), Tier-2 (Sector-wide), or Tier-3 (Macro-market)",
       "impact_direction": "UP, DOWN, or NEUTRAL",
+      "impact_classification": "Direct Impact OR Indirect Impact",
       "probability": 0 to 100 integer,
       "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
       "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
@@ -406,7 +407,8 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     2. TIER CLASSIFICATION: Use Tier-1 ONLY for news directly about the company (e.g. Earnings, Mergers). Use Tier-2 for sector news (e.g. New Pharma regulation). Use Tier-3 for Macro (e.g. Inflation, War).
     2. STOCK IDENTIFICATION (CRITICAL): Provide 1-3 valid NSE/BSE symbols. 
        - Macro/Sector news? List the 2-3 biggest leaders of that sector.
-    4. DATE WIRING (STRICT): 'impact_date_est' MUST be a single exact date formula (e.g. "T+0" or "T+1") for Tier-1 impacts. For Tier-2 or Tier-3, you MUST use a range (e.g. "T+0 to T+3").
+    3. DATE WIRING: Estimate the 'impact_date_est' based on the news and historical examples. Use a single date (e.g. "T+0") or a range (e.g. "T+0 to T+3") as appropriate for the specific event.
+    4. IMPACT CLASSIFICATION: If the news directly impacts the specific stocks, set 'impact_classification' to "Direct Impact". Otherwise, set it to "Indirect Impact".
 
     RELEVANT HISTORICAL EXAMPLES:
     {examples_text}
@@ -611,10 +613,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     Analyze the full news content for stock impacts.
     
     1. Tier Calibration: Direct(Tier-1), Sector(Tier-2), Macro(Tier-3).
-    2. Date Estimation (STRICT): 'impact_date_est' MUST be a single exact date formula (e.g. "T+0" or "T+1") for Tier-1 impacts. For Tier-2 or Tier-3, you MUST use a range (e.g. "T+0 to T+3"). For long-term impacts, pick the single most likely date of peak impact if Tier-1.
-    3. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
-    4. ANALYSIS: Provide a granular 'impact_description' explaining the move.
-    5. STOCKS (MANDATORY): List specific ticker symbols impacted. NEVER leave this empty. If it's macro news, list the top 2-3 companies in the most affected sector (e.g., \"NSE:SBIN\", \"NSE:HDFCBANK\" for banking macro news).
+    2. Date Estimation: 'impact_date_est' should be based on the news and historical examples. Use single dates (e.g. "T+0") or ranges (e.g. "T+0 to T+3") depending on the context.
+    3. Impact Classification: Determine 'impact_classification'. If the news directly impacts the specific stocks, output "Direct Impact". Otherwise, output "Indirect Impact".
+    4. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
+    5. ANALYSIS: Provide a granular 'impact_description' explaining the move.
+    6. STOCKS (MANDATORY): List specific ticker symbols impacted. NEVER leave this empty. If it's macro news, list the top 2-3 companies in the most affected sector (e.g., "NSE:SBIN", "NSE:HDFCBANK" for banking macro news).
     
     RELEVANT HISTORICAL EXAMPLES:
     {examples_text}
@@ -627,6 +630,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
       "sector": "Affected sector (e.g. Banking, IT, Pharma)",
       "tier": "Tier-1 (Direct), Tier-2 (Sector-wide), or Tier-3 (Macro-market)",
       "impact_direction": "UP, DOWN, or NEUTRAL",
+      "impact_classification": "Direct Impact OR Indirect Impact",
       "probability": 0 to 100 integer,
       "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
       "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
