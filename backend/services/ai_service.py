@@ -396,7 +396,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
       "impact_direction": "UP, DOWN, or NEUTRAL",
       "impact_classification": "Direct Impact OR Indirect Impact",
       "probability": 0 to 100 integer,
-      "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
+      "impact_date_est": "Estimated impact date or range based on the news",
       "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
       "reason": "MANDATORY: 2-3 sentence explanation of the specific stock move logic (e.g., EMH, PEAD).",
       "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
@@ -407,7 +407,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     2. TIER CLASSIFICATION: Use Tier-1 ONLY for news directly about the company (e.g. Earnings, Mergers). Use Tier-2 for sector news (e.g. New Pharma regulation). Use Tier-3 for Macro (e.g. Inflation, War).
     2. STOCK IDENTIFICATION (CRITICAL): Provide 1-3 valid NSE/BSE symbols. 
        - Macro/Sector news? List the 2-3 biggest leaders of that sector.
-    3. DATE WIRING: Estimate the 'impact_date_est' based on the news and historical examples. Use a single date (e.g. "T+0") or a range (e.g. "T+0 to T+3") as appropriate for the specific event.
+    3. DATE WIRING: Estimate the 'impact_date_est' based on the news and historical examples. Do not restrict to any fixed time limit, use single dates or ranges as appropriate.
     4. IMPACT CLASSIFICATION: If the news directly impacts the specific stocks, set 'impact_classification' to "Direct Impact". Otherwise, set it to "Indirect Impact".
 
     RELEVANT HISTORICAL EXAMPLES:
@@ -613,7 +613,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     Analyze the full news content for stock impacts.
     
     1. Tier Calibration: Direct(Tier-1), Sector(Tier-2), Macro(Tier-3).
-    2. Date Estimation: 'impact_date_est' should be based on the news and historical examples. Use single dates (e.g. "T+0") or ranges (e.g. "T+0 to T+3") depending on the context.
+    2. Date Estimation: 'impact_date_est' should be based on the news and historical examples. Do not restrict to any fixed time limit, use single dates or ranges as appropriate.
     3. Impact Classification: Determine 'impact_classification'. If the news directly impacts the specific stocks, output "Direct Impact". Otherwise, output "Indirect Impact".
     4. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
     5. ANALYSIS: Provide a granular 'impact_description' explaining the move.
@@ -632,7 +632,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
       "impact_direction": "UP, DOWN, or NEUTRAL",
       "impact_classification": "Direct Impact OR Indirect Impact",
       "probability": 0 to 100 integer,
-      "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
+      "impact_date_est": "Estimated impact date or range based on the news",
       "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
       "reason": "MANDATORY: 2-3 sentence explanation of the specific stock move logic (e.g., EMH, PEAD).",
       "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
