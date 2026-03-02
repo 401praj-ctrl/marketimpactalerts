@@ -242,10 +242,11 @@ def parse_published_date(date_str):
         print(f"DEBUG: Failed to parse date '{date_str}': {e}")
         return None
 
-def convert_relative_to_actual_date(relative_str, base_date_str):
+def convert_relative_to_actual_date(relative_str, base_date_str, force_single=False):
     """
     Converts 'T+0 to T+2', 'today', 'tomorrow', or '03/03' style strings into actual YYYY-MM-DD dates 
     based on the provided base_date_str (ISO format).
+    If force_single is True, collapses date ranges to their start date.
     """
     if not relative_str or not isinstance(relative_str, str):
         return relative_str
@@ -288,9 +289,9 @@ def convert_relative_to_actual_date(relative_str, base_date_str):
     # 3. Handle T+N (case-insensitive match)
     if "t+" in low_s:
         result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
-        # GLOBAL EXACT DATE POLICY: If result is a range (e.g. "2026-03-02 to 2026-03-04"), 
-        # always collapse to the start date for "Accurate Date" display.
-        if " to " in result:
+        # GLOBAL EXACT DATE POLICY FOR DIRECT: If result is a range (e.g. "2026-03-02 to 2026-03-04"), 
+        # collapse it ONLY if force_single is True (Tier-1/Direct). Otherwise leave the range intact.
+        if force_single and " to " in result:
             result = result.split(" to ")[0]
         return result
         
@@ -319,15 +320,17 @@ def migrate_legacy_alerts():
         impact_date = alert.get('impact_date_est', '')
         if impact_date:
             impact_date_str = str(impact_date)
+            is_direct = alert.get('impact_type') == 'Direct'
+            
             # Case A: T+N formatting
             if "T+" in impact_date_str.upper():
                 print(f"  --> Migrating relative impact date: {impact_date}")
-                alert['impact_date_est'] = convert_relative_to_actual_date(impact_date_str, alert.get('timestamp'))
+                alert['impact_date_est'] = convert_relative_to_actual_date(impact_date_str, alert.get('timestamp'), force_single=is_direct)
                 changed = True
             
-            # Case B: Range detected (globally collapse to start date for "Accurate Date")
-            if " to " in alert['impact_date_est']:
-                print(f"  --> Sanitizing date range: {alert['impact_date_est']}")
+            # Case B: Range detected (ONLY collapse to start date if Direct Impact)
+            if is_direct and " to " in alert['impact_date_est']:
+                print(f"  --> Sanitizing date range for Direct impact: {alert['impact_date_est']}")
                 alert['impact_date_est'] = alert['impact_date_est'].split(" to ")[0]
                 changed = True
 
@@ -599,8 +602,10 @@ async def run_analysis(source="AUTOMATED"):
                         analysis['impact_type'] = 'Indirect'
                     
                     # Convert relative impact date (T+0 to T+2) to actual date strings
+                    # Enforce singular dates ONLY for Direct Impact (Tier-1)
+                    force_single = analysis['impact_type'] == 'Direct'
                     impact_date = analysis.get('impact_date_est', '')
-                    analysis['impact_date_est'] = convert_relative_to_actual_date(impact_date, analysis['timestamp'])
+                    analysis['impact_date_est'] = convert_relative_to_actual_date(impact_date, analysis['timestamp'], force_single=force_single)
                     
                     # Impact Description and Reasoning (UI separation)
                     if not analysis.get('impact_description'):
