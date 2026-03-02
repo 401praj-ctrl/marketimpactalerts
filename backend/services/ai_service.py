@@ -662,7 +662,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
 
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
+                            data['stocks'] = await validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
                         return data
                     else:
                         print(f"      >> [DEEP] WARNING: Model {model} returned status {response.status_code}")
@@ -721,7 +721,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
+                            data['stocks'] = await validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline)
                         return data
                     else:
                         print(f"      >> [DEEP-NOTICE] Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
