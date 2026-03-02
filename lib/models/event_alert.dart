@@ -15,6 +15,7 @@ class EventAlert {
   final double? livePrice;
   final double? predictedPrice;
   final String? upsidePct;
+  final Map<String, dynamic>? stockPrices; // New mapping for individual stock prices
   final String impactType; // 'Direct' or 'Indirect'
   final String? currency;
   final bool isVerified;
@@ -38,6 +39,7 @@ class EventAlert {
     this.livePrice,
     this.predictedPrice,
     this.upsidePct,
+    this.stockPrices,
     this.impactType = 'Direct',
     this.currency,
     this.isVerified = false,
@@ -63,6 +65,7 @@ class EventAlert {
       livePrice: _toDouble(json['live_price']),
       predictedPrice: _toDouble(json['predicted_price']),
       upsidePct: json['upside_pct']?.toString(),
+      stockPrices: json['stock_prices'],
       impactType: json['impact_type'] ?? 'Direct',
       currency: json['currency'],
       isVerified: json['verified'] ?? false,
@@ -96,6 +99,7 @@ class EventAlert {
       'live_price': livePrice,
       'predicted_price': predictedPrice,
       'upside_pct': upsidePct,
+      'stock_prices': stockPrices,
       'impact_type': impactType,
       'currency': currency,
       'verified': isVerified,

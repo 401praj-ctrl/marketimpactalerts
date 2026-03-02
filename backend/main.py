@@ -4,6 +4,7 @@ import os
 import json
 import asyncio
 import datetime
+import re
 import uvicorn
 import requests
 import httpx
@@ -241,15 +242,39 @@ def parse_published_date(date_str):
         print(f"DEBUG: Failed to parse date '{date_str}': {e}")
         return None
 
+def convert_relative_to_actual_date(relative_str, base_date_str):
+    """
+    Converts 'T+0 to T+2' or 'T+3' style strings into actual YYYY-MM-DD dates 
+    based on the provided base_date_str (ISO format).
+    """
+    if not relative_str or not isinstance(relative_str, str) or "T+" not in relative_str.upper():
+        return relative_str
+        
+    try:
+        base_dt = datetime.datetime.fromisoformat(base_date_str)
+    except:
+        base_dt = get_ist_now()
+
+    def replace_tn(match):
+        try:
+            days = int(match.group(1))
+            target_date = base_dt + datetime.timedelta(days=days)
+            return target_date.strftime("%Y-%m-%d")
+        except: return match.group(0)
+
+    # Convert T+N to actual date string (case-insensitive match)
+    result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
+    return result
+
 def migrate_legacy_alerts():
-    """Converts any non-ISO timestamps in cached_alerts.json to ISO."""
+    """Converts any non-ISO timestamps or old price formats in cached_alerts.json."""
     global cached_alerts
     changed = False
     print(f"DEBUG: Starting legacy alert migration for {len(cached_alerts)} items...")
     
     for alert in cached_alerts:
+        # 1. Timestamp Migration
         ts = alert.get('timestamp', '')
-        # Check if it looks like a standardized ISO already (YYYY-MM-DDTHH...)
         if not (isinstance(ts, str) and len(ts) >= 19 and ts[4] == '-' and ts[7] == '-' and 'T' in ts):
             print(f"  --> Migrating timestamp: {ts}")
             parsed = parse_published_date(ts)
@@ -257,9 +282,29 @@ def migrate_legacy_alerts():
                 alert['timestamp'] = parsed.isoformat()
                 changed = True
             else:
-                # Fallback to now if unparseable
                 alert['timestamp'] = get_ist_now().isoformat()
                 changed = True
+
+        # 2. Impact Date Migration (T+N to Actual)
+        impact_date = alert.get('impact_date_est', '')
+        if impact_date and "T+" in str(impact_date).upper():
+            print(f"  --> Migrating relative impact date: {impact_date}")
+            alert['impact_date_est'] = convert_relative_to_actual_date(str(impact_date), alert.get('timestamp'))
+            changed = True
+
+        # 3. Price Schema Migration (Flat to Map)
+        if 'live_price' in alert and 'stock_prices' not in alert:
+            print(f"  --> Migrating price schema for: {alert.get('event')}")
+            stocks = alert.get('stocks', [])
+            stock_prices = {}
+            for s in stocks:
+                stock_prices[s] = {
+                    "live": alert.get('live_price'),
+                    "predicted": alert.get('predicted_price'),
+                    "upside": alert.get('upside_pct')
+                }
+            alert['stock_prices'] = stock_prices
+            changed = True
     
     if changed:
         print("DEBUG: Migration complete. Saving sanitized alerts.")
@@ -439,74 +484,62 @@ async def run_analysis(source="AUTOMATED"):
                     print(f"    --> Candidate found (Prob: {prob}%). Performing DEEP DIVE...")
                     
                     # Pass 2: Deep Dive with Live Prices
-                    current_prices = {}
-                    for symbol in analysis.get('stocks', []):
-                        price = await price_service.get_live_price(symbol)
-                        if price:
-                            current_prices[symbol] = price
-                    
                     full_text = await fetch_article_content(h['link'])
-                    deep_report = await perform_deep_analysis(full_text, analysis['event'], regime=current_regime, current_prices=current_prices)
-                    
+                    deep_report = await perform_deep_analysis(full_text, analysis['event'], regime=current_regime)
                     if deep_report:
                         analysis.update(deep_report)
-                        # Re-fetch prices if stocks were added during deep analysis
-                        for symbol in analysis.get('stocks', []):
-                            if symbol not in current_prices:
-                                price = await price_service.get_live_price(symbol)
-                                if price:
-                                    current_prices[symbol] = price
-                    
-                    # Ensure currency is set based on the first stock symbol
-                    if not analysis.get('currency') and analysis.get('stocks'):
-                        first_symbol = analysis['stocks'][0]
-                        analysis['currency'] = price_service.get_currency_for_symbol(first_symbol)
 
-                    # Logic: Robust price fallback for missed stock or impact prices
-                    # We check if the AI's live_price is missing, empty, or non-numeric
-                    ai_lp = str(analysis.get('live_price', '')).strip().lower()
-                    needs_fallback = not ai_lp or any(x in ai_lp for x in ['n/a', 'closed', 'none', 'null', 'nan'])
+                    # --- MULTI-STOCK PRICING LOGIC ---
+                    stocks = analysis.get('stocks', [])
+                    stock_prices = {}
                     
-                    if not needs_fallback:
+                    for symbol in stocks:
                         try:
-                            # Verify if it's actually a valid number
-                            if float(ai_lp) <= 0:
-                                needs_fallback = True
-                        except (ValueError, TypeError):
-                            needs_fallback = True
-                    
-                    if needs_fallback and current_prices:
-                        first_symbol = analysis.get('stocks', [None])[0]
-                        if first_symbol and first_symbol in current_prices:
-                            analysis['live_price'] = current_prices[first_symbol]
-                            print(f"      [DEBUG] Force-assigned live_price from fallback: {analysis['live_price']}")
+                            lp = await price_service.get_live_price(symbol)
+                            if not lp:
+                                stock_prices[symbol] = {"live": None, "predicted": None, "upside": None}
+                                continue
 
-                    if analysis.get('live_price') and not analysis.get('predicted_price'):
-                        try:
-                            lp = float(analysis['live_price'])
+                            # Calculate individual predicted price for this stock
                             p = float(analysis.get('probability', 60))
-                            
-                            # Safely get direction from various AI naming conventions
                             raw_dir = str(analysis.get('impact_direction', analysis.get('direction', analysis.get('impact', 'NEUTRAL')))).lower()
-                            
                             is_up = any(x in raw_dir for x in ['up', 'positive', 'bullish', 'high', 'increase'])
                             is_down = any(x in raw_dir for x in ['down', 'negative', 'bearish', 'low', 'decrease'])
                             
-                            # Improved volatility factor: 60% probability -> ~1.5% move for Tier-1
                             tier = analysis.get('tier', 'Tier-3')
                             base_move = 0.01 if tier == 'Tier-1' else (0.005 if tier == 'Tier-2' else 0.002)
-                            move_factor = base_move * (p / 50.0) 
+                            move_factor = base_move * (p / 50.0)
                             
+                            pred = None
+                            upside = None
                             if is_up:
-                                analysis['predicted_price'] = round(lp * (1 + move_factor), 2)
-                                analysis['upside_pct'] = f"+{(move_factor * 100):.2f}%"
+                                pred = round(lp * (1 + move_factor), 2)
+                                upside = f"+{(move_factor * 100):.2f}%"
                             elif is_down:
-                                analysis['predicted_price'] = round(lp * (1 - move_factor), 2)
-                                analysis['upside_pct'] = f"-{(move_factor * 100):.2f}%"
+                                pred = round(lp * (1 - move_factor), 2)
+                                upside = f"-{(move_factor * 100):.2f}%"
                             
-                            if analysis.get('predicted_price'):
-                                print(f"      [FALLBACK] Predicted Price: {analysis['predicted_price']} ({analysis['upside_pct']})")
-                        except: pass
+                            stock_prices[symbol] = {
+                                "live": lp,
+                                "predicted": pred,
+                                "upside": upside
+                            }
+                        except Exception as pe:
+                            print(f"      [ERROR] Pricing failed for {symbol}: {pe}")
+                            stock_prices[symbol] = {"live": None, "predicted": None, "upside": None}
+
+                    analysis['stock_prices'] = stock_prices
+                    
+                    # Legacy support for frontend fields (using the first stock's data)
+                    if stocks and stocks[0] in stock_prices:
+                        first = stock_prices[stocks[0]]
+                        analysis['live_price'] = first['live']
+                        analysis['predicted_price'] = first['predicted']
+                        analysis['upside_pct'] = first['upside']
+
+                    # Ensure currency is set based on the first stock symbol
+                    if not analysis.get('currency') and stocks:
+                        analysis['currency'] = price_service.get_currency_for_symbol(stocks[0])
 
                     # Standardize timestamp
                     raw_time = analysis.get('published', get_ist_now().isoformat())
@@ -514,6 +547,9 @@ async def run_analysis(source="AUTOMATED"):
                     analysis['timestamp'] = parsed_dt.isoformat() if parsed_dt else get_ist_now().isoformat()
                     # Event date should be the actual publish date, not an AI hallucinated future date.
                     analysis['event_date'] = analysis['timestamp'][:10]
+                    
+                    # Convert relative impact date (T+0 to T+2) to actual date strings
+                    analysis['impact_date_est'] = convert_relative_to_actual_date(analysis.get('impact_date_est', ''), analysis['timestamp'])
                     
                     # Ensure impact_description is populated
                     if not analysis.get('impact_description'):
@@ -697,6 +733,13 @@ async def trigger_demo_endpoint():
         "event_date": datetime.datetime.now().strftime("%Y-%m-%d"),
         "impact_date_est": (datetime.datetime.now() + datetime.timedelta(days=2)).strftime("%Y-%m-%d"),
         "probability": 75,
+        "stock_prices": {
+            "NSE:RELIANCE": {
+                "live": 1393.9,
+                "predicted": 1414.81,
+                "upside": "+1.50%"
+            }
+        },
         "live_price": 1393.9,
         "predicted_price": 1414.81,
         "upside_pct": "+1.50%",

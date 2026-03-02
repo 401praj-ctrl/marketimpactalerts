@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from thefuzz import process
 from bytez import Bytez
 from google import genai
+from services.search_service import search_ticker_online
 
 # Environment variables are managed by main.py
 # Only load here if running standalone
@@ -28,7 +29,8 @@ GLOBAL_SYMBOLS = {
     "JPM", "GS", "MS", "BAC", "C", "V", "MA", "AXP", "BABA", "SONY", "XIACF",
     "XOM", "SHEL", "BP", "JNJ", "PG", "TM", "HMC",
     "LMT", "RTX", "HON", "BA", "CAT", "GE", "IBM", "NOW", "UBER", "ABNB",
-    "CVX", "SLB", "COP", "UNH", "PFE", "MRK", "ABBV", "LLY"
+    "CVX", "SLB", "COP", "UNH", "PFE", "MRK", "ABBV", "LLY",
+    "BTC-USD", "ETH-USD", "SOL-USD", "BNB-USD", "XRP-USD", "DOGE-USD", "ADA-USD"
 }
 try:
     names_path = os.path.join(BASE_DIR, "data", "company_names.json")
@@ -115,9 +117,9 @@ else:
 
 # Models in order of preference
 MODELS = [
+    "meta-llama/llama-3.3-70b-instruct:free",
     "google/gemma-3-12b-it:free",
     "openai/gpt-oss-20b:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
 ]
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -277,15 +279,9 @@ MACRO_SECTOR_MAPPING = {
     "Artificial Intelligence": ["NSE:TCS", "NSE:INFY", "NSE:HCLTECH"],
     "Entertainment": ["NSE:PVRINOX", "NSE:ZEEL", "NSE:SUNTV"],
     "Media": ["NSE:ZEEL", "NSE:SUNTV", "NSE:NETWORK18"],
-    "FMCG": ["NSE:HINDUNILVR", "NSE:ITC", "NSE:TATACONSUM"],
-    "Auto": ["NSE:TATAMOTORS", "NSE:MARUTI", "NSE:M&M"],
-    "Pharma": ["NSE:SUNPHARMA", "NSE:DRREDDY", "NSE:CIPLA"],
-    "Metal": ["NSE:TATASTEEL", "NSE:JINDALSTEL", "NSE:HINDALCO"],
-    "Real Estate": ["NSE:DLF", "NSE:GODREJPROP", "NSE:OBEROIRLTY"],
-    "Energy": ["NSE:RELIANCE", "NSE:ONGC", "NSE:NTPC"]
 }
 
-def validate_stocks(stocks_list, sector=None, headline=""):
+async def validate_stocks(stocks_list, sector=None, headline=None, company_name=None):
     """
     Strips exchange prefixes and validates symbols against the master list.
     Also handles common NSE symbols that might be missing the -EQ suffix.
@@ -324,23 +320,40 @@ def validate_stocks(stocks_list, sector=None, headline=""):
             elif "ENERGY" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Energy", []))
             elif "MEDIA" in s: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Media", []))
             else: clean_stocks.extend(MACRO_SECTOR_MAPPING.get("Macro", []))
+        elif s in ["BTC", "BITCOIN"]: clean_stocks.append("BTC-USD")
+        elif s in ["ETH", "ETHEREUM"]: clean_stocks.append("ETH-USD")
+        elif s in ["SOL", "SOLANA"]: clean_stocks.append("SOL-USD")
+        elif s in ["XRP"]: clean_stocks.append("XRP-USD")
         else:
             print(f"      >> [REJECTED] Unknown Stock: {stock}")
+
+    # ONLINE FALLBACK: If list is empty, try searching the company name online
+    if not clean_stocks and company_name:
+        online_tickers = await search_ticker_online(company_name)
+        if online_tickers:
+            print(f"      >> [ONLINE FALLBACK] Found tickers via web search: {online_tickers}")
+            clean_stocks.extend(online_tickers)
             
-    # FALLBACK: If list is empty after validation, use sector mapping or headline keywords
+    # FALLBACK: If list is still empty after validation, use sector mapping or headline keywords
     if not clean_stocks:
         search_target = (str(sector or "") + " " + str(headline or "")).lower()
         for cat, proxies in MACRO_SECTOR_MAPPING.items():
             if cat.lower() in search_target:
                 print(f"      >> [FALLBACK] Triggered for '{cat}' match in context. Using proxies: {proxies}")
-                return proxies
+                return list(set(proxies))
         
         # Final safety: If headline mentions broad market terms but index-specific check missed
         if any(w in search_target for w in ["gdp", "fiscal", "inflation", "market", "economy", "sensex", "nifty", "wall st"]):
             print(f"      >> [FALLBACK] Broad macro match. Using Macro proxies.")
-            return MACRO_SECTOR_MAPPING.get("Macro", [])
+            return list(set(MACRO_SECTOR_MAPPING.get("Macro", [])))
+                
+    # FINAL SAFETY: If list is still empty, use the company name itself to allow price search to try web scraping
+    if not clean_stocks and company_name and company_name.lower() != "n/a":
+        print(f"      >> [FINAL FALLBACK] No tickers found. Using company name '{company_name}' as symbol.")
+        clean_stocks.append(company_name)
                 
     return list(set(clean_stocks))
+
 
 async def analyze_headline(headline_text, regime="NORMAL"):
     # Enforce IST (UTC +5:30) for accurate Indian context mapping
@@ -357,34 +370,39 @@ async def analyze_headline(headline_text, regime="NORMAL"):
         examples_text += f"\n    Example {i+1}:\n    News: {ex.get('news')}\n    Output: {json.dumps(ex)}\n"
 
     prompt = f"""
-    Today's Date: {current_date}
-    You are an AI that detects whether a news event may impact publicly traded stocks or sectors.
-    Analyze the news and return a structured JSON response.
+    Today's Date: {current_date} IST
+    You are a Senior Financial Analyst specializing in the Indian Stock Market (NSE/BSE).
+    Analyze the news headline and return a structured JSON response.
 
-    FINANCIAL THEORIES & MARKET LOGIC TO APPLY:
-    1. Efficient Market Hypothesis (EMH) [Eugene Fama]: In an efficient market, prices instantly incorporate all available info. News doesn't just affect price; price is the sum of past news. You must determine if this news is genuinely new information or already priced in.
-    2. Abnormal Returns (AR) Formula: AR = Actual Return - Expected Return. Think: What should the stock have done vs what will this news make it do? Positive AR means news is "better than expected". Zero AR means "priced in".
-    3. The "Drift" Effect (PEAD) [Ball & Brown, 1968]: Post-Earnings Announcement Drift. Stocks don't react instantly to massive surprises; they drift in that direction for weeks. News has a "long tail" impact.
-    5. Sector Contagion: A bankruptcy drags down a sector but benefits direct competitors. Supply chain breaks hurt downstream.
-    6. Global to Local Contagion: Foreign macroeconomic news (US Fed rates, China slowdowns, Middle East conflicts) heavily impacts Indian domestic markets. Identify HOW a foreign event directly or indirectly affects Indian sectors (e.g., "US Tech slowdown" -> impacts "Indian IT Services").
-    7. Domestic Sensitivity: Local Indian news (RBI rate changes, monsoon data, government policies, local elections) has direct, intense impacts on domestic stocks.
-    
-    Values are 0.0 to 1.0. If Final Score < 0.4 ➔ Return "no impact".
+    FINANCIAL THEORIES TO APPLY:
+    1. Efficient Market Hypothesis (EMH): Determine if this news is new information or if it's already "priced in" (Probability < 50% if priced in).
+    2. Abnormal Returns (AR): Think: What should the stock have done vs what will this news make it do? (Positive AR = Bullish).
+    3. Post-Earnings Announcement Drift (PEAD): If the news has long-term tail implications, set 'impact_date_est' to a future range (T+3 to T+10).
+    4. IPO & Listing Logic: 
+       - Premium Listing = Bullish/UP. 
+       - Discount Listing = Bearish/NEUTRAL. NEVER mark a discount listing as UP.
 
-    RELEVANT HISTORICAL EXAMPLES TO FOLLOW:
-    {examples_text}
+    JSON SCHEMA:
+    {{
+      "event": "Short title of the news event",
+      "company": "Primary company name (e.g. Reliance Industries)",
+      "sector": "Affected sector (e.g. Banking, IT, Pharma)",
+      "tier": "Tier-1 (Direct), Tier-2 (Sector-wide), or Tier-3 (Macro-market)",
+      "impact_direction": "UP, DOWN, or NEUTRAL",
+      "probability": 0 to 100 integer,
+      "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
+      "article_summary": "1-2 sentence explanation of the impact logic",
+      "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
+    }}
 
     RULES:
-    1. Identify the EVENT, COMPANY, SECTOR, and TIER.
-    2. Use JSON format. 
-    3. Return "no impact" only if there is absolutely zero financial relevance.
-    4. EMH & AR APPLICATION: If news is strictly "priced in", return probability < 50%.
-    5. PEAD APPLICATION: Use the drift effect to set 'impact_date_est' significantly in the future (T+3 to T+10) if the news has long-term implications.
-    8. STOCK IDENTIFICATION (CRITICAL): You MUST provide at least 1-3 valid NSE/BSE ticker symbols for EVERY alert. 
-       - Tier-1 (Direct): Use the specific company ticker (e.g., \"NSE:RELIANCE\").
-       - Tier-2 (Sector): Use 2-3 major companies in that sector (e.g., \"NSE:TCS\", \"NSE:INFY\" for IT).
-       - Tier-3 (Macro): Use market-wide proxies or the most affected sector leaders (e.g., \"NSE:SBIN\" for RBI news).
-       - NEVER return an empty 'stocks' list if the news has any financial impact.
+    1. Return "no impact" ONLY if the news is completely irrelevant to any public stocks.
+    2. STOCK IDENTIFICATION (CRITICAL): Provide 1-3 valid NSE/BSE symbols. 
+       - Macro/Sector news? List the 2-3 biggest leaders of that sector.
+    3. Accuracy: Ensure the Tier correctly reflects the scope (Direct vs Sector vs Macro).
+
+    RELEVANT HISTORICAL EXAMPLES:
+    {examples_text}
 
     Headline: "{headline_text}"
     """
@@ -421,7 +439,9 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                             "model": model,
                             "messages": [
                                 {"role": "user", "content": prompt}
-                            ]
+                            ],
+                            "temperature": 0.1,
+                            "max_tokens": 1000
                         },
                         timeout=35
                     )
@@ -438,8 +458,8 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         if reasoning:
                             print(f"      >> Reasoning: {reasoning[:200]}...")
                         
-                        content = content.strip().replace('```json', '').replace('```', '')
-
+                        # Robust JSON cleaning
+                        content = clean_json_string(content)
                         data = json.loads(content)
                         
                         # Validate company and stocks
@@ -450,7 +470,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                                 data['stocks'] = s if isinstance(s, list) else [s]
                         
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline_text)
+                            data['stocks'] = await validate_stocks(
+                                data['stocks'], 
+                                sector=data.get('sector'), 
+                                headline=headline_text,
+                                company_name=data.get('company')
+                            )
                             
                         return data
                     elif response.status_code == 402:
@@ -465,7 +490,11 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                     else:
                         print(f"      >> WARNING: Model {model} returned status {response.status_code} with Key {i+1}")
                 except Exception as e:
-                    print(f"      >> EXCEPTION with Key {i+1} on {model}: {str(e)}")
+                    print(f"      >> [ERROR] AI Parsing failed for {model}: {e}")
+                    # Optionally print first 100 chars of content for debugging
+                    try:
+                        print(f"      >> Raw content (truncated): {repr(content)[:100]}")
+                    except: pass
                     continue
             
     # --- FALLBACK TO BYTEZ ---
@@ -511,7 +540,12 @@ async def analyze_headline(headline_text, regime="NORMAL"):
                         content = clean_json_string(str(raw_output))
                         data = json.loads(content)
                         if 'stocks' in data:
-                            data['stocks'] = validate_stocks(data['stocks'], sector=data.get('sector'), headline=headline_text)
+                            data['stocks'] = await validate_stocks(
+                                data['stocks'], 
+                                sector=data.get('sector'), 
+                                headline=headline_text,
+                                company_name=data.get('company')
+                            )
                         return data
                     else:
                         print(f"      >> NOTICE: Bytez {b_model_name} Key {b_key_idx+1} returned empty/unexpected: {str(results)[:100]}")
@@ -530,16 +564,20 @@ async def analyze_headline(headline_text, regime="NORMAL"):
             print("  --> [FALLBACK] OpenRouter AND Bytez failed. Trying Google Gemini...")
             client = genai.Client(api_key=gemini_key)
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-2.0-flash',
                 contents=prompt
             )
             raw_output = response.text
             if raw_output:
-                print("      >> SUCCESS: Google Gemini Model gemini-2.5-flash responded.")
+                print("      >> SUCCESS: Google Gemini Model gemini-2.0-flash responded.")
                 content = clean_json_string(str(raw_output))
                 data = json.loads(content)
                 if 'stocks' in data:
-                    data['stocks'] = validate_stocks(data['stocks'], headline=headline_text)
+                    data['stocks'] = await validate_stocks(
+                        data['stocks'], 
+                        headline=headline_text,
+                        company_name=data.get('company')
+                    )
                 return data
         except Exception as e:
             print(f"      >> GEMINI EXCEPTION: {str(e)}")
@@ -693,7 +731,11 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
                 content = clean_json_string(str(raw_output))
                 data = json.loads(content)
                 if 'stocks' in data:
-                    data['stocks'] = validate_stocks(data['stocks'], headline=headline)
+                    data['stocks'] = await validate_stocks(
+                        data['stocks'], 
+                        headline=headline,
+                        company_name=data.get('company')
+                    )
                 return data
         except Exception as e:
             print(f"      >> [DEEP] GEMINI EXCEPTION: {str(e)}")

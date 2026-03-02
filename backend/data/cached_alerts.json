@@ -13,15 +13,22 @@
     "event_date": "2026-02-27",
     "impact_date_est": "2026-03-01",
     "probability": 75,
-    "live_price": 1393.9,
+    "live_price": 1353.5,
     "predicted_price": 1414.81,
-    "upside_pct": "+1.50%",
+    "upside_pct": "+4.53%",
     "currency": "INR",
     "tier": "Tier-1",
     "timestamp": "2026-02-27T17:33:42.949087",
     "published": "2026-02-27T17:33:42.949087",
     "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
-    "link": "https://example.com/demo-news"
+    "link": "https://example.com/demo-news",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1393.9,
+        "predicted": 1414.81,
+        "upside": "+1.50%"
+      }
+    }
   },
   {
     "id": "demo_1772193765",
@@ -37,15 +44,22 @@
     "event_date": "2026-02-27",
     "impact_date_est": "2026-03-01",
     "probability": 75,
-    "live_price": 1393.9,
+    "live_price": 1353.5,
     "predicted_price": 1414.81,
-    "upside_pct": "+1.50%",
+    "upside_pct": "+4.53%",
     "currency": "INR",
     "tier": "Tier-1",
     "timestamp": "2026-02-27T17:32:45.763101",
     "published": "2026-02-27T17:32:45.763101",
     "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
-    "link": "https://example.com/demo-news"
+    "link": "https://example.com/demo-news",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1393.9,
+        "predicted": 1414.81,
+        "upside": "+1.50%"
+      }
+    }
   },
   {
     "id": "demo_1772193721",
@@ -61,15 +75,22 @@
     "event_date": "2026-02-27",
     "impact_date_est": "2026-03-01",
     "probability": 75,
-    "live_price": 1393.9,
+    "live_price": 1353.5,
     "predicted_price": 1414.81,
-    "upside_pct": "+1.50%",
+    "upside_pct": "+4.53%",
     "currency": "INR",
     "tier": "Tier-1",
     "timestamp": "2026-02-27T17:32:01.829631",
     "published": "2026-02-27T17:32:01.829631",
     "article_summary": "Major deal between RIL and NVIDIA for India-wide AI cloud deployment.",
-    "link": "https://example.com/demo-news"
+    "link": "https://example.com/demo-news",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1393.9,
+        "predicted": 1414.81,
+        "upside": "+1.50%"
+      }
+    }
   },
   {
     "event": "Angel One Stock Split & NCD Allotment",
@@ -95,10 +116,22 @@
     "link": "https://www.thehindubusinessline.com/markets/stock-markets/angel-one-shares-slip-on-stock-split-day-ncd-allotment-adds-to-borrowing-base/article70678492.ece",
     "published": "2026-02-27T11:01:01.248111",
     "timestamp": "2026-02-27T11:01:01.248111",
-    "live_price": 233.2,
+    "live_price": 224.0,
     "predicted_price": 236.7,
     "currency": "INR",
-    "upside_pct": "+1.50%"
+    "upside_pct": "+5.67%",
+    "stock_prices": {
+      "NSE:ANGELONE": {
+        "live": 233.2,
+        "predicted": 236.7,
+        "upside": "+1.50%"
+      },
+      "BSE:ANGELONE": {
+        "live": 233.2,
+        "predicted": 236.7,
+        "upside": "+1.50%"
+      }
+    }
   },
   {
     "event": "Bharat Biotech $500M IPO Plans",
@@ -125,10 +158,27 @@
     "link": "https://news.google.com/rss/articles/CBMi",
     "published": "2026-02-27T11:01:01.248111",
     "timestamp": "2026-02-27T11:01:01.248111",
-    "live_price": 1286.3,
+    "live_price": 1279.3,
     "predicted_price": 7545.0,
     "currency": "INR",
-    "upside_pct": "+0.60%"
+    "upside_pct": "+489.78%",
+    "stock_prices": {
+      "NSE:DRREDDY": {
+        "live": 1286.3,
+        "predicted": 7545.0,
+        "upside": "+0.60%"
+      },
+      "NSE:CIPLA": {
+        "live": 1286.3,
+        "predicted": 7545.0,
+        "upside": "+0.60%"
+      },
+      "NSE:SUNPHARMA": {
+        "live": 1286.3,
+        "predicted": 7545.0,
+        "upside": "+0.60%"
+      }
+    }
   },
   {
     "impact": "high",
@@ -144,11 +194,19 @@
     "link": "https://hackersmacker.org",
     "published": "2026-02-26T23:26:02.859923",
     "article_summary": "Highly positive news for TestCorp.",
-    "live_price": 2500.0,
+    "live_price": 1353.5,
     "predicted_price": 2750.0,
     "currency": "INR",
     "timestamp": "2026-02-26T23:26:02.859923",
-    "event_date": "2026-02-26"
+    "event_date": "2026-02-26",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 2500.0,
+        "predicted": 2750.0,
+        "upside": null
+      }
+    },
+    "upside_pct": "+103.18%"
   },
   {
     "event": "HSBC India profit up 11%",
@@ -172,12 +230,19 @@
     "id": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
     "link": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
     "published": "Wed, 25 Feb 2026 19:36:36 +0530",
-    "live_price": 87.88,
+    "live_price": 93.16,
     "currency": "USD",
     "timestamp": "2026-02-25T19:36:36",
     "article_summary": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector.",
     "predicted_price": 88.54,
-    "upside_pct": "+0.75%"
+    "upside_pct": "-4.96%",
+    "stock_prices": {
+      "HSBC": {
+        "live": 87.88,
+        "predicted": 88.54,
+        "upside": "+0.75%"
+      }
+    }
   },
   {
     "event": "IRFC OFS Subscription Failure",
@@ -202,12 +267,24 @@
     "id": "https://economictimes.indiatimes.com/markets/stocks/news/govt-to-skip-green-shoe-option-as-irfc-ofs-not-fully-subscribed/articleshow/128785147.cms",
     "link": "https://economictimes.indiatimes.com/markets/stocks/news/govt-to-skip-green-shoe-option-as-irfc-ofs-not-fully-subscribed/articleshow/128785147.cms",
     "published": "Wed, 25 Feb 2026 19:37:42 +0530",
-    "live_price": 104.55,
+    "live_price": 98.65,
     "currency": "INR",
     "timestamp": "2026-02-25T19:37:42",
     "article_summary": "Lower investor demand for IRFC's OFS suggests potential concerns about its financial health or valuation. The government's decision to not utilize the green shoe option further reinforces this negative sentiment.",
     "predicted_price": 103.92,
-    "upside_pct": "-0.60%"
+    "upside_pct": "+5.34%",
+    "stock_prices": {
+      "BSE:IRFC": {
+        "live": 104.55,
+        "predicted": 103.92,
+        "upside": "-0.60%"
+      },
+      "NSE:IRFC": {
+        "live": 104.55,
+        "predicted": 103.92,
+        "upside": "-0.60%"
+      }
+    }
   },
   {
     "event": "Zerodha's Kamath advocates for loan against shares facility",
@@ -234,12 +311,34 @@
     "id": "https://economictimes.indiatimes.com/markets/stocks/news/zerodhas-nithin-kamath-bats-for-loan-against-shares-facility-to-service-high-interest-loans/articleshow/128784136.cms",
     "link": "https://economictimes.indiatimes.com/markets/stocks/news/zerodhas-nithin-kamath-bats-for-loan-against-shares-facility-to-service-high-interest-loans/articleshow/128784136.cms",
     "published": "Wed, 25 Feb 2026 19:03:11 +0530",
-    "live_price": 11.0,
+    "live_price": 10.74,
     "currency": "INR",
     "timestamp": "2026-02-25T19:03:11",
     "article_summary": "Sector-specific regulatory change proposal impacting credit access and trading volumes.",
     "predicted_price": 11.07,
-    "upside_pct": "+0.60%"
+    "upside_pct": "+3.07%",
+    "stock_prices": {
+      "BSE:MID150CASE": {
+        "live": 11.0,
+        "predicted": 11.07,
+        "upside": "+0.60%"
+      },
+      "BSE:NIFTYCASE": {
+        "live": 11.0,
+        "predicted": 11.07,
+        "upside": "+0.60%"
+      },
+      "BSE:SML100CASE": {
+        "live": 11.0,
+        "predicted": 11.07,
+        "upside": "+0.60%"
+      },
+      "BSE:TOP100CASE": {
+        "live": 11.0,
+        "predicted": 11.07,
+        "upside": "+0.60%"
+      }
+    }
   },
   {
     "event": "Copper prices surge to highest in over a week",
@@ -266,10 +365,22 @@
     "published": "Tue, 24 Feb 2026 21:27:07 +0530",
     "timestamp": "2026-02-25T01:24:02.961474",
     "article_summary": "Increased demand from China, a major consumer of copper, leads to higher prices, benefiting Indian metal producers.",
-    "live_price": 936.9,
+    "live_price": 925.25,
     "currency": "INR",
     "predicted_price": 942.52,
-    "upside_pct": "+0.60%"
+    "upside_pct": "+1.87%",
+    "stock_prices": {
+      "BSE:HINDALCO": {
+        "live": 936.9,
+        "predicted": 942.52,
+        "upside": "+0.60%"
+      },
+      "NSE:HINDALCO": {
+        "live": 936.9,
+        "predicted": 942.52,
+        "upside": "+0.60%"
+      }
+    }
   },
   {
     "event": "Trump Tariff Refund Deadline Looms",
@@ -295,10 +406,32 @@
     "published": "2026-02-20 18:42:50",
     "article_summary": "The article reports on an approaching deadline for US importers to file refund requests related to tariffs imposed during the Trump administration. These tariffs, initially levied on goods from China, are now subject to potential refunds for businesses that paid them. The deadline is rapidly approaching, creating a sense of urgency for importers seeking to recover these costs.",
     "timestamp": "2026-02-20T18:42:50",
-    "live_price": 15070.0,
+    "live_price": 9690.5,
     "currency": "INR",
     "predicted_price": 15070.0,
-    "upside_pct": "0.00%"
+    "upside_pct": "+55.51%",
+    "stock_prices": {
+      "NSE:BAJAJAUTO": {
+        "live": 15070.0,
+        "predicted": 15070.0,
+        "upside": "0.00%"
+      },
+      "NSE:MARUTI": {
+        "live": 15070.0,
+        "predicted": 15070.0,
+        "upside": "0.00%"
+      },
+      "NSE:TATASTEEL": {
+        "live": 15070.0,
+        "predicted": 15070.0,
+        "upside": "0.00%"
+      },
+      "NSE:EXPORTS": {
+        "live": 15070.0,
+        "predicted": 15070.0,
+        "upside": "0.00%"
+      }
+    }
   },
   {
     "event": "Trump Announces Stronger Tariffs - Content Unavailable",
@@ -325,10 +458,37 @@
     "published": "2026-02-20 18:39:10",
     "article_summary": "The provided news article is inaccessible, preventing a full analysis. However, based on the headline indicating stronger tariffs announced by Donald Trump, we can infer potential impacts on Indian companies and sectors reliant on international trade. The lack of content makes a precise assessment impossible.",
     "timestamp": "2026-02-20T18:39:10",
-    "live_price": 1398.5,
+    "live_price": 1353.5,
     "currency": "INR",
     "predicted_price": 1391.51,
-    "upside_pct": "-0.50%"
+    "upside_pct": "+2.81%",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1398.5,
+        "predicted": 1391.51,
+        "upside": "-0.50%"
+      },
+      "NSE:TATASTEEL": {
+        "live": 1398.5,
+        "predicted": 1391.51,
+        "upside": "-0.50%"
+      },
+      "NSE:INFOSYS": {
+        "live": 1398.5,
+        "predicted": 1391.51,
+        "upside": "-0.50%"
+      },
+      "NSE:HDFCCBANK": {
+        "live": 1398.5,
+        "predicted": 1391.51,
+        "upside": "-0.50%"
+      },
+      "NSE:ICICI": {
+        "live": 1398.5,
+        "predicted": 1391.51,
+        "upside": "-0.50%"
+      }
+    }
   },
   {
     "event": "US-India Relations Analysis - Potential Trade & Policy Impacts",
@@ -355,10 +515,37 @@
     "published": "2026-02-19T06:51:41Z",
     "article_summary": "Illinois Governor Pritzker's State of the State address highlighted concerns about the Trump administration's policies and their financial impact on Illinois, citing $8.4 billion in illegally withheld funds and detrimental trade practices. He drew parallels to historical figures advocating for social justice and economic stability, emphasizing Illinois's resilience in the face of federal challenges. The speech suggests potential for continued friction and legal battles between Illinois and the federal government.",
     "timestamp": "2026-02-19T06:51:41Z",
-    "live_price": 1398.5,
+    "live_price": 1353.5,
     "currency": "INR",
     "predicted_price": 1389.41,
-    "upside_pct": "-0.65%"
+    "upside_pct": "+2.65%",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1398.5,
+        "predicted": 1389.41,
+        "upside": "-0.65%"
+      },
+      "NSE:INFOSYS": {
+        "live": 1398.5,
+        "predicted": 1389.41,
+        "upside": "-0.65%"
+      },
+      "NSE:TCS": {
+        "live": 1398.5,
+        "predicted": 1389.41,
+        "upside": "-0.65%"
+      },
+      "NSE:HDFC": {
+        "live": 1398.5,
+        "predicted": 1389.41,
+        "upside": "-0.65%"
+      },
+      "NSE:ICICI": {
+        "live": 1398.5,
+        "predicted": 1389.41,
+        "upside": "-0.65%"
+      }
+    }
   },
   {
     "event": "Bill Gates Cancels AI Summit Keynote Amidst Epstein Allegations",
@@ -383,10 +570,27 @@
     "published": "2026-02-19T05:06:09Z",
     "article_summary": "Bill Gates abruptly cancelled his keynote address at the AI Impact Summit in New Delhi, India, just hours before he was scheduled to speak. This decision follows recent scrutiny and allegations stemming from newly released emails purportedly written by Jeffrey Epstein, which claim Gates had inappropriate interactions and sought medication to conceal a sexually transmitted infection from his wife. Gates has vehemently denied these claims, but the controversy has prompted his withdrawal from the summit.",
     "timestamp": "2026-02-19T05:06:09Z",
-    "live_price": 1290.1,
+    "live_price": 1276.2,
     "currency": "INR",
     "predicted_price": 1281.71,
-    "upside_pct": "-0.65%"
+    "upside_pct": "+0.43%",
+    "stock_prices": {
+      "NSE:INFY": {
+        "live": 1290.1,
+        "predicted": 1281.71,
+        "upside": "-0.65%"
+      },
+      "NSE:TCS": {
+        "live": 1290.1,
+        "predicted": 1281.71,
+        "upside": "-0.65%"
+      },
+      "NSE:HCLTECH": {
+        "live": 1290.1,
+        "predicted": 1281.71,
+        "upside": "-0.65%"
+      }
+    }
   },
   {
     "event": "Bernie Sanders Advocates for Wealth Tax in California",
@@ -415,10 +619,47 @@
     "published": "2026-02-19T04:03:49Z",
     "article_summary": "Bernie Sanders, a prominent US politician, has publicly advocated for the implementation of a wealth tax in California. This proposal aims to tax the assets of the wealthiest individuals in the state, potentially generating significant revenue for public programs. The advocacy occurred during a recent visit to California.",
     "timestamp": "2026-02-19T04:03:49Z",
-    "live_price": 907.6,
+    "live_price": 878.0,
     "currency": "INR",
     "predicted_price": 901.7,
-    "upside_pct": "-0.65%"
+    "upside_pct": "+2.70%",
+    "stock_prices": {
+      "NSE:HDFCBANK": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:ICICIBC": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:SBILIFE": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:AXISBANK": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:RELIG": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:INFY": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      },
+      "NSE:TCS": {
+        "live": 907.6,
+        "predicted": 901.7,
+        "upside": "-0.65%"
+      }
+    }
   },
   {
     "event": "Expanded ICE Detention Powers",
@@ -444,10 +685,32 @@
     "published": "2026-02-19T03:59:00Z",
     "timestamp": "2026-02-19T03:59:00Z",
     "article_summary": "Increased demand for surveillance tech (positive) is offset by ethical concerns and potential reputational damage (negative). The net effect is likely a downward pressure on valuations, particularly for companies heavily involved in government contracts.",
-    "live_price": 1290.1,
+    "live_price": 1276.2,
     "currency": "INR",
     "predicted_price": 1277.84,
-    "upside_pct": "-0.95%"
+    "upside_pct": "+0.13%",
+    "stock_prices": {
+      "NSE:INFY": {
+        "live": 1290.1,
+        "predicted": 1277.84,
+        "upside": "-0.95%"
+      },
+      "NSE:TCS": {
+        "live": 1290.1,
+        "predicted": 1277.84,
+        "upside": "-0.95%"
+      },
+      "NSE:HCLTECH": {
+        "live": 1290.1,
+        "predicted": 1277.84,
+        "upside": "-0.95%"
+      },
+      "NSE:TECHM": {
+        "live": 1290.1,
+        "predicted": 1277.84,
+        "upside": "-0.95%"
+      }
+    }
   },
   {
     "event": "Bird Flu Outbreak in Hainesport Twp.",
@@ -496,10 +759,27 @@
     "published": "2026-02-20 06:46:00",
     "article_summary": "A Deutsche Welle correspondent, Alijian Uludag, has been arrested in Ankara on charges of \"insulting the president\" and \"spreading false information\" related to his social media posts on X (formerly Twitter). The Istanbul Chief Prosecutor's Office initiated an investigation and Uludag is expected to be transferred to Istanbul for questioning.",
     "timestamp": "2026-02-20T06:46:00",
-    "live_price": 4577.0,
+    "live_price": 4421.1,
     "currency": "INR",
     "predicted_price": 4540.38,
-    "upside_pct": "-0.80%"
+    "upside_pct": "+2.70%",
+    "stock_prices": {
+      "NSE:TATAELXSI": {
+        "live": 4577.0,
+        "predicted": 4540.38,
+        "upside": "-0.80%"
+      },
+      "NSE:INFOSYS": {
+        "live": 4577.0,
+        "predicted": 4540.38,
+        "upside": "-0.80%"
+      },
+      "NSE:TECHM": {
+        "live": 4577.0,
+        "predicted": 4540.38,
+        "upside": "-0.80%"
+      }
+    }
   },
   {
     "event": "Marcos Review of ICI Report - No Content Available",
@@ -523,10 +803,22 @@
     "published": "2026-02-20 06:46:00",
     "article_summary": "The headline indicates a review of an ICI (Insurance Claims Investigation) report by Marcos. However, the provided content is unavailable, preventing a detailed analysis. Without the report's findings, assessing the potential impact is impossible.",
     "timestamp": "2026-02-20T06:46:00",
-    "live_price": 715.3,
+    "live_price": 706.3,
     "currency": "INR",
     "predicted_price": 715.3,
-    "upside_pct": "0.00%"
+    "upside_pct": "+1.27%",
+    "stock_prices": {
+      "NSE:HDFCLIFE": {
+        "live": 715.3,
+        "predicted": 715.3,
+        "upside": "0.00%"
+      },
+      "NSE:LICHSGFIN": {
+        "live": 715.3,
+        "predicted": 715.3,
+        "upside": "0.00%"
+      }
+    }
   },
   {
     "event": "Hypersonix Launch Window Set for Landmark Hypersonic Flight Test",
@@ -551,10 +843,27 @@
     "published": "2026-02-20 06:46:00",
     "article_summary": "Australian hypersonic flight pioneer Hypersonix Launch Systems has announced a launch window for a critical flight test of its DART AE hypersonic aircraft, powered by a hydrogen-based scramjet engine. The Cassowary Vex mission, launching with Rocket Lab, aims to validate advanced propulsion, materials, and guidance systems at real hypersonic conditions. The project is backed by significant funding and partnerships, accelerating the development of reusable, sustainable hypersonic vehicles.",
     "timestamp": "2026-02-20T06:46:00",
-    "live_price": 3985.0,
+    "live_price": 3934.9,
     "currency": "INR",
     "predicted_price": 4014.89,
-    "upside_pct": "+0.75%"
+    "upside_pct": "+2.03%",
+    "stock_prices": {
+      "NSE:HAL": {
+        "live": 3985.0,
+        "predicted": 4014.89,
+        "upside": "+0.75%"
+      },
+      "NSE:BEL": {
+        "live": 3985.0,
+        "predicted": 4014.89,
+        "upside": "+0.75%"
+      },
+      "NSE:M&M": {
+        "live": 3985.0,
+        "predicted": 4014.89,
+        "upside": "+0.75%"
+      }
+    }
   },
   {
     "event": "India's Trade Deficit Widens",
@@ -578,10 +887,22 @@
     "published": "2026-02-20 06:46:00",
     "timestamp": "2026-02-20T06:46:00",
     "article_summary": "Increased trade deficit puts downward pressure on the Indian economy, potentially impacting corporate earnings and investor sentiment. The EMH suggests this is priced in, but the magnitude warrants monitoring.",
-    "live_price": 1393.9,
+    "live_price": 1353.5,
     "currency": "INR",
     "predicted_price": 1380.66,
-    "upside_pct": "-0.95%"
+    "upside_pct": "+2.01%",
+    "stock_prices": {
+      "NSE:RELIANCE": {
+        "live": 1393.9,
+        "predicted": 1380.66,
+        "upside": "-0.95%"
+      },
+      "NSE:HDFCBANK": {
+        "live": 1393.9,
+        "predicted": 1380.66,
+        "upside": "-0.95%"
+      }
+    }
   },
   {
     "event": "Google's Commitment to Open Android",
@@ -606,9 +927,26 @@
     "published": "2026-02-21T00:16:17.015170",
     "timestamp": "2026-02-21T00:16:17.015170",
     "article_summary": "An open Android platform encourages wider adoption and innovation, which is generally positive for companies operating within the mobile ecosystem. This is likely priced in, but reinforces existing positive trends.",
-    "live_price": 1290.1,
+    "live_price": 1276.2,
     "currency": "INR",
     "predicted_price": 1302.36,
-    "upside_pct": "+0.95%"
+    "upside_pct": "+2.05%",
+    "stock_prices": {
+      "NSE:INFY": {
+        "live": 1290.1,
+        "predicted": 1302.36,
+        "upside": "+0.95%"
+      },
+      "NSE:TCS": {
+        "live": 1290.1,
+        "predicted": 1302.36,
+        "upside": "+0.95%"
+      },
+      "NSE:HCLTECH": {
+        "live": 1290.1,
+        "predicted": 1302.36,
+        "upside": "+0.95%"
+      }
+    }
   }
 ]

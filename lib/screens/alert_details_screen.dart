@@ -169,12 +169,12 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             Text('LIVE PRICE', style: GoogleFonts.inter(color: AppTheme.silver, fontSize: 10, letterSpacing: 1)),
                             const SizedBox(height: 4),
                             Text(
-                              _formatPrice(alert.livePrice, alert.currency, alert.stocks), 
+                              _getIndividualPrice(alert, stock, 'live'), 
                               style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)
                             ),
                           ],
                         ),
-                        const SizedBox(width: 32),
+                        const SizedBox(width: 24),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -183,7 +183,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                             Row(
                               children: [
                                  Text(
-                                  _formatPrice(alert.predictedPrice, alert.currency, alert.stocks), 
+                                  _getIndividualPrice(alert, stock, 'predicted'), 
                                   style: GoogleFonts.outfit(
                                     color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : 
                                            alert.impactDirection.toLowerCase() == 'down' ? AppTheme.getImpactColor('down') : 
@@ -192,9 +192,9 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
                                     fontWeight: FontWeight.bold
                                   )
                                 ),
-                                if (alert.upsidePct != null) ...[
+                                if (_getIndividualUpside(alert, stock) != null) ...[
                                   const SizedBox(width: 8),
-                                  Text('(${_cleanUpsidePct(alert.upsidePct!)})', 
+                                  Text('(${_getIndividualUpside(alert, stock)})', 
                                     style: TextStyle(
                                       color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : 
                                              alert.impactDirection.toLowerCase() == 'down' ? AppTheme.getImpactColor('down') : 
@@ -466,6 +466,40 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
         ],
       ),
     );
+  }
+
+  String _getIndividualPrice(EventAlert alert, String symbol, String type) {
+    if (alert.stockPrices != null && alert.stockPrices!.containsKey(symbol)) {
+      final data = alert.stockPrices![symbol];
+      if (data is Map && data.containsKey(type)) {
+        final val = data[type];
+        if (val == null) return '---';
+        double price = 0.0;
+        if (val is num) price = val.toDouble();
+        else if (val is String) price = double.tryParse(val) ?? 0.0;
+        
+        if (price == 0.0) return '---';
+        return _formatPrice(price, alert.currency, [symbol]);
+      }
+    }
+    // Fallback to legacy fields for the first stock
+    if (alert.stocks.isNotEmpty && alert.stocks[0] == symbol) {
+      return _formatPrice(type == 'live' ? alert.livePrice : alert.predictedPrice, alert.currency, [symbol]);
+    }
+    return '---';
+  }
+
+  String? _getIndividualUpside(EventAlert alert, String symbol) {
+    if (alert.stockPrices != null && alert.stockPrices!.containsKey(symbol)) {
+      final data = alert.stockPrices![symbol];
+      if (data is Map && data.containsKey('upside')) {
+        return data['upside']?.toString();
+      }
+    }
+    if (alert.stocks.isNotEmpty && alert.stocks[0] == symbol) {
+      return alert.upsidePct != null ? _cleanUpsidePct(alert.upsidePct!) : null;
+    }
+    return null;
   }
 
   String _formatPrice(double? price, String? currency, [List<String>? stocks]) {
