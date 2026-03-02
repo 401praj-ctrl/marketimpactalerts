@@ -579,8 +579,24 @@ async def run_analysis(source="AUTOMATED"):
                     # Event date should be the actual publish date, not an AI hallucinated future date.
                     analysis['event_date'] = analysis['timestamp'][:10]
                     
+                    # Impact Type Mapping (Tier-1 = Direct, Tier-2/3 = Indirect)
+                    tier = str(analysis.get('tier', 'Tier-3')).lower()
+                    if 'tier-1' in tier or ( 'direct' in tier and 'indirect' not in tier):
+                        analysis['impact_type'] = 'Direct'
+                    else:
+                        analysis['impact_type'] = 'Indirect'
+                    
                     # Convert relative impact date (T+0 to T+2) to actual date strings
-                    analysis['impact_date_est'] = convert_relative_to_actual_date(analysis.get('impact_date_est', ''), analysis['timestamp'])
+                    impact_date = analysis.get('impact_date_est', '')
+                    actual_date = convert_relative_to_actual_date(impact_date, analysis['timestamp'])
+                    
+                    # STRICT WIRING: If Direct (Tier-1), ensure it's an "Exact Date" (collapse ranges)
+                    if analysis['impact_type'] == 'Direct' and " to " in str(actual_date):
+                        # "2026-03-02 to 2026-03-04" -> "2026-03-02"
+                        actual_date = actual_date.split(" to ")[0]
+                        print(f"  --> [STRICT WIRING] Collapsed Direct impact range to: {actual_date}")
+                    
+                    analysis['impact_date_est'] = actual_date
                     
                     # Impact Description and Reasoning (UI separation)
                     if not analysis.get('impact_description'):
@@ -590,13 +606,6 @@ async def run_analysis(source="AUTOMATED"):
                     # Merge reasoning and summary to avoid field fragmentation
                     analysis['reason'] = analysis.get('reason', analysis.get('article_summary', ''))
                     analysis['article_summary'] = analysis['reason'] # For legacy support
-                    
-                    # Impact Type Mapping (Tier-1 = Direct, Tier-2/3 = Indirect)
-                    tier = str(analysis.get('tier', 'Tier-3')).lower()
-                    if 'tier-1' in tier or ( 'direct' in tier and 'indirect' not in tier):
-                        analysis['impact_type'] = 'Direct'
-                    else:
-                        analysis['impact_type'] = 'Indirect'
                     
                     # Sanitize upside_pct if it's a dict representing multiple stocks
                     upside_val = analysis.get('upside_pct')
