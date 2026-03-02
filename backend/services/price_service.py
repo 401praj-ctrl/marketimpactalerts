@@ -209,11 +209,34 @@ class PriceService:
 
         return await self._get_international_price(symbol)
 
+    async def _get_finnhub_price(self, clean_symbol):
+        if not self.finnhub_key: return None
+        try:
+            import finnhub
+            finnhub_client = finnhub.Client(api_key=self.finnhub_key)
+            if clean_symbol in ["^NSEI", "^BSESN", "^NSEBANK"]: return None
+            
+            print(f"DEBUG: Finnhub fallback for {clean_symbol}...")
+            loop = asyncio.get_event_loop()
+            res = await loop.run_in_executor(None, lambda: finnhub_client.quote(clean_symbol))
+            if res and res.get('c') and float(res['c']) > 0:
+                print(f"DEBUG: Finnhub successfully fetched price for {clean_symbol}: {res['c']}")
+                return float(res['c'])
+        except Exception as e:
+            print(f"DEBUG: Finnhub attempt failed for {clean_symbol}: {e}")
+        return None
+
     async def _get_international_price(self, symbol):
-        # 2. International / Crypto Fallback (YFinance)
+        # 2a. First Fallback: Finnhub (if key present)
+        clean_raw = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").replace("-EQ", "").strip().upper()
+        
+        # Try finnhub with the raw symbol first
+        fh_price = await self._get_finnhub_price(clean_raw)
+        if fh_price: return fh_price
+
+        # 2b. International / Crypto Fallback (YFinance)
         # For short symbols (e.g. "BP"), try multiple regional suffixes if the first attempt fails
         candidates = [symbol]
-        clean_raw = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").replace("-EQ", "").strip().upper()
         
         if len(clean_raw) <= 3:
             # Add common regional suffixes for ambiguous symbols

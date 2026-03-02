@@ -5,10 +5,19 @@ import json
 from bs4 import BeautifulSoup
 from typing import Optional, List
 
-# Basic headers to avoid immediate blocking
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-}
+import random
+
+# Rotate User-Agents to reduce probability of blocking
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0"
+]
+
+def get_random_headers():
+    return {"User-Agent": random.choice(USER_AGENTS)}
 
 async def search_ticker_online(company_name: str) -> Optional[List[str]]:
     """
@@ -23,7 +32,7 @@ async def search_ticker_online(company_name: str) -> Optional[List[str]]:
     
     print(f"  [SEARCH] Looking for ticker: {company_name}...")
     try:
-        async with httpx.AsyncClient(headers=HEADERS, timeout=10) as client:
+        async with httpx.AsyncClient(headers=get_random_headers(), timeout=10) as client:
             response = await client.get(url)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -47,6 +56,8 @@ async def search_ticker_online(company_name: str) -> Optional[List[str]]:
                     result = list(set(found))[:3]
                     print(f"  [SEARCH] Found tickers: {result}")
                     return result
+            else:
+                print(f"  [SEARCH] Ticker search failed with status code: {response.status_code}")
                     
     except Exception as e:
         print(f"  [SEARCH] Ticker search failed: {e}")
@@ -66,7 +77,7 @@ async def search_price_online(symbol: str) -> Optional[float]:
     
     print(f"  [SEARCH] Looking for price: {symbol}...")
     try:
-        async with httpx.AsyncClient(headers=HEADERS, timeout=10) as client:
+        async with httpx.AsyncClient(headers=get_random_headers(), timeout=10) as client:
             response = await client.get(url)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
@@ -101,6 +112,8 @@ async def search_price_online(symbol: str) -> Optional[float]:
                                 print(f"  [SEARCH] Successfully found price for {symbol}: {price}")
                                 return price
                         except: continue
+            else:
+                print(f"  [SEARCH] Price search failed with status code: {response.status_code}")
 
     except Exception as e:
         print(f"  [SEARCH] Price search failed for {symbol}: {e}")
