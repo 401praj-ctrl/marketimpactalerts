@@ -92,6 +92,7 @@ class PredictionTracker:
             "impact_description": alert_data.get("impact_description"),
             "reason": alert_data.get("reason") or alert_data.get("article_summary"),
             "impact_type": alert_data.get("impact_type", "Direct"),
+            "stock_prices": alert_data.get("stock_prices", {}),
             "live_price": alert_data.get("live_price"),
             "predicted_price": alert_data.get("predicted_price"),
             "currency": alert_data.get("currency"),
@@ -186,15 +187,33 @@ class PredictionTracker:
                     
                     if impact_date < today or (impact_date == today and market_closed):
                         # Time to verify!
-                        symbol = pred.get("stocks", [None])[0]
-                        if symbol:
+                        stocks_to_verify = []
+                        if pred.get("stock_prices"):
+                            for sym, prices in pred["stock_prices"].items():
+                                if prices.get("live") is not None:
+                                    stocks_to_verify.append({
+                                        "symbol": sym,
+                                        "live": prices.get("live"),
+                                        "predicted": prices.get("predicted")
+                                    })
+                        elif pred.get("stocks") and pred.get("stocks")[0]:
+                            stocks_to_verify.append({
+                                "symbol": pred["stocks"][0],
+                                "live": pred.get("live_price"),
+                                "predicted": pred.get("predicted_price")
+                            })
+
+                        for stock_info in stocks_to_verify:
+                            symbol = stock_info["symbol"]
+                            if not symbol: continue
+                            
                             print(f"  [VERIFYING] {pred.get('event')} for {symbol}...")
                             
                             # Get price on event date and impact date via Finnhub
                             event_date_str = pred.get("timestamp")[:10]
                             
                             from services.price_service import price_service
-                            start_price = pred.get("live_price")
+                            start_price = stock_info.get("live")
                             if not start_price:
                                 start_price = await price_service.get_historical_price(symbol, event_date_str)
                             
@@ -206,7 +225,7 @@ class PredictionTracker:
                                     # Match result
                                     is_correct = False
                                     direction = pred.get("direction", "").upper()
-                                    target_price = pred.get("predicted_price")
+                                    target_price = stock_info.get("predicted")
 
                                     if target_price:
                                         if direction == "UP" and end_price >= float(target_price):
@@ -227,8 +246,9 @@ class PredictionTracker:
                                     # Calculate Z-Move and Brier
                                     z_move, is_sig = await self.verify_prediction(symbol, actual_move)
                                     
-                                    # Update prediction object
+                                    # Update prediction object (for stats, we only mark verified if at least one stock verified)
                                     pred["verified"] = True
+                                    # For individual stock tracking in the log, we might need a better format but let's stick to first for now or list
                                     pred["actual_move"] = actual_move
                                     pred["z_move"] = z_move
                                     pred["is_correct"] = is_correct
@@ -261,11 +281,7 @@ class PredictionTracker:
                                         self.stats["tier_accuracy"][tier] = int((self.stats[correct_key] / self.stats[total_key]) * 100)
                                         
                                     # Update Profit Simulation
-                                    # We simulate taking a trade in the predicted direction
-                                    # if UP and move is +5%, we gain 5%
-                                    # if UP and move is -5%, we lose 5%
                                     move_capture = actual_move if direction == "UP" else (-actual_move if direction == "DOWN" else 0)
-                                    
                                     self.stats["profit_simulation_pct"] += move_capture * 100
                                     self.stats["profit_simulation_pct"] = round(self.stats["profit_simulation_pct"], 2)
                                     
@@ -276,19 +292,19 @@ class PredictionTracker:
                                     
                                     # Add to recent performance
                                     self.stats["recent_performance"].insert(0, {
-                                        "event": pred.get("event"),
+                                        "event": f"{pred.get('event')} ({symbol})",
                                         "is_correct": is_correct,
                                         "move": actual_move
                                     })
                                     self.stats["recent_performance"] = self.stats["recent_performance"][:10]
                                     
                                     changes_made = True
-                                    print(f"    --> Result: {'CORRECT' if is_correct else 'FALSE'} (Move: {actual_move:.2%})")
+                                    print(f"    --> Result for {symbol}: {'CORRECT' if is_correct else 'FALSE'} (Move: {actual_move:.2%})")
                                     
                                     # Trigger Result Notification
                                     try:
                                         from main import broadcast_verification_result
-                                        await broadcast_verification_result(pred.get('event'), is_correct, actual_move)
+                                        await broadcast_verification_result(f"{pred.get('event')} ({symbol})", is_correct, actual_move)
                                     except Exception as ne:
                                         print(f"    --> Notification Error: {ne}")
                                 except Exception as ve:
