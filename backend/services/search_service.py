@@ -73,22 +73,37 @@ async def search_price_online(symbol: str) -> Optional[float]:
                 # Look for price patterns in the snippets
                 snippets = soup.find_all('a', class_='result__snippet')
                 text_blob = " ".join([s.get_text() for s in snippets])
+                text_blob_upper = text_blob.upper()
                 
-                # Try to find a currency amount (₹ or $ followed by numbers)
-                # Or just a number near "Price" or "LTP"
-                price_matches = re.findall(r'(?:₹|\$|RS\.?|INR)\s?(\d+(?:,\d+)?(?:\.\d+)?)', text_blob.upper())
+                # 1. Primary Regex: Look for currency symbols (the most reliable)
+                # Matches: $38.86, ₹1,234.50, RS 500, etc.
+                price_matches = re.findall(r'(?:₹|\$|RS\.?|INR)\s?(\d+(?:,\d+)?(?:\.\d+)?)', text_blob_upper)
+                
+                # 2. Secondary Regex (BROADER): Look for numbers near keywords if no currency is found
+                # Matches: "Price: 38.86", "LTP 124.5", "Close 50.2"
+                if not price_matches:
+                    keyword_matches = re.findall(r'(?:PRICE|LTP|CLOSE|LAST|TRADING AT)[:\s]+(\d+(?:,\d+)?(?:\.\d+)?)', text_blob_upper)
+                    price_matches.extend(keyword_matches)
+
                 if price_matches:
-                    # Pick the first one that looks like a valid price
+                    # Pick the first one that looks like a valid price (> 0.1 to avoid random numbers)
                     for p_str in price_matches:
                         try:
+                            # Strip commas and convert
                             price = float(p_str.replace(',', ''))
-                            if price > 0:
-                                print(f"  [SEARCH] Found price for {symbol}: {price}")
+                            if price > 0.1:
+                                # Final sanity check: if the symbol is very short (BP), 
+                                # ensure the snippet actually contains "STOCK" or "SHARE"
+                                if len(symbol) <= 3 and not any(k in text_blob_upper for k in ["STOCK", "SHARE", "PLC", "INC", "LTD"]):
+                                    print(f"  [SEARCH] Found number {price} for {symbol} but skipping due to low context confidence.")
+                                    continue
+                                    
+                                print(f"  [SEARCH] Successfully found price for {symbol}: {price}")
                                 return price
                         except: continue
 
     except Exception as e:
-        print(f"  [SEARCH] Price search failed: {e}")
+        print(f"  [SEARCH] Price search failed for {symbol}: {e}")
     
     return None
 

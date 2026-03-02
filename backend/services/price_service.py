@@ -210,39 +210,52 @@ class PriceService:
         return await self._get_international_price(symbol)
 
     async def _get_international_price(self, symbol):
-        try:
-            import yfinance as yf
-            # Strip prefixes and common Angel One suffixes for YFinance
-            clean = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "")
-            clean = clean.replace("-EQ", "").replace("-BE", "").replace("-SM", "").strip()
-            
-            # Special handling for already formatted pairs like BTC-USD
-            if "-USD" in clean or "-" in clean and len(clean) > 7:
-                pass 
-            else:
-                suffix = ".NS" if ("NSE:" in symbol or ".NS" in symbol) else (".BO" if ("BSE:" in symbol or ".BO" in symbol) else "")
-                if clean in ["^NSEI", "^BSESN", "^NSEBANK"]:
-                    pass # Don't add suffix to indices
+        # 2. International / Crypto Fallback (YFinance)
+        # For short symbols (e.g. "BP"), try multiple regional suffixes if the first attempt fails
+        candidates = [symbol]
+        clean_raw = symbol.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "").replace("-EQ", "").strip().upper()
+        
+        if len(clean_raw) <= 3:
+            # Add common regional suffixes for ambiguous symbols
+            for suffix in [".L", ".NS", ".BO"]:
+                if not symbol.endswith(suffix):
+                    candidates.append(f"{clean_raw}{suffix}")
+
+        for cand in candidates:
+            try:
+                import yfinance as yf
+                # Strip prefixes and common Angel One suffixes for YFinance
+                clean = cand.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "")
+                clean = clean.replace("-EQ", "").replace("-BE", "").replace("-SM", "").strip()
+                
+                # Special handling for already formatted pairs like BTC-USD
+                if "-USD" in clean or "-" in clean and len(clean) > 7:
+                    pass 
                 else:
-                    clean = f"{clean}{suffix}"
-            
-            ticker_stem = clean.split('.')[0].split('-')[0].upper()
-            if ticker_stem in TICKER_CORRECTIONS:
-                clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem])
-            
-            print(f"DEBUG: YFinance fallback for {clean}...")
-            ticker = yf.Ticker(clean)
-            # Use history(period="1d") instead of fast_info as it's more reliable for some assets
-            hist = ticker.history(period="1d")
-            if not hist.empty:
-                return round(float(hist['Close'].iloc[-1]), 2)
-            
-            # Second attempt with fast_info
-            price = ticker.fast_info.get('lastPrice')
-            if price and price > 0 and not math.isnan(price):
-                return round(float(price), 2)
-        except Exception as e:
-            print(f"DEBUG: YFinance failed for {symbol}: {e}")
+                    suffix = ".NS" if ("NSE:" in cand or ".NS" in cand) else (".BO" if ("BSE:" in cand or ".BO" in cand) else "")
+                    if clean in ["^NSEI", "^BSESN", "^NSEBANK"]:
+                        pass # Don't add suffix to indices
+                    else:
+                        if "." not in clean: # Only add preferred suffix if no regional suffix was provided in cand
+                            clean = f"{clean}{suffix}"
+                
+                ticker_stem = clean.split('.')[0].split('-')[0].upper()
+                if ticker_stem in TICKER_CORRECTIONS:
+                    clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem])
+                
+                print(f"DEBUG: YFinance fallback for {clean}...")
+                ticker = yf.Ticker(clean)
+                # Use history(period="1d") instead of fast_info as it's more reliable for some assets
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    return round(float(hist['Close'].iloc[-1]), 2)
+                
+                # Second attempt with fast_info
+                price = ticker.fast_info.get('lastPrice')
+                if price and price > 0 and not math.isnan(price):
+                    return round(float(price), 2)
+            except Exception as e:
+                print(f"DEBUG: YFinance attempt failed for {cand} ({clean}): {e}")
             
         # 3. FINAL FALLBACK: Search Online (Scraping)
         return await search_price_online(symbol)
