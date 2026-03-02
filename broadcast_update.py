@@ -22,9 +22,9 @@ def broadcast_update():
     payload = {
         "app_id": app_id,
         "included_segments": ["Total Subscriptions"],
-        "headings": {"en": "🚀 Market Alert: Weekend & AI Fix (v1.2.14+34)"},
-        "contents": {"en": "We've fixed Saturday/Sunday empty prices and AI analysis crashes! Tap to download the rock-solid update now."},
-        "data": {"type": "update", "version": "1.2.14+34"}
+        "headings": {"en": "🚀 Market Alert: AI & DDG Updates (v1.2.14+44)"},
+        "contents": {"en": "Smarter AI date estimations and 100% reliable obscure stock price fetching! Tap to install the latest app updates."},
+        "data": {"type": "update", "version": "1.2.14+44"}
     }
     
     try:
