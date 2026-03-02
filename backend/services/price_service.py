@@ -36,11 +36,16 @@ TICKER_CORRECTIONS = {
     "ZEEL": "ZEEL",
     "RELIANCE": "RELIANCE",
     "EXPORTS": "RELIGARE",
-    "NIFTY 50": "^NSEI",
-    "NIFTY": "^NSEI",
-    "SENSEX": "^BSESN",
-    "NIFTY BANK": "^NSEBANK",
-    "BANKNIFTY": "^NSEBANK"
+    # India Indices: Map to exact Angel One token names first. 
+    # The YFinance/Finnhub fallbacks will convert these back to ^ prefixed symbols.
+    "NIFTY 50": "NIFTY",
+    "NIFTY50": "NIFTY",
+    "NIFTY": "NIFTY",
+    "SENSEX": "SENSEX",
+    "NIFTY BANK": "BANKNIFTY",
+    "BANKNIFTY": "BANKNIFTY",
+    "NIFTYBANK": "BANKNIFTY",
+    "MIDCPNIFTY": "MIDCPNIFTY"
 }
 
 class PriceService:
@@ -155,7 +160,10 @@ class PriceService:
         if clean_symbol in TICKER_CORRECTIONS:
             clean_symbol = TICKER_CORRECTIONS[clean_symbol]
 
-        if "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
+        index_symbols = ["NIFTY", "BANKNIFTY", "SENSEX", "MIDCPNIFTY", "NIFTYBANK"]
+        if clean_symbol in index_symbols:
+            angel_symbol = clean_symbol
+        elif "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
             angel_symbol = f"{clean_symbol}-EQ"
         else:
             angel_symbol = f"{clean_symbol}-EQ"
@@ -251,6 +259,19 @@ class PriceService:
                 clean = cand.replace("NSE:", "").replace("BSE:", "").replace(".NS", "").replace(".BO", "")
                 clean = clean.replace("-EQ", "").replace("-BE", "").replace("-SM", "").strip()
                 
+                # Reverse the index mapping for YFinance (Angel One literal -> Yahoo Finance ^ prefix)
+                yf_index_map = {
+                    "NIFTY": "^NSEI",
+                    "BANKNIFTY": "^NSEBANK",
+                    "SENSEX": "^BSESN"
+                }
+                if clean in yf_index_map:
+                    clean = yf_index_map[clean]
+                else:
+                    ticker_stem = clean.split('.')[0].split('-')[0].upper()
+                    if ticker_stem in TICKER_CORRECTIONS:
+                        clean = clean.replace(ticker_stem, TICKER_CORRECTIONS[ticker_stem])
+                
                 # Special handling for already formatted pairs like BTC-USD
                 if "-USD" in clean or "-" in clean and len(clean) > 7:
                     pass 
@@ -309,7 +330,10 @@ class PriceService:
         if clean_symbol in TICKER_CORRECTIONS:
             clean_symbol = TICKER_CORRECTIONS[clean_symbol]
 
-        if "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
+        index_symbols = ["NIFTY", "BANKNIFTY", "SENSEX", "MIDCPNIFTY", "NIFTYBANK"]
+        if clean_symbol in index_symbols:
+            angel_symbol = clean_symbol
+        elif "NSE:" in symbol or ".NS" in symbol or not "BSE:" in symbol:
             angel_symbol = f"{clean_symbol}-EQ"
         else:
             angel_symbol = f"{clean_symbol}-EQ"
