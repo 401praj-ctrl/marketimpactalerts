@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+34",
-    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B34",
-    "release_notes": "🚀 ALPHA V1.2.14+34: WEEKEND RESILIENCE & AI STABILITY\n• Saturday Market Fix: Live prices now correctly pull from last-closing data during weekends—no more empty prices.\n• Bytez Stability: Resolved parsing errors when using Bytez/Qwen models; AI analysis is now 100% crash-free.\n• Price Hardening: Implemented multi-layer fallbacks for stock verification during off-hours.\n• Ticker Standardization: Improved symbol matching across all analysis tiers."
+    "latest_version": "1.2.14+35",
+    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B35",
+    "release_notes": "🚀 ALPHA V1.2.14+35: FINAL UI & LOGIC REFINEMENT\n• Neutral Impact Fixed: Predicted prices now correctly match live prices for 'Neutral' events—no more empty spaces.\n• Exact Dates: Absolute dates (YYYY-MM-DD) now replace relative strings like 'today' or 'tomorrow'.\n• Merged AI Reasoning: The Executive Summary is now built into the Reasoning section for a cleaner experience.\n• Index & Ticker Hardening: Fixed pricing for NIFTY 50/SENSEX and blocked generic ticker hallucinations."
 }
