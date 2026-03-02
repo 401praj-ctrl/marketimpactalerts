@@ -403,6 +403,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
 
     RULES:
     1. Return "no impact" ONLY if the news is completely irrelevant to any public stocks.
+    2. TIER CLASSIFICATION: Use Tier-1 ONLY for news directly about the company (e.g. Earnings, Mergers). Use Tier-2 for sector news (e.g. New Pharma regulation). Use Tier-3 for Macro (e.g. Inflation, War).
     2. STOCK IDENTIFICATION (CRITICAL): Provide 1-3 valid NSE/BSE symbols. 
        - Macro/Sector news? List the 2-3 biggest leaders of that sector.
     3. Accuracy: Ensure the Tier correctly reflects the scope (Direct vs Sector vs Macro).

@@ -591,9 +591,9 @@ async def run_analysis(source="AUTOMATED"):
                     analysis['reason'] = analysis.get('reason', analysis.get('article_summary', ''))
                     analysis['article_summary'] = analysis['reason'] # For legacy support
                     
-                    # Impact Type Mapping (Tier-1 = Direct, others = Indirect)
+                    # Impact Type Mapping (Tier-1 = Direct, Tier-2/3 = Indirect)
                     tier = str(analysis.get('tier', 'Tier-3')).lower()
-                    if 'tier-1' in tier or 'direct' in tier:
+                    if 'tier-1' in tier or ( 'direct' in tier and 'indirect' not in tier):
                         analysis['impact_type'] = 'Direct'
                     else:
                         analysis['impact_type'] = 'Indirect'
