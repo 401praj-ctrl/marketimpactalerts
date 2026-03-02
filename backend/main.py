@@ -286,7 +286,7 @@ def convert_relative_to_actual_date(relative_str, base_date_str):
         except: return match.group(0)
 
     # 3. Handle T+N (case-insensitive match)
-    if "T+" in low_s:
+    if "t+" in low_s:
         result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
         # If the result is just the date range, return it
         return result
