@@ -582,9 +582,21 @@ async def run_analysis(source="AUTOMATED"):
                     # Convert relative impact date (T+0 to T+2) to actual date strings
                     analysis['impact_date_est'] = convert_relative_to_actual_date(analysis.get('impact_date_est', ''), analysis['timestamp'])
                     
+                    # Impact Description and Reasoning (UI separation)
+                    if not analysis.get('impact_description'):
+                        # Use reason as fallback if description is missing
+                        analysis['impact_description'] = analysis.get('reason', 'Analysis pending deep-dive.')
+                    
                     # Merge reasoning and summary to avoid field fragmentation
                     analysis['reason'] = analysis.get('reason', analysis.get('article_summary', ''))
                     analysis['article_summary'] = analysis['reason'] # For legacy support
+                    
+                    # Impact Type Mapping (Tier-1 = Direct, others = Indirect)
+                    tier = str(analysis.get('tier', 'Tier-3')).lower()
+                    if 'tier-1' in tier or 'direct' in tier:
+                        analysis['impact_type'] = 'Direct'
+                    else:
+                        analysis['impact_type'] = 'Indirect'
                     
                     # Sanitize upside_pct if it's a dict representing multiple stocks
                     upside_val = analysis.get('upside_pct')
@@ -924,7 +936,7 @@ async def trigger_update_broadcast():
         "included_segments": ["Total Subscriptions"],
         "headings": {"en": "💎 Premium Upgrade Ready"},
         "contents": {"en": "Experience the all-new Alpha Impact with real-time speed and premium UI. Tap to update!"},
-        "data": {"type": "update", "version": "1.2.14+25"}
+        "data": {"type": "update", "version": "1.2.14+35"}
     }
     
     try:

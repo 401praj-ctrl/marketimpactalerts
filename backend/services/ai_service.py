@@ -396,7 +396,8 @@ async def analyze_headline(headline_text, regime="NORMAL"):
       "impact_direction": "UP, DOWN, or NEUTRAL",
       "probability": 0 to 100 integer,
       "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
-      "reason": "MANDATORY: 2-3 sentence explanation combining the executive summary and the impact logic.",
+      "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
+      "reason": "MANDATORY: 2-3 sentence explanation of the specific stock move logic (e.g., EMH, PEAD).",
       "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
     }}
 
@@ -627,7 +628,8 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
       "impact_direction": "UP, DOWN, or NEUTRAL",
       "probability": 0 to 100 integer,
       "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
-      "reason": "MANDATORY: 2-3 sentence explanation combining the executive summary and the impact logic.",
+      "impact_description": "MANDATORY: Detailed analysis of the news event and its market implications.",
+      "reason": "MANDATORY: 2-3 sentence explanation of the specific stock move logic (e.g., EMH, PEAD).",
       "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
     }}
 
