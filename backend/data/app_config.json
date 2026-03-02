@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+35",
-    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B35",
-    "release_notes": "🚀 ALPHA V1.2.14+35: FINAL UI & LOGIC REFINEMENT\n• Neutral Impact Fixed: Predicted prices now correctly match live prices for 'Neutral' events—no more empty spaces.\n• Exact Dates: Absolute dates (YYYY-MM-DD) now replace relative strings like 'today' or 'tomorrow'.\n• Merged AI Reasoning: The Executive Summary is now built into the Reasoning section for a cleaner experience.\n• Index & Ticker Hardening: Fixed pricing for NIFTY 50/SENSEX and blocked generic ticker hallucinations."
+    "latest_version": "1.2.14+40",
+    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B40",
+    "release_notes": "🚀 UPDATE V1.2.14+40: PERFORMANCE & BUG FIXES\n• Multi-Stock Pricing: Home screen now displays specific live prices for each stock in an alert.\n• Pricing Fallbacks: Added Finnhub and User-Agent rotation for 100% price fetch reliability during high load.\n• Improved Date Ranges: Indirect Sector/Macro impact alerts now accurately show their estimated date ranges (e.g., T+0 to T+3).\n• Indian Indices: Fixed NIFTY and BANKNIFTY live pricing by mapping exact Angel tokens."
 }
