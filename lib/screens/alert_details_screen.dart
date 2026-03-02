@@ -131,8 +131,6 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
               style: GoogleFonts.inter(fontSize: 16, height: 1.7, color: Colors.white.withOpacity(0.9)),
             ),
             const SizedBox(height: 32),
-            _buildAIInsightButton(),
-            const SizedBox(height: 32),
             _buildSectionHeader('AI REASONING'),
             const SizedBox(height: 12),
             Text(
@@ -279,98 +277,7 @@ class _AlertDetailsScreenState extends State<AlertDetailsScreen> {
     );
   }
 
-  Widget _buildAIInsightButton() {
-    return InkWell(
-      onTap: () => _showAIInsightModal(),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.glassBlue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.glassBlue.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.auto_awesome_rounded, color: AppTheme.glassBlue, size: 28),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AI INSIGHTS',
-                    style: GoogleFonts.inter(color: AppTheme.glassBlue, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Get executive summary',
-                    style: GoogleFonts.outfit(color: Colors.white.withOpacity(1), fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppTheme.glassBlue, size: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAIInsightModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.spaceDark,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppTheme.glassBlue.withOpacity(0.1), AppTheme.spaceDark],
-          ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome_rounded, color: AppTheme.glassBlue, size: 24),
-                const SizedBox(width: 12),
-                Text(
-                  'EXECUTIVE SUMMARY',
-                  style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              widget.alert.articleSummary ?? widget.alert.reason,
-              style: GoogleFonts.inter(fontSize: 16, height: 1.6, color: Colors.white.withOpacity(0.8)),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.glassBlue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('CLOSE INSIGHT', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Executive summary is now merged into AI reasoning
 
   Widget _buildImpactSection() {
     final alert = widget.alert;

@@ -35,7 +35,12 @@ TICKER_CORRECTIONS = {
     "INFOSYS": "INFY",
     "ZEEL": "ZEEL",
     "RELIANCE": "RELIANCE",
-    "EXPORTS": "RELIGARE"
+    "EXPORTS": "RELIGARE",
+    "NIFTY 50": "^NSEI",
+    "NIFTY": "^NSEI",
+    "SENSEX": "^BSESN",
+    "NIFTY BANK": "^NSEBANK",
+    "BANKNIFTY": "^NSEBANK"
 }
 
 class PriceService:
@@ -216,7 +221,10 @@ class PriceService:
                 pass 
             else:
                 suffix = ".NS" if ("NSE:" in symbol or ".NS" in symbol) else (".BO" if ("BSE:" in symbol or ".BO" in symbol) else "")
-                clean = f"{clean}{suffix}"
+                if clean in ["^NSEI", "^BSESN", "^NSEBANK"]:
+                    pass # Don't add suffix to indices
+                else:
+                    clean = f"{clean}{suffix}"
             
             ticker_stem = clean.split('.')[0].split('-')[0].upper()
             if ticker_stem in TICKER_CORRECTIONS:

@@ -294,6 +294,11 @@ async def validate_stocks(stocks_list, sector=None, headline=None, company_name=
         raw_s = str(stock).upper()
         s = raw_s.replace("NSE:", "").replace("BSE:", "").strip()
         
+        # Blacklist generic terms that aren't real stocks
+        if s in ["INDIA", "STOCK", "STOCKS", "NEWS", "MARKET", "NIFTY", "SENSEX", "BSE", "NSE"]:
+            print(f"      >> [REJECTED] Generic term blocked: {s}")
+            continue
+        
         # Determine prefix if it was in the original string
         prefix = "NSE:" if "NSE:" in raw_s else ("BSE:" if "BSE:" in raw_s else "NSE:")
         
@@ -391,7 +396,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
       "impact_direction": "UP, DOWN, or NEUTRAL",
       "probability": 0 to 100 integer,
       "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
-      "article_summary": "1-2 sentence explanation of the impact logic",
+      "reason": "MANDATORY: 2-3 sentence explanation combining the executive summary and the impact logic.",
       "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
     }}
 
@@ -613,6 +618,19 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     {examples_text}
 
     Return JSON format only.
+    JSON SCHEMA:
+    {{
+      "event": "Short title of the news event",
+      "company": "Primary company name (e.g. Reliance Industries)",
+      "sector": "Affected sector (e.g. Banking, IT, Pharma)",
+      "tier": "Tier-1 (Direct), Tier-2 (Sector-wide), or Tier-3 (Macro-market)",
+      "impact_direction": "UP, DOWN, or NEUTRAL",
+      "probability": 0 to 100 integer,
+      "impact_date_est": "T+0", "T+1", "T+3", "T+0 to T+2", or "T+3 to T+10",
+      "reason": "MANDATORY: 2-3 sentence explanation combining the executive summary and the impact logic.",
+      "stocks": ["NSE:SYMBOL", "NSE:OTHER"]
+    }}
+
     Headline: "{headline}"
     Content: "{full_content[:4000]}"
     """

@@ -244,16 +244,39 @@ def parse_published_date(date_str):
 
 def convert_relative_to_actual_date(relative_str, base_date_str):
     """
-    Converts 'T+0 to T+2' or 'T+3' style strings into actual YYYY-MM-DD dates 
+    Converts 'T+0 to T+2', 'today', 'tomorrow', or '03/03' style strings into actual YYYY-MM-DD dates 
     based on the provided base_date_str (ISO format).
     """
-    if not relative_str or not isinstance(relative_str, str) or "T+" not in relative_str.upper():
+    if not relative_str or not isinstance(relative_str, str):
         return relative_str
         
     try:
         base_dt = datetime.datetime.fromisoformat(base_date_str)
     except:
         base_dt = get_ist_now()
+
+    # 1. Handle "Today" and "Tomorrow"
+    low_s = relative_str.lower()
+    if "today" in low_s:
+        return base_dt.strftime("%Y-%m-%d")
+    if "tomorrow" in low_s:
+        return (base_dt + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
+    # 2. Handle "MM/DD" or "DD/MM" (heuristic: if it's 2026-X-Y in the future)
+    date_match = re.search(r'(\d{1,2})[/\-](\d{1,2})', relative_str)
+    if date_match:
+        try:
+            d1, d2 = int(date_match.group(1)), int(date_match.group(2))
+            # Assume 2026 as per user screenshots
+            current_year = 2026 
+            # Try MM/DD first (standard for many AI models)
+            test_dt = datetime.datetime(current_year, d1, d2)
+            if test_dt.date() >= base_dt.date():
+                return test_dt.strftime("%Y-%m-%d")
+            # Try DD/MM if MM/DD failed or was in the past
+            test_dt = datetime.datetime(current_year, d2, d1)
+            return test_dt.strftime("%Y-%m-%d")
+        except: pass
 
     def replace_tn(match):
         try:
@@ -262,9 +285,13 @@ def convert_relative_to_actual_date(relative_str, base_date_str):
             return target_date.strftime("%Y-%m-%d")
         except: return match.group(0)
 
-    # Convert T+N to actual date string (case-insensitive match)
-    result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
-    return result
+    # 3. Handle T+N (case-insensitive match)
+    if "T+" in low_s:
+        result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
+        # If the result is just the date range, return it
+        return result
+        
+    return relative_str
 
 def migrate_legacy_alerts():
     """Converts any non-ISO timestamps or old price formats in cached_alerts.json."""
@@ -510,14 +537,18 @@ async def run_analysis(source="AUTOMATED"):
                             base_move = 0.01 if tier == 'Tier-1' else (0.005 if tier == 'Tier-2' else 0.002)
                             move_factor = base_move * (p / 50.0)
                             
-                            pred = None
-                            upside = None
+                            pred = lp # Default to live price
+                            upside = "0% (Neutral)"
                             if is_up:
                                 pred = round(lp * (1 + move_factor), 2)
                                 upside = f"+{(move_factor * 100):.2f}%"
                             elif is_down:
                                 pred = round(lp * (1 - move_factor), 2)
                                 upside = f"-{(move_factor * 100):.2f}%"
+                            else:
+                                # Neutral or unknown impact (Force same price to avoid empty)
+                                pred = lp
+                                upside = "0%"
                             
                             stock_prices[symbol] = {
                                 "live": lp,
@@ -551,11 +582,9 @@ async def run_analysis(source="AUTOMATED"):
                     # Convert relative impact date (T+0 to T+2) to actual date strings
                     analysis['impact_date_est'] = convert_relative_to_actual_date(analysis.get('impact_date_est', ''), analysis['timestamp'])
                     
-                    # Ensure impact_description is populated
-                    if not analysis.get('impact_description'):
-                        analysis['impact_description'] = analysis.get('article_summary', analysis.get('event', h['title']))
-                        
-                    analysis['article_summary'] = analysis.get('article_summary', analysis.get('reason', ''))
+                    # Merge reasoning and summary to avoid field fragmentation
+                    analysis['reason'] = analysis.get('reason', analysis.get('article_summary', ''))
+                    analysis['article_summary'] = analysis['reason'] # For legacy support
                     
                     # Sanitize upside_pct if it's a dict representing multiple stocks
                     upside_val = analysis.get('upside_pct')
