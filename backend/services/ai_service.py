@@ -407,7 +407,7 @@ async def analyze_headline(headline_text, regime="NORMAL"):
     2. STOCK IDENTIFICATION (CRITICAL): Provide 1-3 valid NSE/BSE symbols. 
        - Macro/Sector news? List the 2-3 biggest leaders of that sector.
     3. Accuracy: Ensure the Tier correctly reflects the scope (Direct vs Sector vs Macro).
-    4. DATE WIRING (STRICT): If 'tier' is 'Tier-1', 'impact_date_est' MUST be a single exact date (e.g. "T+0" or "T+1"). Only use ranges (e.g. "T+0 to T+2") for Tier-2 or Tier-3.
+    4. DATE WIRING (STRICT): 'impact_date_est' MUST be a single exact date (e.g. "T+0" or "T+1"). NEVER use ranges (e.g. "T+0 to T+2").
 
     RELEVANT HISTORICAL EXAMPLES:
     {examples_text}
@@ -612,9 +612,7 @@ async def perform_deep_analysis(full_content, headline, regime="NORMAL", current
     Analyze the full news content for stock impacts.
     
     1. Tier Calibration: Direct(Tier-1), Sector(Tier-2), Macro(Tier-3).
-    2. Date Estimation (STRICT WIRING):
-       - If Tier-1 (Direct): 'impact_date_est' MUST be a single exact date (e.g. "T+0" or "T+1").
-       - If Tier-2/3 (Indirect/Macro): Apply PEAD to set ranges (e.g. "T+3 to T+10") if a long-term drift is expected.
+    2. Date Estimation (STRICT): 'impact_date_est' MUST be a single exact date (e.g. "T+0" or "T+1"). DO NOT use ranges. For long-term impacts, pick the single most likely date of peak impact.
     3. Price Logic: Calculate 'predicted_price' (Impact Price) using EMH [Efficient Market Hypothesis] to determine if current price {current_prices} already reflects the news.
     4. ANALYSIS: Provide a granular 'impact_description' explaining the move.
     5. STOCKS (MANDATORY): List specific ticker symbols impacted. NEVER leave this empty. If it's macro news, list the top 2-3 companies in the most affected sector (e.g., \"NSE:SBIN\", \"NSE:HDFCBANK\" for banking macro news).

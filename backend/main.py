@@ -288,7 +288,10 @@ def convert_relative_to_actual_date(relative_str, base_date_str):
     # 3. Handle T+N (case-insensitive match)
     if "t+" in low_s:
         result = re.sub(r'T\+(\d+)', replace_tn, relative_str, flags=re.IGNORECASE)
-        # If the result is just the date range, return it
+        # GLOBAL EXACT DATE POLICY: If result is a range (e.g. "2026-03-02 to 2026-03-04"), 
+        # always collapse to the start date for "Accurate Date" display.
+        if " to " in result:
+            result = result.split(" to ")[0]
         return result
         
     return relative_str
@@ -314,10 +317,19 @@ def migrate_legacy_alerts():
 
         # 2. Impact Date Migration (T+N to Actual)
         impact_date = alert.get('impact_date_est', '')
-        if impact_date and "T+" in str(impact_date).upper():
-            print(f"  --> Migrating relative impact date: {impact_date}")
-            alert['impact_date_est'] = convert_relative_to_actual_date(str(impact_date), alert.get('timestamp'))
-            changed = True
+        if impact_date:
+            impact_date_str = str(impact_date)
+            # Case A: T+N formatting
+            if "T+" in impact_date_str.upper():
+                print(f"  --> Migrating relative impact date: {impact_date}")
+                alert['impact_date_est'] = convert_relative_to_actual_date(impact_date_str, alert.get('timestamp'))
+                changed = True
+            
+            # Case B: Range detected (globally collapse to start date for "Accurate Date")
+            if " to " in alert['impact_date_est']:
+                print(f"  --> Sanitizing date range: {alert['impact_date_est']}")
+                alert['impact_date_est'] = alert['impact_date_est'].split(" to ")[0]
+                changed = True
 
         # 3. Price Schema Migration (Flat to Map)
         if 'live_price' in alert and 'stock_prices' not in alert:
@@ -588,15 +600,7 @@ async def run_analysis(source="AUTOMATED"):
                     
                     # Convert relative impact date (T+0 to T+2) to actual date strings
                     impact_date = analysis.get('impact_date_est', '')
-                    actual_date = convert_relative_to_actual_date(impact_date, analysis['timestamp'])
-                    
-                    # STRICT WIRING: If Direct (Tier-1), ensure it's an "Exact Date" (collapse ranges)
-                    if analysis['impact_type'] == 'Direct' and " to " in str(actual_date):
-                        # "2026-03-02 to 2026-03-04" -> "2026-03-02"
-                        actual_date = actual_date.split(" to ")[0]
-                        print(f"  --> [STRICT WIRING] Collapsed Direct impact range to: {actual_date}")
-                    
-                    analysis['impact_date_est'] = actual_date
+                    analysis['impact_date_est'] = convert_relative_to_actual_date(impact_date, analysis['timestamp'])
                     
                     # Impact Description and Reasoning (UI separation)
                     if not analysis.get('impact_description'):
