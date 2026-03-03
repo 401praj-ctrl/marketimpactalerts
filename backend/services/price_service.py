@@ -391,7 +391,13 @@ class PriceService:
                 if data.get('status') and data.get('data'):
                     candles = data['data']
                     if candles and len(candles) > 0:
-                        return float(candles[-1][4])
+                        c_data = candles[-1]
+                        return {
+                            'open': float(c_data[1]),
+                            'high': float(c_data[2]),
+                            'low': float(c_data[3]),
+                            'close': float(c_data[4])
+                        }
                 elif data.get('errorCode') in ['AG8001', 'AB1010'] or 'Invalid Token' in str(data.get('message', '')):
                     if attempt == 0:
                         print(f"DEBUG: [VERIFY] Session issue. Forcing re-authentication...")
@@ -414,7 +420,13 @@ class PriceService:
             ticker = yf.Ticker(clean)
             target_dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
             hist = ticker.history(start=target_dt.strftime("%Y-%m-%d"), end=(target_dt + timedelta(days=1)).strftime("%Y-%m-%d"))
-            if not hist.empty: return float(hist['Close'].iloc[0])
+            if not hist.empty:
+                return {
+                    'open': float(hist['Open'].iloc[0]),
+                    'high': float(hist['High'].iloc[0]),
+                    'low': float(hist['Low'].iloc[0]),
+                    'close': float(hist['Close'].iloc[0])
+                }
         except: pass
         return None
 

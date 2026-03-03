@@ -233,24 +233,42 @@ class PredictionTracker:
                             
                             if start_price and end_price:
                                 try:
-                                    actual_move = (end_price / start_price) - 1
+                                    # Fallback processing if the array returns as a single float from legacy data sources
+                                    start_close_p = start_price if isinstance(start_price, (float, int)) else start_price.get('close')
+                                    end_close_p = end_price if isinstance(end_price, (float, int)) else end_price.get('close')
+                                    
+                                    # Extreme intraday boundaries
+                                    end_high_p = end_price if isinstance(end_price, (float, int)) else end_price.get('high', end_close_p)
+                                    end_low_p = end_price if isinstance(end_price, (float, int)) else end_price.get('low', end_close_p)
+
+                                    if not start_close_p or not end_close_p:
+                                        print(f"    --> Skipped: Missing valid historical price data for {symbol}")
+                                        continue
+
+                                    actual_move = (end_close_p / start_close_p) - 1
+                                    
                                     # Match result
                                     is_correct = False
                                     direction = pred.get("direction", "").upper()
                                     target_price = stock_info.get("predicted")
 
                                     if target_price:
-                                        if direction == "UP" and end_price >= float(target_price):
+                                        target_float = float(target_price)
+                                        # DID IT HIT THE PRICE AT ANY POINT IN THE DAY?
+                                        if direction == "UP" and end_high_p >= target_float:
                                             is_correct = True
-                                        elif direction == "DOWN" and end_price <= float(target_price):
+                                        elif direction == "DOWN" and end_low_p <= target_float:
                                             is_correct = True
                                         elif direction == "NEUTRAL" and abs(actual_move) < 0.01:
                                             is_correct = True
                                     else:
-                                        # Fallback to percentage move if no exact target price is given
-                                        if direction == "UP" and actual_move > 0.01: # >1% move
+                                        # Fallback to percentage move if no exact target price is given at any point in the day
+                                        intraday_up_move = (end_high_p / start_close_p) - 1
+                                        intraday_down_move = (end_low_p / start_close_p) - 1
+
+                                        if direction == "UP" and intraday_up_move > 0.01: # >1% move intraday
                                             is_correct = True
-                                        elif direction == "DOWN" and actual_move < -0.01: # <-1% move
+                                        elif direction == "DOWN" and intraday_down_move < -0.01: # <-1% move intraday
                                             is_correct = True
                                         elif direction == "NEUTRAL" and abs(actual_move) < 0.01:
                                             is_correct = True
