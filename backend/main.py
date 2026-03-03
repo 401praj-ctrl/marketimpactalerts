@@ -745,18 +745,21 @@ async def startup_event():
 
 async def automated_verification_job():
     """
-    Background job that runs precisely once daily at midnight (12:00 AM) to verify past predictions.
+    Background job that runs precisely once daily at 01:00 AM IST to verify past predictions.
     """
     print("DEBUG: automated_verification_job standby.")
     while True:
         try:
-            # 1. Calculate time until next midnight
+            # 1. Calculate time until next 01:00 AM
             now = get_ist_now()
-            next_midnight = (now + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-            seconds_until_midnight = (next_midnight - now).total_seconds()
+            next_run = now.replace(hour=1, minute=0, second=0, microsecond=0)
+            if now >= next_run:
+                next_run += datetime.timedelta(days=1)
+                
+            seconds_until_run = (next_run - now).total_seconds()
             
-            print(f"DEBUG: automated_verification_job sleeping for {seconds_until_midnight:.0f}s until {next_midnight} IST")
-            await asyncio.sleep(seconds_until_midnight)
+            print(f"DEBUG: automated_verification_job sleeping for {seconds_until_run:.0f}s until {next_run} IST")
+            await asyncio.sleep(seconds_until_run)
             
             # 2. Run verification
             print(f"DEBUG: [VERIFY] automated_verification_job starting daily cycle at {get_ist_now()} IST")
