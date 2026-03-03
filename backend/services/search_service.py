@@ -126,10 +126,8 @@ async def search_price_online(symbol: str) -> Optional[float]:
                          await asyncio.sleep(3)
                          continue
 
-                    # Look for price patterns in the snippets (DDG lite uses result-snippet class)
-                    snippets = soup.find_all('td', class_='result-snippet')
-                    text_blob = " ".join([s.get_text() for s in snippets])
-                    text_blob_upper = text_blob.upper()
+                    # Prices are often in the title instead of just the snippet, so we scan the full body text
+                    text_blob_upper = soup.get_text(separator=' ').upper()
                     
                     # 1. Primary Regex: Look for currency symbols (the most reliable)
                     # Matches: $38.86, ₹1,234.50, RS 500, etc.
