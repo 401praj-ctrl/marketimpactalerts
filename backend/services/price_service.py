@@ -4,9 +4,15 @@ import asyncio
 import requests
 import pyotp
 import math
+import logging
 from datetime import datetime, timedelta
 from SmartApi import SmartConnect
 from services.search_service import search_price_online
+
+# Suppress the extremely noisy internal SmartConnect logger for expired tokens
+logging.getLogger("smartConnect").setLevel(logging.CRITICAL)
+logging.getLogger("smartapi").setLevel(logging.CRITICAL)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE_FILE = os.path.join(BASE_DIR, "data", "price_cache.json")
