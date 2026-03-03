@@ -816,43 +816,6 @@ class _HomeScreenState extends State<HomeScreen> {
               stock,
               style: const TextStyle(color: AppTheme.glassBlue, fontSize: 13, fontWeight: FontWeight.bold),
             ),
-            Builder(builder: (context) {
-              final stockData = alert.stockPrices?[stock] as Map<String, dynamic>?;
-              final livePrice = stockData?['live_price'] != null ? (stockData!['live_price'] as num).toDouble() : alert.livePrice;
-              final predictedPrice = stockData?['predicted_price'] != null ? (stockData!['predicted_price'] as num).toDouble() : alert.predictedPrice;
-              
-              if (livePrice != null) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _formatPrice(livePrice, alert.currency, alert.stocks),
-                          style: TextStyle(color: AppTheme.silver, fontSize: 11, fontWeight: FontWeight.w500),
-                        ),
-                        if (predictedPrice != null) ...[
-                          const SizedBox(width: 4),
-                          const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white24),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatPrice(predictedPrice, alert.currency, alert.stocks),
-                            style: GoogleFonts.inter(
-                              color: alert.impactDirection.toLowerCase() == 'up' ? AppTheme.getImpactColor('up') : AppTheme.getImpactColor('down'),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            }),
           ],
         ),
       )).toList(),

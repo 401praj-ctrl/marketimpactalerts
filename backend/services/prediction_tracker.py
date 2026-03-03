@@ -177,7 +177,19 @@ class PredictionTracker:
                     continue
                 
                 try:
-                    impact_date = datetime.strptime(impact_date_str, "%Y-%m-%d").date()
+                    # Clean up legacy relative dates before parsing
+                    impact_date_str = str(impact_date_str).strip()
+                    if "T+" in impact_date_str.upper() or " to " in impact_date_str.lower() or "today" in impact_date_str.lower() or "tomorrow" in impact_date_str.lower():
+                        from main import convert_relative_to_actual_date
+                        base_d = pred.get("timestamp", get_ist_now().isoformat())
+                        impact_date_str = convert_relative_to_actual_date(impact_date_str, base_d, force_single=True)
+
+                    try:
+                        impact_date = datetime.strptime(impact_date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        from dateutil import parser as d_parser
+                        impact_date = d_parser.parse(impact_date_str, fuzzy=True).date()
+                        
                     now = get_ist_now()
                     today = now.date()
                     

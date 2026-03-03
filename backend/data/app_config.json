@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+44",
-    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B44",
-    "release_notes": "🚀 UPDATE V1.2.14+44: AI DATES & PRICE SEARCH FIXES\n• Smarter AI Impact Dates: The AI now freely detects whether an event warrants a single target date (e.g. T+0) or an extended period (T+0 to T+3) using context.\n• DuckDuckGo Scraper Rebuilt: Rebuilt the online fallback search to evade strict captchas, ensuring a 100% price fetch success rate on obscure stocks.\n• Exact Impact Typing: The UI now explicitly classifies Direct vs Indirect impacts natively from the AI.\n• Multi-Stock Reliability: Additional hardening for alerts featuring multiple ticker symbols."
+    "latest_version": "1.2.14+45",
+    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B45",
+    "release_notes": "🚀 UPDATE V1.2.14+45: STRICT DATE FORMAT & UI CLEANUP\n• Strict Date Formatting: The prediction AI now strictly adheres to theory-derived single YYYY-MM-DD impact dates without fail.\n• Home Page UI Cleanup: Simplified the Home UI by removing stock prices from the alert cards. Live/Impact prices are now exclusively accessible in the Detailed View.\n• Search Fallback Hardening: Integrated Yahoo Finance autocomplete as the primary backup mechanism, boosting stock scraping success rates during DuckDuckGo rate-limits."
 }

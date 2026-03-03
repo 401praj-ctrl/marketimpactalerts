@@ -37,6 +37,27 @@ async def search_ticker_online(company_name: str) -> Optional[List[str]]:
     
     print(f"  [SEARCH] Looking for ticker: {company_name}...")
     
+    # Pass 1: Yahoo Finance Auto-complete API
+    try:
+        yf_url = f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}"
+        async with httpx.AsyncClient(headers=get_random_headers(), timeout=10) as client:
+            res = await client.get(yf_url)
+            if res.status_code == 200:
+                data = res.json()
+                quotes = data.get("quotes", [])
+                found_yf = []
+                for q in quotes:
+                    sym = q.get("symbol", "")
+                    if sym.endswith(".NS"):
+                        found_yf.append(f"NSE:{sym.replace('.NS', '')}")
+                    elif sym.endswith(".BO"):
+                        found_yf.append(f"BSE:{sym.replace('.BO', '')}")
+                if found_yf:
+                    print(f"  [SEARCH] Found tickers via Yahoo: {found_yf}")
+                    return found_yf[:3]
+    except Exception as e:
+        print(f"  [SEARCH] Yahoo Finance logic failed: {e}")
+        
     for attempt in range(2):
         try:
             async with httpx.AsyncClient(headers=get_random_headers(), timeout=15) as client:

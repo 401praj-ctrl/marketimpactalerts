@@ -295,6 +295,14 @@ def convert_relative_to_actual_date(relative_str, base_date_str, force_single=Fa
             result = result.split(" to ")[0]
         return result
         
+    # 4. Fallback: let dateutil attempt to parse it if it looks like a month/year
+    try:
+        from dateutil import parser as d_parser
+        dt = d_parser.parse(relative_str, fuzzy=True)
+        return dt.strftime("%Y-%m-%d")
+    except:
+        pass
+        
     return relative_str
 
 def migrate_legacy_alerts():

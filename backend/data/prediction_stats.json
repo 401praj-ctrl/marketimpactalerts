@@ -1,16 +1,36 @@
 {
   "total_predictions": 21,
   "correct_predictions": 3,
-  "false_signals": 5,
-  "avg_accuracy": 37.5,
-  "profit_simulation_pct": 95.66,
-  "brier_score": 0.7660249083669508,
+  "false_signals": 9,
+  "avg_accuracy": 25.0,
+  "profit_simulation_pct": 93.41,
+  "brier_score": 0.7288131377291979,
   "tier_accuracy": {
     "Tier-1": 0,
-    "Tier-2": 100,
-    "Tier-3": 16
+    "Tier-2": 66,
+    "Tier-3": 14
   },
   "recent_performance": [
+    {
+      "event": "Angel One Stock Split & NCD Allotment (NSE:ANGELONE)",
+      "is_correct": false,
+      "move": -1.3086439931697669e-08
+    },
+    {
+      "event": "Reliance-NVIDIA AI partnership (NSE:RELIANCE)",
+      "is_correct": false,
+      "move": 1.7514931061057837e-08
+    },
+    {
+      "event": "Zerodha's Kamath advocates for loan against shares facility (BSE:MID150CASE)",
+      "is_correct": false,
+      "move": -0.004545471884987551
+    },
+    {
+      "event": "Hypersonix Launch Window Set for Landmark Hypersonic Flight Test (NSE:HAL)",
+      "is_correct": false,
+      "move": -0.018017578125000044
+    },
     {
       "event": "Google's Commitment to Open Android",
       "is_correct": false,
@@ -40,22 +60,14 @@
       "event": "Trump Announces Stronger Tariffs - Content Unavailable",
       "is_correct": false,
       "move": 0.0059349651970861395
-    },
-    {
-      "event": "Copper prices surge to highest in over a week",
-      "is_correct": true,
-      "move": 0.8714000244140625
-    },
-    {
-      "event": "HSBC India profit up 11%",
-      "is_correct": true,
-      "move": 0.07191621470462217
     }
   ],
   "last_auto_verification": "2026-02-28T01:58:43.931124",
-  "last_manual_verification": "2026-02-26T19:32:55.751578",
-  "total_tier2": 2,
+  "last_manual_verification": "2026-03-03T09:32:34.316343",
+  "total_tier2": 3,
   "correct_tier2": 2,
-  "total_tier3": 6,
-  "correct_tier3": 1
+  "total_tier3": 7,
+  "correct_tier3": 1,
+  "total_tier1": 2,
+  "correct_tier1": 0
 }

@@ -120,9 +120,11 @@ class PriceService:
 
         # Throttle auth attempts to prevent TOTP duplicate token rate-limits
         if hasattr(self, 'last_auth_attempt') and self.last_auth_attempt:
-            if datetime.now() - self.last_auth_attempt < timedelta(seconds=35):
-                print(f"DEBUG: Angel auth throttled to prevent spam. Waiting for next TOTP window.")
-                return False
+            time_since = datetime.now() - self.last_auth_attempt
+            if time_since < timedelta(seconds=35):
+                wait_seconds = 35 - time_since.total_seconds()
+                print(f"DEBUG: Angel auth throttled to prevent spam. Waiting {wait_seconds:.1f}s for next TOTP window.")
+                await asyncio.sleep(wait_seconds)
 
         if not all([self.api_key, self.user_id, self.password, self.totp_key]):
             print("ERROR: Missing Angel One credentials.")

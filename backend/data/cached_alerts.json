@@ -230,12 +230,12 @@
     "id": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
     "link": "https://economictimes.indiatimes.com/markets/stocks/news/hsbc-india-profit-up-11-led-by-corporate-institutional-business/articleshow/128785136.cms",
     "published": "Wed, 25 Feb 2026 19:36:36 +0530",
-    "live_price": 93.16,
+    "live_price": 89.05,
     "currency": "USD",
     "timestamp": "2026-02-25T19:36:36",
     "article_summary": "Strong earnings growth in a key market (India) reflects positive sector trends and potentially increased market share. HSBC's performance is a good indicator of the health of the Indian corporate sector.",
     "predicted_price": 88.54,
-    "upside_pct": "-4.96%",
+    "upside_pct": "-0.57%",
     "stock_prices": {
       "HSBC": {
         "live": 87.88,
@@ -406,10 +406,10 @@
     "published": "2026-02-20 18:42:50",
     "article_summary": "The article reports on an approaching deadline for US importers to file refund requests related to tariffs imposed during the Trump administration. These tariffs, initially levied on goods from China, are now subject to potential refunds for businesses that paid them. The deadline is rapidly approaching, creating a sense of urgency for importers seeking to recover these costs.",
     "timestamp": "2026-02-20T18:42:50",
-    "live_price": 9776.0,
+    "live_price": 14388.0,
     "currency": "INR",
     "predicted_price": 15070.0,
-    "upside_pct": "+54.15%",
+    "upside_pct": "+4.74%",
     "stock_prices": {
       "NSE:BAJAJAUTO": {
         "live": 15070.0,
@@ -734,7 +734,28 @@
     "link": "https://6abc.com/post/bird-flu-concerns-traumatized-hainesport-twp-residents-forced-dispose-dead-birds-amid-suspected-outbreak/18618685/",
     "published": "2026-02-19T03:57:15Z",
     "article_summary": "A suspected bird flu outbreak is impacting Hainesport Township, New Jersey, with a significant number of geese and ducks dying. Residents are facing the responsibility of cleaning up the dead birds, and local parks have been closed. The New Jersey Department of Environmental Protection is monitoring the situation and has established a reporting system.",
-    "timestamp": "2026-02-19T03:57:15Z"
+    "timestamp": "2026-02-19T03:57:15Z",
+    "live_price": 2234.6,
+    "currency": "INR",
+    "predicted_price": 2067.01,
+    "upside_pct": "-7.50%",
+    "stock_prices": {
+      "NSE:APL Apollo": {
+        "live": 2234.6,
+        "predicted": 2067.01,
+        "upside": "-7.50%"
+      },
+      "NSE:Godrej Agrovet": {
+        "live": 2234.6,
+        "predicted": 2067.01,
+        "upside": "-7.50%"
+      },
+      "NSE:Venkys": {
+        "live": 2234.6,
+        "predicted": 2067.01,
+        "upside": "-7.50%"
+      }
+    }
   },
   {
     "event": "Deutsche Welle Correspondent Arrested in Ankara",
