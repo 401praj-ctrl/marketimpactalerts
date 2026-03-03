@@ -51,7 +51,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
     if (isoString == null || isoString.isEmpty) return 'Never';
     try {
       final dt = DateTime.parse(isoString).toLocal();
-      return '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final monthStr = months[dt.month - 1];
+      final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+      return '${monthStr} ${dt.day}, ${hour}:${dt.minute.toString().padLeft(2, '0')} $ampm';
     } catch (e) {
       return 'Unknown';
     }
@@ -127,7 +131,12 @@ class _PredictionScreenState extends State<PredictionScreen> {
     DateTime? nextAuto;
     if (lastAuto != null) {
       final now = DateTime.now();
-      nextAuto = DateTime(now.year, now.month, now.day + 1, 0, 0);
+      // Auto verification is scheduled for 01:00 AM
+      DateTime potentialNext = DateTime(now.year, now.month, now.day, 1, 0);
+      if (now.isAfter(potentialNext)) {
+        potentialNext = DateTime(now.year, now.month, now.day + 1, 1, 0);
+      }
+      nextAuto = potentialNext;
     }
 
     bool recentlyDone = false;

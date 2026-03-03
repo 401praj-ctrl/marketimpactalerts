@@ -1,5 +1,5 @@
 {
-    "latest_version": "1.2.14+45",
-    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B45",
-    "release_notes": "🚀 UPDATE V1.2.14+45: STRICT DATE FORMAT & UI CLEANUP\n• Strict Date Formatting: The prediction AI now strictly adheres to theory-derived single YYYY-MM-DD impact dates without fail.\n• Home Page UI Cleanup: Simplified the Home UI by removing stock prices from the alert cards. Live/Impact prices are now exclusively accessible in the Detailed View.\n• Search Fallback Hardening: Integrated Yahoo Finance autocomplete as the primary backup mechanism, boosting stock scraping success rates during DuckDuckGo rate-limits."
+    "latest_version": "1.2.14+46",
+    "download_url": "https://market-impact-backend.onrender.com/app/download?v=1.2.14%2B46",
+    "release_notes": "🚀 UPDATE V1.2.14+46: ACCURACY DASHBOARD TYPOGRAPHY FIX\n• The 'Next Scheduled' and 'Last Auto Analysis' dates in the accuracy dashboard are now fully formatted as readable strings (e.g. 'Mar 4, 1:00 AM') instead of ambiguous numbers (e.g. '4/3 0:00') that were being mistaken for statistical ratios.\n• This update includes the new 01:00 AM verification schedule.\n• Strict Date Formatting: The prediction AI now strictly adheres to theory-derived single YYYY-MM-DD impact dates without fail.\n• Search Fallback Hardening: Integrated Yahoo Finance autocomplete as the primary backup mechanism, boosting stock scraping success rates during DuckDuckGo rate-limits."
 }
