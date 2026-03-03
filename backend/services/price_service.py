@@ -94,28 +94,35 @@ class PriceService:
         print("DEBUG: Downloading fresh Angel One instrument list...")
         try:
             url = "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json"
-            response = requests.get(url, timeout=30)
-            if response.status_code == 200:
-                full_list = response.json()
-                new_map = {}
-                for item in full_list:
-                    exch = item.get('exch_seg')
-                    if exch in ['NSE', 'BSE']:
-                        symbol = item.get('symbol')
-                        if symbol:
-                            new_map[symbol] = {
-                                "token": item.get('token'),
-                                "exch": exch,
-                                "name": item.get('name')
-                            }
-                
+            loop = asyncio.get_event_loop()
+            
+            def fetch_and_parse():
+                response = requests.get(url, timeout=30)
+                if response.status_code == 200:
+                    full_list = response.json()
+                    new_map = {}
+                    for item in full_list:
+                        exch = item.get('exch_seg')
+                        if exch in ['NSE', 'BSE']:
+                            symbol = item.get('symbol')
+                            if symbol:
+                                new_map[symbol] = {
+                                    "token": item.get('token'),
+                                    "exch": exch,
+                                    "name": item.get('name')
+                                }
+                    os.makedirs(os.path.dirname(TOKEN_LIST_FILE), exist_ok=True)
+                    with open(TOKEN_LIST_FILE, "w") as f:
+                        json.dump(new_map, f)
+                    return new_map
+                else:
+                    print(f"ERROR: Failed to download token list: {response.status_code}")
+                    return None
+
+            new_map = await loop.run_in_executor(None, fetch_and_parse)
+            if new_map:
                 self.token_map = new_map
-                os.makedirs(os.path.dirname(TOKEN_LIST_FILE), exist_ok=True)
-                with open(TOKEN_LIST_FILE, "w") as f:
-                    json.dump(new_map, f)
-                print(f"DEBUG: Successfully cached {len(new_map)} Indian tokens.")
-            else:
-                print(f"ERROR: Failed to download token list: {response.status_code}")
+                print(f"DEBUG: Successfully cached {len(self.token_map)} Indian tokens.")
         except Exception as e:
             print(f"ERROR: Token list download exception: {e}")
 
